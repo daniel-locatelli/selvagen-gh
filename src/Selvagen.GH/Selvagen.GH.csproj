@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Selvagen.GH</RootNamespace>
+    <AssemblyName>Selvagen.GH</AssemblyName>
+    <Description>Grasshopper components for pushing geometry from Rhino to the Selvagen platform.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grasshopper" Version="8.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Selvagen.Core\Selvagen.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,37 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.csproj.user
+.vs/
+*.nupkg
+
+## Build
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+bld/
+
+## NuGet
+**/packages/*
+!**/packages/build/
+*.nupkg
+**/[Pp]ackages/
+project.lock.json
+
+## IDE
+.idea/
+*.sln.iml
+.vscode/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Secrets
+.env
+*.env
