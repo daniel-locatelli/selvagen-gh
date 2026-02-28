@@ -17,15 +17,17 @@ Selvagen.sln
     └── GEOMETRY_FORMAT.md   JSON schema contract for geometry assets
 ```
 
+`Selvagen.Core` multi-targets `net48` and `net8.0` so it can be referenced by the Grasshopper plugin (net48 for Rhino 7) and by the test project (net8.0). See [Target Framework Guidance](#target-framework-guidance) for details on supporting Rhino 8+.
+
 ## Grasshopper Components
 
 | Component | Tab | Description |
 |-----------|-----|-------------|
-| **Selvigen Login** | Auth | Authenticate with email/password, outputs a client object |
-| **Selvigen Projects** | Data | List available projects (IDs and names) |
-| **Selvigen Upload Mesh** | Upload | Convert and upload a Rhino mesh |
-| **Selvigen Upload Curves** | Upload | Tessellate and upload curves |
-| **Selvigen Upload Labels** | Upload | Upload 3D text labels |
+| **Selvagen Login** | Auth | Authenticate with email/password, outputs a client object |
+| **Selvagen Projects** | Data | List available projects (IDs and names) |
+| **Selvagen Upload Mesh** | Upload | Convert and upload a Rhino mesh |
+| **Selvagen Upload Curves** | Upload | Tessellate and upload curves |
+| **Selvagen Upload Labels** | Upload | Upload 3D text labels |
 
 ### Typical Workflow
 
@@ -36,8 +38,8 @@ Selvagen.sln
                                               └→ [Upload Labels]
 ```
 
-1. Drop a **Selvigen Login** component, wire in your Supabase URL, anon key, email, and password.
-2. Use **Selvigen Projects** to list your projects and pick a project ID.
+1. Drop a **Selvagen Login** component, wire in your Supabase URL, anon key, email, and password.
+2. Use **Selvagen Projects** to list your projects and pick a project ID.
 3. Connect geometry and the project ID to any **Upload** component, then toggle the `Go` input to upload.
 
 ## Coordinate System
@@ -61,7 +63,7 @@ See [`docs/GEOMETRY_FORMAT.md`](docs/GEOMETRY_FORMAT.md) for the full JSON schem
 ## Prerequisites
 
 - [Rhino 7 or 8](https://www.rhino3d.com/) with Grasshopper
-- .NET Framework 4.8 (Rhino 7) or .NET 8 (Rhino 8)
+- .NET Framework 4.8 (Rhino 7) or .NET 7.0+ (Rhino 8)
 - A Selvagen account with a Supabase project URL and anon key
 
 ## Building
@@ -81,6 +83,24 @@ Copy the output from `src/Selvagen.GH/bin/Debug/net48/` into your Grasshopper li
 dotnet test
 ```
 
+## Target Framework Guidance
+
+Rhino 8 moved from .NET Framework to .NET Core. The .NET runtime used depends on the Rhino version:
+
+| Rhino Version | Windows Runtime | macOS Runtime |
+|---------------|-----------------|---------------|
+| Rhino 7 | .NET Framework 4.8 | Mono |
+| Rhino 8 | .NET 7.0 (Framework 4.8 fallback) | .NET 7.0 |
+| Rhino 8.20+ | .NET 8.0 (Framework 4.8 fallback) | .NET 8.0 |
+
+Currently this plugin targets `net48` only for the GH project. To support Rhino 8 natively, the GH project should multi-target:
+
+```xml
+<TargetFrameworks>net7.0;net48</TargetFrameworks>
+```
+
+For multi-targeted Yak packages, binaries are placed in `net48/` and `net7.0/` subdirectories within the package. See the [Yak package anatomy guide](https://developer.rhino3d.com/guides/yak/the-anatomy-of-a-package/) and the [ShapeDiver plugin template](https://github.com/shapediver/GrasshopperPluginTemplate) for a community reference.
+
 ## API Endpoints
 
 All endpoints require a JWT Bearer token obtained via the login component.
@@ -91,6 +111,41 @@ All endpoints require a JWT Bearer token obtained via the login component.
 | POST | `/functions/v1/plugin-upload-curves` | Upload a curve set |
 | POST | `/functions/v1/plugin-upload-text3d` | Upload text labels |
 | GET | `/functions/v1/plugin-projects` | List user projects |
+
+## Developer Resources
+
+### Official Rhino/Grasshopper Documentation
+
+- [Rhino Developer Home](https://developer.rhino3d.com/) — Starting point for all Rhino plugin development
+- [Grasshopper Developer Guides](https://developer.rhino3d.com/guides/grasshopper/) — Component anatomy, data trees, multi-threading, custom GUIs, and more
+- [Your First Component (Windows)](https://developer.rhino3d.com/guides/grasshopper/your-first-component-windows/) — Tutorial for creating a Grasshopper component from scratch
+- [Installing Tools (Windows)](https://developer.rhino3d.com/guides/grasshopper/installing-tools-windows/) — Setting up Visual Studio templates for Grasshopper development
+
+### .NET Migration (Rhino 7 → 8)
+
+- [Moving to .NET Core](https://developer.rhino3d.com/guides/rhinocommon/moving-to-dotnet-core/) — Official migration guide for Rhino 8's .NET runtime change
+- [What's New in RhinoCommon](https://developer.rhino3d.com/guides/rhinocommon/whats-new/) — API changes in Rhino 8
+
+### API References
+
+- [RhinoCommon API](https://developer.rhino3d.com/api/rhinocommon/) — Full `Rhino.Geometry`, `Rhino.DocObjects`, etc.
+- [Grasshopper SDK](https://developer.rhino3d.com/api/grasshopper/) — `Grasshopper.Kernel`, `GH_Component`, parameters, data types
+- [All Rhino APIs](https://developer.rhino3d.com/api/) — Index of all available APIs (RhinoCommon, Grasshopper, C++, Eto, rhino3dm, Compute)
+
+### NuGet Packages
+
+- [RhinoCommon](https://www.nuget.org/packages/RhinoCommon/) — Rhino .NET SDK
+- [Grasshopper](https://www.nuget.org/packages/Grasshopper/) — Grasshopper SDK (pulls in RhinoCommon)
+- [Rhino.Templates](https://www.nuget.org/packages/Rhino.Templates) — `dotnet new` templates for Rhino/Grasshopper plugins
+- [Rhino.Testing](https://www.nuget.org/packages/Rhino.Testing) — NUnit testing framework for Rhino 8+ plugins
+- [Using NuGet Guide](https://developer.rhino3d.com/guides/rhinocommon/using-nuget/) — How to reference Rhino packages correctly
+
+### Community & Samples
+
+- [Rhino Developer Samples](https://github.com/mcneel/rhino-developer-samples) — Official sample plugins (branch `8` for Rhino 8)
+- [ShapeDiver Plugin Template](https://github.com/shapediver/GrasshopperPluginTemplate) — Multi-targeted Grasshopper plugin template for Rhino 7 + 8
+- [Rhino Developer Forum](https://discourse.mcneel.com/c/rhino-developer/) — Community support for plugin development
+- [Yak Package Anatomy](https://developer.rhino3d.com/guides/yak/the-anatomy-of-a-package/) — How to structure multi-targeted packages for distribution
 
 ## License
 
