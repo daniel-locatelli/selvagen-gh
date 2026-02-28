@@ -9,15 +9,15 @@ Geometry is converted from Rhino's Z-up coordinate system to Three.js Y-up forma
 ```
 Selvagen.sln
 ├── src/
-│   ├── Selvagen.Core        Core library: models, converters, API client (net48 + net8.0)
-│   └── Selvagen.GH          Grasshopper components (net48)
+│   ├── Selvagen.Core        Core library: models, converters, API client (net48 + net7.0)
+│   └── Selvagen.GH          Grasshopper components (net48 + net7.0)
 ├── tests/
 │   └── Selvagen.Core.Tests  Unit tests (net8.0, xUnit)
 └── docs/
     └── GEOMETRY_FORMAT.md   JSON schema contract for geometry assets
 ```
 
-`Selvagen.Core` multi-targets `net48` and `net8.0` so it can be referenced by the Grasshopper plugin (net48 for Rhino 7) and by the test project (net8.0). See [Target Framework Guidance](#target-framework-guidance) for details on supporting Rhino 8+.
+`Selvagen.Core` and `Selvagen.GH` both multi-target `net48` and `net7.0`, supporting Rhino 7 (.NET Framework 4.8) and Rhino 8 (.NET 7.0) natively. The test project targets `net8.0` and references Core's `net7.0` build via forward compatibility.
 
 ## Grasshopper Components
 
@@ -72,7 +72,12 @@ See [`docs/GEOMETRY_FORMAT.md`](docs/GEOMETRY_FORMAT.md) for the full JSON schem
 dotnet build Selvagen.sln
 ```
 
-Copy the output from `src/Selvagen.GH/bin/Debug/net48/` into your Grasshopper libraries folder:
+Copy the output from the appropriate target directory into your Grasshopper libraries folder:
+
+- **Rhino 7 (net48):** `src/Selvagen.GH/bin/Debug/net48/`
+- **Rhino 8 (net7.0):** `src/Selvagen.GH/bin/Debug/net7.0/`
+
+Library folder locations:
 
 - **Windows:** `%APPDATA%\Grasshopper\Libraries\`
 - **macOS:** `~/Library/Application Support/McNeel/Rhinoceros/Grasshopper/Libraries/`
@@ -93,11 +98,7 @@ Rhino 8 moved from .NET Framework to .NET Core. The .NET runtime used depends on
 | Rhino 8 | .NET 7.0 (Framework 4.8 fallback) | .NET 7.0 |
 | Rhino 8.20+ | .NET 8.0 (Framework 4.8 fallback) | .NET 8.0 |
 
-Currently this plugin targets `net48` only for the GH project. To support Rhino 8 natively, the GH project should multi-target:
-
-```xml
-<TargetFrameworks>net7.0;net48</TargetFrameworks>
-```
+This plugin multi-targets both `net48` and `net7.0`, supporting Rhino 7 and Rhino 8 natively (including macOS). The build produces separate assemblies in `net48/` and `net7.0/` output directories.
 
 For multi-targeted Yak packages, binaries are placed in `net48/` and `net7.0/` subdirectories within the package. See the [Yak package anatomy guide](https://developer.rhino3d.com/guides/yak/the-anatomy-of-a-package/) and the [ShapeDiver plugin template](https://github.com/shapediver/GrasshopperPluginTemplate) for a community reference.
 
