@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using Selvagen.Core.Api;
@@ -7,19 +8,18 @@ using Selvagen.Core.Converters;
 
 namespace Selvagen.GH.Components
 {
-    public class SelvigenUploadLabelsComponent : GH_Component
+    public class SelvagenUploadLabelsComponent : SelvagenUploadComponentBase
     {
-        public SelvigenUploadLabelsComponent()
-            : base("Selvigen Upload Labels", "SvUpLbl",
-                "Upload text labels from Rhino to the Selvagen platform.",
-                "Selvigen", "Upload")
+        public SelvagenUploadLabelsComponent()
+            : base("Selvagen Upload Labels", "SvUpLbl",
+                "Upload text labels from Rhino to the Selvagen platform.")
         { }
 
         public override Guid ComponentGuid => new Guid("f5a6b7c8-d9e0-1234-5678-90abcdef1234");
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Client", "C", "Authenticated Selvigen client", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Client", "C", "Authenticated Selvagen client", GH_ParamAccess.item);
             pManager.AddTextParameter("ProjectID", "PID", "Target project ID", GH_ParamAccess.item);
             pManager.AddPointParameter("Points", "P", "Label positions", GH_ParamAccess.list);
             pManager.AddTextParameter("Texts", "T", "Label text strings", GH_ParamAccess.list);
@@ -48,29 +48,23 @@ namespace Selvagen.GH.Components
             DA.GetData(4, ref name);
             DA.GetData(5, ref upload);
 
-            if (!upload || !(clientObj is SelvigenClient client) || points.Count == 0)
+            if (!upload || !(clientObj is SelvagenClient client) || points.Count == 0)
             {
-                DA.SetData(0, null);
-                DA.SetData(1, "Waiting...");
+                SetWaiting(DA);
                 return;
             }
 
             try
             {
                 var textSet = TextConverter.FromPointsAndTexts(points, texts);
-                var task = client.UploadText3DAsync(projectId, name, textSet);
-                task.Wait();
-                var result = task.Result;
+                var result = Task.Run(() => client.UploadText3DAsync(projectId, name, textSet)).GetAwaiter().GetResult();
 
                 DA.SetData(0, result.Id);
                 DA.SetData(1, $"Uploaded: {result.Name} ({points.Count} labels)");
             }
             catch (Exception ex)
             {
-                var msg = ex.InnerException?.Message ?? ex.Message;
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
-                DA.SetData(0, null);
-                DA.SetData(1, $"Error: {msg}");
+                SetUploadError(DA, ex);
             }
         }
     }

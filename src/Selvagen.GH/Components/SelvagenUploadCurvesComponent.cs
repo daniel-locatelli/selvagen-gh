@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using Selvagen.Core.Api;
@@ -7,19 +8,18 @@ using Selvagen.Core.Converters;
 
 namespace Selvagen.GH.Components
 {
-    public class SelvigenUploadCurvesComponent : GH_Component
+    public class SelvagenUploadCurvesComponent : SelvagenUploadComponentBase
     {
-        public SelvigenUploadCurvesComponent()
-            : base("Selvigen Upload Curves", "SvUpCrv",
-                "Upload curves from Rhino to the Selvagen platform.",
-                "Selvigen", "Upload")
+        public SelvagenUploadCurvesComponent()
+            : base("Selvagen Upload Curves", "SvUpCrv",
+                "Upload curves from Rhino to the Selvagen platform.")
         { }
 
         public override Guid ComponentGuid => new Guid("e4f5a6b7-c8d9-0123-4567-890abcdef123");
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Client", "C", "Authenticated Selvigen client", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Client", "C", "Authenticated Selvagen client", GH_ParamAccess.item);
             pManager.AddTextParameter("ProjectID", "PID", "Target project ID", GH_ParamAccess.item);
             pManager.AddCurveParameter("Curves", "Crv", "Rhino curves to upload", GH_ParamAccess.list);
             pManager.AddTextParameter("Name", "N", "Display name for the curve set", GH_ParamAccess.item);
@@ -45,29 +45,23 @@ namespace Selvagen.GH.Components
             DA.GetData(3, ref name);
             DA.GetData(4, ref upload);
 
-            if (!upload || !(clientObj is SelvigenClient client) || curves.Count == 0)
+            if (!upload || !(clientObj is SelvagenClient client) || curves.Count == 0)
             {
-                DA.SetData(0, null);
-                DA.SetData(1, "Waiting...");
+                SetWaiting(DA);
                 return;
             }
 
             try
             {
                 var curveSet = CurveConverter.ToCurveSet(curves);
-                var task = client.UploadCurvesAsync(projectId, name, curveSet);
-                task.Wait();
-                var result = task.Result;
+                var result = Task.Run(() => client.UploadCurvesAsync(projectId, name, curveSet)).GetAwaiter().GetResult();
 
                 DA.SetData(0, result.Id);
                 DA.SetData(1, $"Uploaded: {result.Name} ({curves.Count} curves)");
             }
             catch (Exception ex)
             {
-                var msg = ex.InnerException?.Message ?? ex.Message;
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
-                DA.SetData(0, null);
-                DA.SetData(1, $"Error: {msg}");
+                SetUploadError(DA, ex);
             }
         }
     }

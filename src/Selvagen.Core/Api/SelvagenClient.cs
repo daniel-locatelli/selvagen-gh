@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -11,21 +12,20 @@ namespace Selvagen.Core.Api
     /// <summary>
     /// HTTP client for the Selvagen Edge Functions API + Supabase Auth.
     /// </summary>
-    public class SelvigenClient : IDisposable
+    public class SelvagenClient : IDisposable
     {
         private readonly HttpClient _http;
         private readonly string _supabaseUrl;
         private readonly string _anonKey;
 
         private string _accessToken;
-        private string _refreshToken;
 
         /// <summary>
         /// Whether the client has a valid access token (may still be expired).
         /// </summary>
         public bool IsAuthenticated => !string.IsNullOrEmpty(_accessToken);
 
-        public SelvigenClient(string supabaseUrl, string anonKey)
+        public SelvagenClient(string supabaseUrl, string anonKey)
         {
             _supabaseUrl = supabaseUrl?.TrimEnd('/') ?? throw new ArgumentNullException(nameof(supabaseUrl));
             _anonKey = anonKey ?? throw new ArgumentNullException(nameof(anonKey));
@@ -44,18 +44,20 @@ namespace Selvagen.Core.Api
             var body = JsonSerializer.Serialize(new { email, password });
             var content = new StringContent(body, Encoding.UTF8, "application/json");
 
-            var response = await _http.PostAsync(url, content);
-            var json = await response.Content.ReadAsStringAsync();
+            var response = await _http.PostAsync(url, content).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
                 var apiError = JsonSerializer.Deserialize<ApiError>(json);
-                throw new Exception($"Login failed: {apiError?.Error ?? response.StatusCode.ToString()}");
+                throw new SelvagenApiException(
+                    $"Login failed: {apiError?.Error ?? response.StatusCode.ToString()}",
+                    (int)response.StatusCode,
+                    apiError?.Error);
             }
 
             var result = JsonSerializer.Deserialize<AuthTokenResponse>(json);
             _accessToken = result.AccessToken;
-            _refreshToken = result.RefreshToken;
 
             return result;
         }
@@ -67,13 +69,16 @@ namespace Selvagen.Core.Api
         /// </summary>
         public async Task<ProjectInfo[]> ListProjectsAsync()
         {
-            var response = await SendAuthorizedAsync(HttpMethod.Get, "/functions/v1/plugin-projects");
-            var json = await response.Content.ReadAsStringAsync();
+            var response = await SendAuthorizedAsync(HttpMethod.Get, "/functions/v1/plugin-projects").ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
                 var apiError = JsonSerializer.Deserialize<ApiError>(json);
-                throw new Exception($"List projects failed: {apiError?.Error ?? response.StatusCode.ToString()}");
+                throw new SelvagenApiException(
+                    $"List projects failed: {apiError?.Error ?? response.StatusCode.ToString()}",
+                    (int)response.StatusCode,
+                    apiError?.Error);
             }
 
             return JsonSerializer.Deserialize<ProjectInfo[]>(json);
@@ -84,8 +89,12 @@ namespace Selvagen.Core.Api
         /// <summary>
         /// Upload a mesh to a project.
         /// </summary>
-        public async Task<UploadResult> UploadMeshAsync(string projectId, string name, BufferGeometry geometry, string type = null, object metadata = null)
+        public async Task<UploadResult> UploadMeshAsync(string projectId, string name, BufferGeometry geometry, string type = null, Dictionary<string, object> metadata = null)
         {
+            if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
+            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
+            if (geometry == null) throw new ArgumentNullException(nameof(geometry));
+
             var payload = new
             {
                 name,
@@ -94,7 +103,7 @@ namespace Selvagen.Core.Api
                 type,
                 metadata,
             };
-            return await PostUploadAsync("/functions/v1/plugin-upload-mesh", payload);
+            return await PostUploadAsync("/functions/v1/plugin-upload-mesh", payload).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -102,13 +111,17 @@ namespace Selvagen.Core.Api
         /// </summary>
         public async Task<UploadResult> UploadCurvesAsync(string projectId, string name, CurveSet curveSet)
         {
+            if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
+            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
+            if (curveSet == null) throw new ArgumentNullException(nameof(curveSet));
+
             var payload = new
             {
                 name,
                 project_id = projectId,
                 geometry_data = curveSet,
             };
-            return await PostUploadAsync("/functions/v1/plugin-upload-curves", payload);
+            return await PostUploadAsync("/functions/v1/plugin-upload-curves", payload).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -116,13 +129,17 @@ namespace Selvagen.Core.Api
         /// </summary>
         public async Task<UploadResult> UploadText3DAsync(string projectId, string name, Text3DSet textSet)
         {
+            if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
+            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
+            if (textSet == null) throw new ArgumentNullException(nameof(textSet));
+
             var payload = new
             {
                 name,
                 project_id = projectId,
                 text_data = textSet,
             };
-            return await PostUploadAsync("/functions/v1/plugin-upload-text3d", payload);
+            return await PostUploadAsync("/functions/v1/plugin-upload-text3d", payload).ConfigureAwait(false);
         }
 
         // ── Helpers ─────────────────────────────────────────────────────────
@@ -131,13 +148,16 @@ namespace Selvagen.Core.Api
         {
             var body = JsonSerializer.Serialize(payload);
             var content = new StringContent(body, Encoding.UTF8, "application/json");
-            var response = await SendAuthorizedAsync(HttpMethod.Post, path, content);
-            var json = await response.Content.ReadAsStringAsync();
+            var response = await SendAuthorizedAsync(HttpMethod.Post, path, content).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
                 var apiError = JsonSerializer.Deserialize<ApiError>(json);
-                throw new Exception($"Upload failed ({response.StatusCode}): {apiError?.Error ?? json}");
+                throw new SelvagenApiException(
+                    $"Upload failed ({response.StatusCode}): {apiError?.Error ?? json}",
+                    (int)response.StatusCode,
+                    apiError?.Error);
             }
 
             return JsonSerializer.Deserialize<UploadResult>(json);
@@ -154,7 +174,7 @@ namespace Selvagen.Core.Api
             if (content != null)
                 request.Content = content;
 
-            return await _http.SendAsync(request);
+            return await _http.SendAsync(request).ConfigureAwait(false);
         }
 
         public void Dispose()

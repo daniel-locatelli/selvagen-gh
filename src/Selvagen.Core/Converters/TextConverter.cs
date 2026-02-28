@@ -26,12 +26,11 @@ namespace Selvagen.Core.Converters
             {
                 if (dot == null) continue;
 
-                var pt = dot.Point;
                 labels.Add(new LabelData
                 {
                     Id = $"label-{index}",
                     Text = dot.Text ?? "",
-                    Position = new[] { pt.X, pt.Z, -pt.Y },
+                    Position = CoordinateHelper.ToYUp(dot.Point),
                 });
 
                 index++;
@@ -54,12 +53,11 @@ namespace Selvagen.Core.Converters
             var labels = new LabelData[points.Count];
             for (int i = 0; i < points.Count; i++)
             {
-                var pt = points[i];
                 labels[i] = new LabelData
                 {
                     Id = $"label-{i}",
                     Text = texts[i] ?? "",
-                    Position = new[] { pt.X, pt.Z, -pt.Y },
+                    Position = CoordinateHelper.ToYUp(points[i]),
                 };
             }
 

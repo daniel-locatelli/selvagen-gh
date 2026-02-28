@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace Selvagen.Core.Models
@@ -69,5 +70,24 @@ namespace Selvagen.Core.Models
     {
         [JsonPropertyName("error")]
         public string Error { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Exception thrown when the Selvagen API returns an error response.
+    /// </summary>
+    public class SelvagenApiException : Exception
+    {
+        /// <summary>HTTP status code from the API response.</summary>
+        public int StatusCode { get; }
+
+        /// <summary>Error message from the API response body, if available.</summary>
+        public string ApiError { get; }
+
+        public SelvagenApiException(string message, int statusCode, string apiError = null)
+            : base(message)
+        {
+            StatusCode = statusCode;
+            ApiError = apiError;
+        }
     }
 }

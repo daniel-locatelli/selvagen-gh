@@ -1,18 +1,19 @@
 using System;
+using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Selvagen.Core.Api;
 
 namespace Selvagen.GH.Components
 {
-    public class SelvigenLoginComponent : GH_Component
+    public class SelvagenLoginComponent : GH_Component
     {
-        private SelvigenClient _client;
+        private SelvagenClient _client;
         private string _statusMessage = "Not connected";
 
-        public SelvigenLoginComponent()
-            : base("Selvigen Login", "SvLogin",
+        public SelvagenLoginComponent()
+            : base("Selvagen Login", "SvLogin",
                 "Authenticate with the Selvagen platform using email and password.",
-                "Selvigen", "Auth")
+                "Selvagen", "Auth")
         { }
 
         public override Guid ComponentGuid => new Guid("b1c2d3e4-f5a6-7890-1234-567890abcdef");
@@ -28,7 +29,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Client", "C", "Authenticated Selvigen client", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Client", "C", "Authenticated Selvagen client", GH_ParamAccess.item);
             pManager.AddTextParameter("Status", "S", "Connection status", GH_ParamAccess.item);
         }
 
@@ -52,10 +53,9 @@ namespace Selvagen.GH.Components
 
             try
             {
-                _client = new SelvigenClient(url, key);
-                var task = _client.LoginAsync(email, password);
-                task.Wait();
-                var result = task.Result;
+                _client?.Dispose();
+                _client = new SelvagenClient(url, key);
+                var result = Task.Run(() => _client.LoginAsync(email, password)).GetAwaiter().GetResult();
                 _statusMessage = $"Logged in as {result.User?.Email ?? email}";
             }
             catch (Exception ex)

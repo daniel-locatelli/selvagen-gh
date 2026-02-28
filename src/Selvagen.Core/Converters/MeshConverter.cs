@@ -28,25 +28,15 @@ namespace Selvagen.Core.Converters
             var normals = mesh.Normals;
             var faces = mesh.Faces;
 
-            // --- Build position + normal arrays (Z-up → Y-up: X,Z,-Y) ---
+            // --- Build position + normal arrays (Z-up → Y-up) ---
             var positionArray = new double[vertices.Count * 3];
             var normalArray = new double[normals.Count * 3];
 
             for (int i = 0; i < vertices.Count; i++)
-            {
-                var v = vertices[i];
-                positionArray[i * 3] = v.X;
-                positionArray[i * 3 + 1] = v.Z;      // Y_three = Z_rhino
-                positionArray[i * 3 + 2] = -v.Y;     // Z_three = -Y_rhino
-            }
+                CoordinateHelper.WriteYUp(vertices[i], positionArray, i * 3);
 
             for (int i = 0; i < normals.Count; i++)
-            {
-                var n = normals[i];
-                normalArray[i * 3] = n.X;
-                normalArray[i * 3 + 1] = n.Z;
-                normalArray[i * 3 + 2] = -n.Y;
-            }
+                CoordinateHelper.WriteYUp(normals[i], normalArray, i * 3);
 
             // --- Build index array (triangulate quads) ---
             var indices = new List<int>();
@@ -90,7 +80,7 @@ namespace Selvagen.Core.Converters
                     },
                     Index = new BufferGeometryIndex
                     {
-                        Type = indices.Count > 65535 ? "Uint32Array" : "Uint16Array",
+                        Type = vertices.Count > 65535 ? "Uint32Array" : "Uint16Array",
                         Array = indices.ToArray(),
                     },
                 },

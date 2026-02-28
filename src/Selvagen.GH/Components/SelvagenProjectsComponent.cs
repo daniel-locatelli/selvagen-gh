@@ -1,25 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Selvagen.Core.Api;
-using Selvagen.Core.Models;
 
 namespace Selvagen.GH.Components
 {
-    public class SelvigenProjectsComponent : GH_Component
+    public class SelvagenProjectsComponent : GH_Component
     {
-        public SelvigenProjectsComponent()
-            : base("Selvigen Projects", "SvProjects",
+        public SelvagenProjectsComponent()
+            : base("Selvagen Projects", "SvProjects",
                 "List projects from the Selvagen platform.",
-                "Selvigen", "Data")
+                "Selvagen", "Data")
         { }
 
         public override Guid ComponentGuid => new Guid("c2d3e4f5-a6b7-8901-2345-67890abcdef1");
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Client", "C", "Authenticated Selvigen client", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Client", "C", "Authenticated Selvagen client", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Refresh", "R", "Set to true to fetch projects", GH_ParamAccess.item, false);
         }
 
@@ -37,7 +37,7 @@ namespace Selvagen.GH.Components
             DA.GetData(0, ref clientObj);
             DA.GetData(1, ref refresh);
 
-            if (!refresh || !(clientObj is SelvigenClient client))
+            if (!refresh || !(clientObj is SelvagenClient client))
             {
                 DA.SetDataList(0, new List<string>());
                 DA.SetDataList(1, new List<string>());
@@ -46,9 +46,7 @@ namespace Selvagen.GH.Components
 
             try
             {
-                var task = client.ListProjectsAsync();
-                task.Wait();
-                var projects = task.Result;
+                var projects = Task.Run(() => client.ListProjectsAsync()).GetAwaiter().GetResult();
 
                 DA.SetDataList(0, projects.Select(p => p.Id).ToList());
                 DA.SetDataList(1, projects.Select(p => p.Name).ToList());

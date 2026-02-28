@@ -11,11 +11,14 @@ namespace Selvagen.Core.Converters
     /// </summary>
     public static class CurveConverter
     {
+        /// <summary>Angle tolerance in radians for NURBS → polyline tessellation.</summary>
+        private const double AngleTolerance = 0.1;
+
         /// <summary>
         /// Convert a collection of Rhino curves to a CurveSet model.
         /// </summary>
         /// <param name="curves">Rhino curves (Z-up coordinate system).</param>
-        /// <param name="tolerance">Tessellation tolerance for NURBS → polyline. Default uses Rhino document tolerance.</param>
+        /// <param name="tolerance">Distance tolerance for NURBS → polyline tessellation.</param>
         /// <returns>CurveSet in Y-up coordinate system.</returns>
         public static CurveSet ToCurveSet(IEnumerable<Curve> curves, double tolerance = 0.01)
         {
@@ -29,17 +32,12 @@ namespace Selvagen.Core.Converters
             {
                 if (curve == null) continue;
 
-                var polyline = curve.ToPolyline(tolerance, 0.1, 0, 0)?.ToPolyline();
+                var polyline = curve.ToPolyline(tolerance, AngleTolerance, 0, 0)?.ToPolyline();
                 if (polyline == null) continue;
 
                 var points = new double[polyline.Count * 3];
                 for (int i = 0; i < polyline.Count; i++)
-                {
-                    var pt = polyline[i];
-                    points[i * 3] = pt.X;
-                    points[i * 3 + 1] = pt.Z;      // Y_three = Z_rhino
-                    points[i * 3 + 2] = -pt.Y;     // Z_three = -Y_rhino
-                }
+                    CoordinateHelper.WriteYUp(polyline[i], points, i * 3);
 
                 curveDataList.Add(new CurveData
                 {

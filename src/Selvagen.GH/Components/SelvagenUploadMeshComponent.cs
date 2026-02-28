@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using Selvagen.Core.Api;
@@ -6,19 +7,18 @@ using Selvagen.Core.Converters;
 
 namespace Selvagen.GH.Components
 {
-    public class SelvigenUploadMeshComponent : GH_Component
+    public class SelvagenUploadMeshComponent : SelvagenUploadComponentBase
     {
-        public SelvigenUploadMeshComponent()
-            : base("Selvigen Upload Mesh", "SvUpMesh",
-                "Upload a Rhino mesh to the Selvagen platform.",
-                "Selvigen", "Upload")
+        public SelvagenUploadMeshComponent()
+            : base("Selvagen Upload Mesh", "SvUpMesh",
+                "Upload a Rhino mesh to the Selvagen platform.")
         { }
 
         public override Guid ComponentGuid => new Guid("d3e4f5a6-b7c8-9012-3456-7890abcdef12");
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Client", "C", "Authenticated Selvigen client", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Client", "C", "Authenticated Selvagen client", GH_ParamAccess.item);
             pManager.AddTextParameter("ProjectID", "PID", "Target project ID", GH_ParamAccess.item);
             pManager.AddMeshParameter("Mesh", "M", "Rhino mesh to upload", GH_ParamAccess.item);
             pManager.AddTextParameter("Name", "N", "Display name for the mesh", GH_ParamAccess.item);
@@ -44,29 +44,23 @@ namespace Selvagen.GH.Components
             DA.GetData(3, ref name);
             DA.GetData(4, ref upload);
 
-            if (!upload || !(clientObj is SelvigenClient client) || mesh == null)
+            if (!upload || !(clientObj is SelvagenClient client) || mesh == null)
             {
-                DA.SetData(0, null);
-                DA.SetData(1, "Waiting...");
+                SetWaiting(DA);
                 return;
             }
 
             try
             {
                 var geometry = MeshConverter.ToBufferGeometry(mesh);
-                var task = client.UploadMeshAsync(projectId, name, geometry);
-                task.Wait();
-                var result = task.Result;
+                var result = Task.Run(() => client.UploadMeshAsync(projectId, name, geometry)).GetAwaiter().GetResult();
 
                 DA.SetData(0, result.Id);
                 DA.SetData(1, $"Uploaded: {result.Name}");
             }
             catch (Exception ex)
             {
-                var msg = ex.InnerException?.Message ?? ex.Message;
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
-                DA.SetData(0, null);
-                DA.SetData(1, $"Error: {msg}");
+                SetUploadError(DA, ex);
             }
         }
     }
