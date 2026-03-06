@@ -22,51 +22,52 @@ FINAL = 24
 OUT = os.path.dirname(os.path.abspath(__file__))
 
 # ── Palette ──────────────────────────────────────────────────────────
-# Near-black bodies with bright white features for high contrast.
+# Muted, distinct colors per icon — follows GH convention of recognizable
+# colored silhouettes with dark outlines and subtle gradients.
 
-OUTLINE = (10, 10, 10)          # almost black for silhouettes
-OUTLINE_LIGHT = (25, 25, 25)    # slightly lighter for internal edges
+OUTLINE = (40, 40, 40)          # dark gray for silhouettes
+OUTLINE_LIGHT = (60, 60, 60)    # slightly lighter for internal edges
 
-# Grayscale tonal ranges (light, main, dark) — very dark bodies
-GREEN_L  = (55, 55, 55)
-GREEN    = (35, 35, 35)
-GREEN_D  = (18, 18, 18)
+# Each color has (light, main, dark) for gradient fills
+GREEN_L  = (120, 190, 100)
+GREEN    = (75, 150, 60)
+GREEN_D  = (45, 100, 35)
 
-GOLD_L   = (62, 62, 62)
-GOLD     = (40, 40, 40)
-GOLD_D   = (22, 22, 22)
+GOLD_L   = (230, 195, 80)
+GOLD     = (200, 165, 50)
+GOLD_D   = (160, 125, 30)
 
-BLUE_L   = (50, 50, 50)
-BLUE     = (32, 32, 32)
-BLUE_D   = (16, 16, 16)
+BLUE_L   = (100, 150, 210)
+BLUE     = (65, 115, 180)
+BLUE_D   = (40, 80, 140)
 
-TEAL_L   = (58, 58, 58)
-TEAL     = (38, 38, 38)
-TEAL_D   = (20, 20, 20)
+TEAL_L   = (80, 195, 185)
+TEAL     = (50, 160, 150)
+TEAL_D   = (30, 120, 110)
 
-RED_L    = (48, 48, 48)
-RED      = (30, 30, 30)
-RED_D    = (15, 15, 15)
+RED_L    = (210, 95, 85)
+RED      = (180, 65, 55)
+RED_D    = (140, 40, 35)
 
-BROWN_L  = (60, 60, 60)
-BROWN    = (40, 40, 40)
-BROWN_D  = (22, 22, 22)
+BROWN_L  = (170, 130, 90)
+BROWN    = (140, 100, 65)
+BROWN_D  = (100, 70, 45)
 
-PURPLE_L = (50, 50, 50)
-PURPLE   = (32, 32, 32)
-PURPLE_D = (16, 16, 16)
+PURPLE_L = (155, 115, 195)
+PURPLE   = (120, 80, 165)
+PURPLE_D = (85, 50, 130)
 
-ORANGE_L = (58, 58, 58)
-ORANGE   = (38, 38, 38)
-ORANGE_D = (20, 20, 20)
+ORANGE_L = (240, 170, 70)
+ORANGE   = (210, 140, 40)
+ORANGE_D = (175, 110, 20)
 
-SLATE_L  = (48, 48, 48)
-SLATE    = (30, 30, 30)
-SLATE_D  = (16, 16, 16)
+SLATE_L  = (130, 140, 155)
+SLATE    = (95, 105, 120)
+SLATE_D  = (65, 75, 90)
 
-# Uniform feature/highlight color — bright white for all secondary details
-WHITE    = (220, 220, 220)
-WHITE_D  = (185, 185, 185)
+# Feature/highlight color — bright for contrast against colored bodies
+WHITE    = (240, 240, 240)
+WHITE_D  = (200, 200, 200)
 
 # ── Standardized widths (in 24-space) ────────────────────────────────
 W_SILHOUETTE = 0.6    # outer silhouette outlines
