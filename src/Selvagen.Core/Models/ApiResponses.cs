@@ -64,6 +64,72 @@ namespace Selvagen.Core.Models
     }
 
     /// <summary>
+    /// Lightweight firm info for list-clients flow.
+    /// </summary>
+    public class FirmInfo
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = "";
+
+        [JsonPropertyName("legal_name")]
+        public string LegalName { get; set; } = "";
+        
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Lightweight asset info returned when listing meshes, curve_sets, or text_3d_sets.
+    /// </summary>
+    public class AssetInfo
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = "";
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = "";
+
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = "";
+
+        [JsonPropertyName("created_at")]
+        public string CreatedAt { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Response when creating an animation sequence.
+    /// </summary>
+    public class AnimationSequenceInfo
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = "";
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = "";
+
+        [JsonPropertyName("frame_count")]
+        public int FrameCount { get; set; }
+
+        [JsonPropertyName("created_at")]
+        public string CreatedAt { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Represents a generic module record (Topography, Geology, etc.).
+    /// </summary>
+    public class ModuleRecord
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = "";
+
+        [JsonPropertyName("project_id")]
+        public string ProjectId { get; set; } = "";
+
+        [JsonPropertyName("created_at")]
+        public string CreatedAt { get; set; } = "";
+    }
+
+    /// <summary>
     /// Error response from Edge Functions.
     /// </summary>
     public class ApiError

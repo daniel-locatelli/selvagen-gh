@@ -1,20 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net7.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Selvagen.Core</RootNamespace>
     <AssemblyName>Selvagen.Core</AssemblyName>
     <Description>Core library for Selvagen Grasshopper plugin — geometry converters, API client, and data models.</Description>
+    <NoWarn>NU1701;NETSDK1086</NoWarn>
+    <Version>1.0</Version>
+    <Title>Selvagen.Core</Title>
+    <Company>Selvagen Authors</Company>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="RhinoCommon" Version="8.*" />
+    <PackageReference Include="RhinoCommon" Version="8.*" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="System.Net.Http" Version="4.*" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+    <PackageReference Include="System.Text.Json" Version="10.0.3" />
   </ItemGroup>
 
 </Project>

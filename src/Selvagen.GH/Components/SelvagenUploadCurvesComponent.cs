@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using Selvagen.Core.Api;
 using Selvagen.Core.Converters;
 
 namespace Selvagen.GH.Components
@@ -11,15 +10,14 @@ namespace Selvagen.GH.Components
     public class SelvagenUploadCurvesComponent : SelvagenUploadComponentBase
     {
         public SelvagenUploadCurvesComponent()
-            : base("Selvagen Upload Curves", "SvUpCrv",
-                "Upload curves from Rhino to the Selvagen platform.")
+            : base("Upload Curves", "SvUpCrv",
+                "Upload curves from Rhino to the platform.")
         { }
 
         public override Guid ComponentGuid => new Guid("e4f5a6b7-c8d9-0123-4567-890abcdef123");
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Client", "C", "Authenticated Selvagen client", GH_ParamAccess.item);
             pManager.AddTextParameter("ProjectID", "PID", "Target project ID", GH_ParamAccess.item);
             pManager.AddCurveParameter("Curves", "Crv", "Rhino curves to upload", GH_ParamAccess.list);
             pManager.AddTextParameter("Name", "N", "Display name for the curve set", GH_ParamAccess.item);
@@ -34,19 +32,21 @@ namespace Selvagen.GH.Components
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            object clientObj = null;
             string projectId = "", name = "";
             var curves = new List<Curve>();
             bool upload = false;
 
-            DA.GetData(0, ref clientObj);
-            DA.GetData(1, ref projectId);
-            DA.GetDataList(2, curves);
-            DA.GetData(3, ref name);
-            DA.GetData(4, ref upload);
+            DA.GetData(0, ref projectId);
+            DA.GetDataList(1, curves);
+            DA.GetData(2, ref name);
+            DA.GetData(3, ref upload);
 
-            if (!upload || !(clientObj is SelvagenClient client) || curves.Count == 0)
+            var client = SessionManager.Current;
+
+            if (!upload || client == null || curves.Count == 0)
             {
+                if (client == null && upload)
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 SetWaiting(DA);
                 return;
             }
@@ -64,5 +64,7 @@ namespace Selvagen.GH.Components
                 SetUploadError(DA, ex);
             }
         }
+
+        protected override System.Drawing.Bitmap Icon => IconLoader.Load("UploadCurves");
     }
 }

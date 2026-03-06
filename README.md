@@ -21,26 +21,38 @@ Selvagen.sln
 
 ## Grasshopper Components
 
-| Component | Tab | Description |
-|-----------|-----|-------------|
-| **Selvagen Login** | Auth | Authenticate with email/password, outputs a client object |
-| **Selvagen Projects** | Data | List available projects (IDs and names) |
-| **Selvagen Upload Mesh** | Upload | Convert and upload a Rhino mesh |
-| **Selvagen Upload Curves** | Upload | Tessellate and upload curves |
-| **Selvagen Upload Labels** | Upload | Upload 3D text labels |
+| Component | Tab | Nickname | Description |
+|-----------|-----|----------|-------------|
+| **Selvagen Login** | Auth | SvLogin | Authenticate with email/password, outputs a client object |
+| **Selvagen Clients** | Data | SvClients | List firm clients |
+| **Selvagen Projects** | Data | SvProjects | List projects (with optional client filter) |
+| **Selvagen List Assets** | Data | SvAssets | List meshes, curves, or labels for a project |
+| **Selvagen Project Modules** | Data | SvModules | Check which modules have records |
+| **Selvagen Delete Asset** | Data | SvDelete | Delete a geometry asset by ID |
+| **Selvagen Upload Mesh** | Upload | SvUpMesh | Convert and upload a Rhino mesh |
+| **Selvagen Upload Curves** | Upload | SvUpCrv | Tessellate and upload curves |
+| **Selvagen Upload Labels** | Upload | SvUpLbl | Upload 3D text labels |
+| **Selvagen Upload Animation** | Upload | SvUpAnim | Upload a mesh sequence as animation |
+| **Selvagen Topography** | Modules | SvTopo | Populate topography data (28 fields) |
+| **Selvagen Geology** | Modules | SvGeo | Populate geology data (14 fields) |
+| **Selvagen Analyses** | Modules | SvAnalyses | Populate analyses data (22 fields) |
+| **Selvagen Optimizations** | Modules | SvOptim | Populate optimizations data (27 fields) |
+
+For full input/output documentation, examples, and troubleshooting, see [`docs/PLUGIN_GUIDE.md`](docs/PLUGIN_GUIDE.md).
 
 ### Typical Workflow
 
 ```
-[Login] → Client → [Projects] → Project ID ─┐
-                                              ├→ [Upload Mesh]
-                         Rhino Geometry ──────┤→ [Upload Curves]
-                                              └→ [Upload Labels]
+[Login] → Client → [Projects] → Project ID ─┬→ [Upload Mesh]   → MeshID ──┐
+                                              ├→ [Upload Curves] → CrvID   ├→ [Topography]
+                         Rhino Geometry ──────┤→ [Upload Labels] → LblID ──┘
+                                              └→ [Upload Animation]
 ```
 
-1. Drop a **Selvagen Login** component, wire in your Supabase URL, anon key, email, and password.
+1. Drop a **Selvagen Login** component and enter your email and password.
 2. Use **Selvagen Projects** to list your projects and pick a project ID.
-3. Connect geometry and the project ID to any **Upload** component, then toggle the `Go` input to upload.
+3. Connect geometry and the project ID to any **Upload** component, then toggle `Go` to upload.
+4. Wire the resulting asset IDs into a **Module** component (Topography, Geology, etc.) along with computed scalar values, then toggle `Go` to push module data.
 
 ## Coordinate System
 
@@ -106,12 +118,30 @@ For multi-targeted Yak packages, binaries are placed in `net48/` and `net7.0/` s
 
 All endpoints require a JWT Bearer token obtained via the login component.
 
+### Edge Functions
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/functions/v1/plugin-upload-mesh` | Upload a mesh |
 | POST | `/functions/v1/plugin-upload-curves` | Upload a curve set |
 | POST | `/functions/v1/plugin-upload-text3d` | Upload text labels |
 | GET | `/functions/v1/plugin-projects` | List user projects |
+
+### PostgREST (Direct Table Access)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/rest/v1/firm_clients` | List firm clients |
+| GET | `/rest/v1/projects` | List projects (with filters) |
+| GET | `/rest/v1/meshes` | List mesh assets |
+| GET | `/rest/v1/curve_sets` | List curve set assets |
+| GET | `/rest/v1/text_3d_sets` | List text 3D set assets |
+| GET | `/rest/v1/{module_table}` | Query module records (topography, geology, etc.) |
+| POST | `/rest/v1/{module_table}` | Create module record |
+| PATCH | `/rest/v1/{module_table}` | Update module record fields |
+| DELETE | `/rest/v1/{asset_table}` | Delete geometry asset |
+| POST | `/rest/v1/animation_sequences` | Create animation sequence |
+| POST | `/rest/v1/animation_frames` | Upload animation frame |
 
 ## Developer Resources
 

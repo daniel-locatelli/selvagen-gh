@@ -12,5 +12,6 @@ namespace Selvagen.GH
         public override string AuthorName => "Selvagen";
         public override string AuthorContact => "https://selvagen.com";
         public override Bitmap Icon => null;
+        public override string AssemblyVersion => GetType().Assembly.GetName().Version.ToString();
     }
 }

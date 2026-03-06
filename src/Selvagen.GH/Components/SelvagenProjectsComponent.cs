@@ -4,14 +4,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Selvagen.Core.Api;
+using Selvagen.Core.Models;
 
 namespace Selvagen.GH.Components
 {
     public class SelvagenProjectsComponent : GH_Component
     {
+        private ProjectInfo[] _cachedProjects;
+        private bool _refreshWasTrue;
+
         public SelvagenProjectsComponent()
-            : base("Selvagen Projects", "SvProjects",
-                "List projects from the Selvagen platform.",
+            : base("List Projects", "SvProjects",
+                "List projects from the platform.",
                 "Selvagen", "Data")
         { }
 
@@ -19,8 +23,9 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Client", "C", "Authenticated Selvagen client", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Refresh", "R", "Set to true to fetch projects", GH_ParamAccess.item, false);
+            pManager.AddTextParameter("ClientID", "Id", "Optional client filter", GH_ParamAccess.item, "");
+            pManager[0].Optional = true;
+            pManager.AddBooleanParameter("Refresh", "R", "Force a re-fetch", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -31,32 +36,51 @@ namespace Selvagen.GH.Components
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            object clientObj = null;
+            string clientId = "";
             bool refresh = false;
 
-            DA.GetData(0, ref clientObj);
+            DA.GetData(0, ref clientId);
             DA.GetData(1, ref refresh);
 
-            if (!refresh || !(clientObj is SelvagenClient client))
+            var client = SessionManager.Current;
+            if (client == null)
             {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 DA.SetDataList(0, new List<string>());
                 DA.SetDataList(1, new List<string>());
                 return;
             }
 
-            try
-            {
-                var projects = Task.Run(() => client.ListProjectsAsync()).GetAwaiter().GetResult();
+            bool needsFetch = _cachedProjects == null || (refresh && !_refreshWasTrue);
+            _refreshWasTrue = refresh;
 
-                DA.SetDataList(0, projects.Select(p => p.Id).ToList());
-                DA.SetDataList(1, projects.Select(p => p.Name).ToList());
-            }
-            catch (Exception ex)
+            if (needsFetch)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, ex.InnerException?.Message ?? ex.Message);
-                DA.SetDataList(0, new List<string>());
-                DA.SetDataList(1, new List<string>());
+                try
+                {
+                    PluginLogger.Log("SelvagenProjectsComponent: Fetching projects...");
+                    if (string.IsNullOrEmpty(clientId))
+                        _cachedProjects = Task.Run(() => client.ListProjectsAsync()).GetAwaiter().GetResult();
+                    else
+                        _cachedProjects = Task.Run(() => client.ListProjectsByClientAsync(clientId)).GetAwaiter().GetResult();
+                    PluginLogger.Log($"SelvagenProjectsComponent: Found {_cachedProjects.Length} projects.");
+                }
+                catch (Exception ex)
+                {
+                    string errorMsg = ex.InnerException?.Message ?? ex.Message;
+                    PluginLogger.Log($"SelvagenProjectsComponent Error: {errorMsg}");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, errorMsg);
+                    DA.SetDataList(0, new List<string>());
+                    DA.SetDataList(1, new List<string>());
+                    return;
+                }
             }
+
+            DA.SetDataList(0, _cachedProjects.Select(p => p.Id).ToList());
+            DA.SetDataList(1, _cachedProjects.Select(p => p.Name).ToList());
         }
+
+        public override GH_Exposure Exposure => GH_Exposure.primary;
+        protected override System.Drawing.Bitmap Icon => IconLoader.Load("Projects");
     }
 }
