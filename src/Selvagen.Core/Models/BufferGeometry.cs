@@ -46,6 +46,10 @@ namespace Selvagen.Core.Models
 
         [JsonPropertyName("normal")]
         public BufferAttribute Normal { get; set; }
+
+        [JsonPropertyName("color")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public BufferAttribute Color { get; set; }
     }
 
     public class BufferAttribute

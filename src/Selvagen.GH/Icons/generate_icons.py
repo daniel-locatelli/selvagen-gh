@@ -22,52 +22,51 @@ FINAL = 24
 OUT = os.path.dirname(os.path.abspath(__file__))
 
 # ── Palette ──────────────────────────────────────────────────────────
-# Muted, distinct colors per icon — follows GH convention of recognizable
-# colored silhouettes with dark outlines and subtle gradients.
+# Near-black bodies with bright white features for high contrast.
 
-OUTLINE = (40, 40, 40)          # dark gray for silhouettes
-OUTLINE_LIGHT = (60, 60, 60)    # slightly lighter for internal edges
+OUTLINE = (10, 10, 10)          # almost black for silhouettes
+OUTLINE_LIGHT = (25, 25, 25)    # slightly lighter for internal edges
 
-# Each color has (light, main, dark) for gradient fills
-GREEN_L  = (120, 190, 100)
-GREEN    = (75, 150, 60)
-GREEN_D  = (45, 100, 35)
+# Grayscale tonal ranges (light, main, dark) — very dark bodies
+GREEN_L  = (55, 55, 55)
+GREEN    = (35, 35, 35)
+GREEN_D  = (18, 18, 18)
 
-GOLD_L   = (230, 195, 80)
-GOLD     = (200, 165, 50)
-GOLD_D   = (160, 125, 30)
+GOLD_L   = (62, 62, 62)
+GOLD     = (40, 40, 40)
+GOLD_D   = (22, 22, 22)
 
-BLUE_L   = (100, 150, 210)
-BLUE     = (65, 115, 180)
-BLUE_D   = (40, 80, 140)
+BLUE_L   = (50, 50, 50)
+BLUE     = (32, 32, 32)
+BLUE_D   = (16, 16, 16)
 
-TEAL_L   = (80, 195, 185)
-TEAL     = (50, 160, 150)
-TEAL_D   = (30, 120, 110)
+TEAL_L   = (58, 58, 58)
+TEAL     = (38, 38, 38)
+TEAL_D   = (20, 20, 20)
 
-RED_L    = (210, 95, 85)
-RED      = (180, 65, 55)
-RED_D    = (140, 40, 35)
+RED_L    = (48, 48, 48)
+RED      = (30, 30, 30)
+RED_D    = (15, 15, 15)
 
-BROWN_L  = (170, 130, 90)
-BROWN    = (140, 100, 65)
-BROWN_D  = (100, 70, 45)
+BROWN_L  = (60, 60, 60)
+BROWN    = (40, 40, 40)
+BROWN_D  = (22, 22, 22)
 
-PURPLE_L = (155, 115, 195)
-PURPLE   = (120, 80, 165)
-PURPLE_D = (85, 50, 130)
+PURPLE_L = (50, 50, 50)
+PURPLE   = (32, 32, 32)
+PURPLE_D = (16, 16, 16)
 
-ORANGE_L = (240, 170, 70)
-ORANGE   = (210, 140, 40)
-ORANGE_D = (175, 110, 20)
+ORANGE_L = (58, 58, 58)
+ORANGE   = (38, 38, 38)
+ORANGE_D = (20, 20, 20)
 
-SLATE_L  = (130, 140, 155)
-SLATE    = (95, 105, 120)
-SLATE_D  = (65, 75, 90)
+SLATE_L  = (48, 48, 48)
+SLATE    = (30, 30, 30)
+SLATE_D  = (16, 16, 16)
 
-# Feature/highlight color — bright for contrast against colored bodies
-WHITE    = (240, 240, 240)
-WHITE_D  = (200, 200, 200)
+# Uniform feature/highlight color — bright white for all secondary details
+WHITE    = (220, 220, 220)
+WHITE_D  = (185, 185, 185)
 
 # ── Standardized widths (in 24-space) ────────────────────────────────
 W_SILHOUETTE = 0.6    # outer silhouette outlines
@@ -235,16 +234,16 @@ def icon_projects():
 
 
 def icon_list_assets():
-    """List with white bullets and bars"""
+    """Black list with dark bullets and bars"""
     img = new()
     d = ImageDraw.Draw(img)
 
     for i, y in enumerate([6, 11.5, 17]):
-        # Bullet (white — uniform feature color)
-        d.ellipse([s(4), s(y), s(7), s(y + 3)], fill=WHITE, outline=OUTLINE, width=s(W_INTERNAL))
+        # Bullet
+        d.ellipse([s(4), s(y), s(7), s(y + 3)], fill=SLATE, outline=OUTLINE, width=s(W_INTERNAL))
         # Line bar
         bar = sp([(9, y + 0.3), (20, y + 0.3), (20, y + 2.7), (9, y + 2.7)])
-        d.polygon(bar, fill=WHITE_D, outline=OUTLINE_LIGHT, width=s(W_INTERNAL))
+        d.polygon(bar, fill=SLATE_L, outline=OUTLINE, width=s(W_INTERNAL))
 
     finalize(img, "ListAssets")
 
@@ -293,9 +292,9 @@ def icon_delete():
     d = ImageDraw.Draw(img)
     d.polygon(body, outline=OUTLINE, width=s(W_SILHOUETTE))
 
-    # Ribs (white — uniform feature color)
+    # Ribs
     for x in [10, 12, 14]:
-        d.line([s(x), s(10.5), s(x), s(18.5)], fill=WHITE_D, width=s(W_INTERNAL))
+        d.line([s(x), s(10.5), s(x), s(18.5)], fill=WHITE, width=s(W_GROUND))
 
     finalize(img, "Delete")
 
@@ -317,49 +316,73 @@ def _up_arrow(d, cx, top, fill_c, outline_c):
 
 
 def icon_upload_mesh():
-    """Green wireframe triangle with up arrow"""
+    """Delaunay-style triangulated mesh surface with up arrow"""
     img = new()
     d = ImageDraw.Draw(img)
 
-    # Filled triangle
-    tri = sp([(3, 21), (12, 5), (21, 21)])
-    tgrad = gradient_fill(d, tri, GREEN_L, GREEN_D)
-    img = Image.alpha_composite(img, tgrad)
-    d = ImageDraw.Draw(img)
-    d.polygon(tri, outline=OUTLINE, width=s(W_SILHOUETTE))
+    # Mesh vertices — shifted left/down to leave space for arrow at top-right
+    # Row 0 (top)
+    A = (4, 9)
+    B = (10, 8)
+    C = (16, 9.5)
+    # Row 1 (middle)
+    D = (3, 15)
+    E = (9, 14)
+    F = (15, 13.5)
+    G = (20, 15)
+    # Row 2 (bottom)
+    H = (2, 21)
+    I = (8, 20)
+    J = (14, 19.5)
+    K = (20, 21)
 
-    # Wireframe internal lines (white — uniform feature color)
-    d.line([s(7.5), s(13), s(16.5), s(13)], fill=WHITE_D, width=s(W_INTERNAL))
-    d.line([s(12), s(5), s(7.5), s(13)], fill=WHITE_D, width=s(W_INTERNAL))
-    d.line([s(12), s(5), s(16.5), s(13)], fill=WHITE_D, width=s(W_INTERNAL))
+    # Fill triangular faces with alternating shades
+    faces = [
+        (A, B, E), (A, D, E), (B, C, F), (B, E, F), (C, F, G),
+        (D, E, I), (D, H, I), (E, F, J), (E, I, J), (F, G, K), (F, J, K),
+    ]
+    for i, (p1, p2, p3) in enumerate(faces):
+        pts = sp([p1, p2, p3])
+        shade = GREEN_L if i % 2 == 0 else GREEN
+        d.polygon(pts, fill=shade)
 
-    # Up arrow (top-right)
-    _up_arrow(d, 18.5, 2, GREEN, OUTLINE)
+    # Draw edges (wireframe on top)
+    edges = [
+        (A, B), (B, C), (A, D), (A, E), (B, E), (B, F), (C, F), (C, G),
+        (D, E), (E, F), (F, G),
+        (D, H), (D, I), (E, I), (E, J), (F, J), (F, K), (G, K),
+        (H, I), (I, J), (J, K),
+    ]
+    for p1, p2 in edges:
+        d.line([s(p1[0]), s(p1[1]), s(p2[0]), s(p2[1])], fill=WHITE_D, width=s(W_GROUND))
+
+    # Up arrow (top-right, clear of mesh)
+    _up_arrow(d, 19, 2, GREEN, OUTLINE)
 
     finalize(img, "UploadMesh")
 
 
 def icon_upload_curves():
-    """Teal S-curve with up arrow"""
+    """Topographic contour lines with up arrow"""
     img = new()
     d = ImageDraw.Draw(img)
 
-    # Thick s-curve as a filled ribbon
-    pts_top = []
-    pts_bot = []
-    for i in range(80):
-        x = s(2) + i * (s(20) // 80)
-        y_center = s(14) + int(s(5) * math.sin(i * math.pi / 25))
-        pts_top.append((x, y_center - s(1.5)))
-        pts_bot.append((x, y_center + s(1.5)))
+    # Nested contour ellipses — like a hillside viewed from above
+    contours = [
+        # (cx, cy, rx, ry) — progressively smaller/higher
+        (9, 15, 8.5, 6),
+        (9, 14, 6.5, 4.5),
+        (9, 13, 4.5, 3),
+        (9, 12.5, 2.5, 1.8),
+    ]
+    for i, (cx, cy, rx, ry) in enumerate(contours):
+        d.ellipse(
+            [s(cx - rx), s(cy - ry), s(cx + rx), s(cy + ry)],
+            outline=OUTLINE, width=s(1.0),
+        )
 
-    ribbon = pts_top + list(reversed(pts_bot))
-    rgrad = gradient_fill(d, ribbon, TEAL_L, TEAL_D)
-    img = Image.alpha_composite(img, rgrad)
-    d = ImageDraw.Draw(img)
-    d.polygon(ribbon, outline=OUTLINE, width=s(W_INTERNAL))
-
-    _up_arrow(d, 18.5, 2, TEAL, OUTLINE)
+    # Up arrow (top-right)
+    _up_arrow(d, 19, 2, TEAL, OUTLINE)
 
     finalize(img, "UploadCurves")
 
@@ -392,25 +415,47 @@ def icon_upload_labels():
 
 
 def icon_upload_animation():
-    """Orange film frame with play triangle"""
+    """Triangulated mesh with play button and upload arrow"""
     img = new()
     d = ImageDraw.Draw(img)
 
-    # Frame
-    frame = sp([(3, 4), (21, 4), (21, 21), (3, 21)])
-    fgrad = gradient_fill(d, frame, ORANGE_L, ORANGE_D)
-    img = Image.alpha_composite(img, fgrad)
-    d = ImageDraw.Draw(img)
-    d.rounded_rectangle([s(3), s(4), s(21), s(21)], radius=s(1.5), outline=OUTLINE, width=s(W_SILHOUETTE))
+    # Mesh vertices — same style as UploadMesh but shifted to leave room for play + arrow
+    A = (4, 10)
+    B = (10, 9)
+    C = (16, 10.5)
+    D = (3, 16)
+    E = (9, 15)
+    F = (15, 14.5)
+    G = (20, 16)
+    H = (2, 21)
+    I = (8, 20)
+    J = (14, 19.5)
+    K = (20, 21)
 
-    # Sprocket holes (white — uniform feature color)
-    for x in [5.5, 9, 12.5, 16]:
-        d.rectangle([s(x), s(5), s(x + 1.5), s(6.5)], fill=WHITE_D)
-        d.rectangle([s(x), s(18.5), s(x + 1.5), s(20)], fill=WHITE_D)
+    faces = [
+        (A, B, E), (A, D, E), (B, C, F), (B, E, F), (C, F, G),
+        (D, E, I), (D, H, I), (E, F, J), (E, I, J), (F, G, K), (F, J, K),
+    ]
+    for i, (p1, p2, p3) in enumerate(faces):
+        pts = sp([p1, p2, p3])
+        shade = ORANGE_L if i % 2 == 0 else ORANGE
+        d.polygon(pts, fill=shade)
 
-    # Play triangle (white — uniform feature color)
-    play = sp([(9, 8.5), (9, 17), (17, 12.75)])
-    d.polygon(play, fill=WHITE, outline=OUTLINE_LIGHT, width=s(W_INTERNAL))
+    edges = [
+        (A, B), (B, C), (A, D), (A, E), (B, E), (B, F), (C, F), (C, G),
+        (D, E), (E, F), (F, G),
+        (D, H), (D, I), (E, I), (E, J), (F, J), (F, K), (G, K),
+        (H, I), (I, J), (J, K),
+    ]
+    for p1, p2 in edges:
+        d.line([s(p1[0]), s(p1[1]), s(p2[0]), s(p2[1])], fill=WHITE_D, width=s(W_GROUND))
+
+    # Play triangle (bottom-left)
+    play = sp([(3, 16), (3, 22), (8, 19)])
+    d.polygon(play, fill=WHITE, outline=OUTLINE, width=s(W_INTERNAL))
+
+    # Up arrow (top-right)
+    _up_arrow(d, 19, 2, ORANGE, OUTLINE)
 
     finalize(img, "UploadAnimation")
 

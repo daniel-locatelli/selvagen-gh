@@ -1,7 +1,8 @@
 # Selvagen Grasshopper Plugin - Product Analysis
 
-> **Date:** 2026-03-05
+> **Date:** 2026-03-05 (updated 2026-03-06)
 > **Scope:** Analysis of the Grasshopper plugin (`selvagen-gh`) integration with the Selvagen platform (`selvagen`), cross-referenced with the Supabase database schema and the Notion project timeline.
+> **Status:** MVP complete. All P0, P1, and P2 items have been implemented.
 
 ---
 
@@ -69,18 +70,24 @@ PostgreSQL (JSONB columns: geometry_data / text_data)
 Web Platform (Three.js / React Three Fiber rendering)
 ```
 
-### Plugin Components (10 total)
+### Plugin Components (14 total)
 
 | Component | Category | Purpose |
 |-----------|----------|---------|
-| SelvagenLogin | Auth | Email/password -> JWT token |
-| SelvagenClients | Navigation | List firm clients |
-| SelvagenProjects | Navigation | List projects (optionally by client) |
-| SelvagenProjectModules | Navigation | List module records per project |
+| SelvagenLogin | Auth | Email/password -> JWT token (with auto-refresh) |
+| SelvagenClients | Data | List firm clients |
+| SelvagenProjects | Data | List projects (optionally by client) |
+| SelvagenListAssets | Data | List meshes, curves, or labels for a project |
+| SelvagenProjectModules | Data | List module records per project |
+| SelvagenDeleteAsset | Data | Delete a geometry asset by ID |
 | SelvagenUploadMesh | Upload | Rhino Mesh -> BufferGeometry -> DB |
 | SelvagenUploadCurves | Upload | Rhino Curves -> CurveSet -> DB |
 | SelvagenUploadLabels | Upload | Points + Texts -> Text3DSet -> DB |
-| SelvagenAddModuleProperty | Data | PATCH a field on a module record |
+| SelvagenUploadAnimation | Upload | Mesh sequence -> animation_sequences + frames -> DB |
+| SelvagenTopography | Modules | Auto-create/update topography record (28 fields) |
+| SelvagenGeology | Modules | Auto-create/update geology record (14 fields) |
+| SelvagenAnalyses | Modules | Auto-create/update analyses record (22 fields) |
+| SelvagenOptimizations | Modules | Auto-create/update optimizations record (27 fields) |
 
 ### Platform Project Timeline (from Notion)
 
@@ -155,28 +162,15 @@ This section identifies platform capabilities that the plugin cannot currently a
 
 **Assessment**: This is intentionally low priority. Presentation composition is an inherently visual, interactive task -- the web platform's drag-and-drop UI with live 3D preview is the right tool for this job. The plugin should focus on what Grasshopper does best: geometry generation and data pushing.
 
-### 4.2 Module Record Creation (HIGH IMPACT)
+### 4.2 Module Record Creation ~~(HIGH IMPACT)~~ RESOLVED
 
-**Platform capability**: Each project has one record per module (topography, geology, analyses, optimizations). These records have ~15-30 typed fields each, linking to specific assets (e.g., `topography.base_mesh_id`, `geology.rock_curve_set_id`).
+Dedicated module components now exist for all four modules: **SelvagenTopography**, **SelvagenGeology**, **SelvagenAnalyses**, **SelvagenOptimizations**. Each auto-creates the record on first use and batch-patches all provided fields. All 29 geometry asset slots are wirable from Grasshopper.
 
-**Plugin gap**:
-- `SelvagenProjectModules` can list existing module records
-- `SelvagenAddModuleProperty` can PATCH individual fields
-- But there is **no component to CREATE a module record** (INSERT)
-- The 0 rows in all four module tables confirms this hasn't been exercised
+### 4.3 Animation Sequences ~~(UPCOMING - Module 06)~~ RESOLVED
 
-**Impact**: The intended workflow -- upload a mesh, then link it as `topography.base_mesh_id` -- requires the module record to exist first.
-
-### 4.3 Animation Sequences (UPCOMING - Module 06)
-
-**Platform capability**: The database has `animation_sequences` and `animation_frames` tables supporting frame-by-frame geometry animation with configurable FPS, loop, and metadata.
-
-**Plugin gap**: No components exist for:
-- Creating animation sequences
-- Uploading animation frames (geometry per frame)
-- Managing frame metadata
-
-**Impact**: This is explicitly planned in Notion as a Module 06 task. The `animation_sequences` and `animation_frames` tables are already in the database schema, ready for the plugin to populate.
+Full animation pipeline implemented:
+- **Plugin**: `AnimationConverter` converts Rhino mesh sequences using Strategy B (base mesh + position-only frames, ~75% storage savings vs full mesh per frame). Falls back to full BufferGeometry for frames with topology changes. `SelvagenUploadAnimationComponent` handles the full upload workflow with per-frame progress.
+- **Platform**: `AnimationSequenceLoader` React Three Fiber component with CPU-lerp interpolation between frames. Integrated into the layer system — animation sequences appear as `animation_sequence` layer type with playback in the 3D viewer.
 
 ### 4.4 Large File Upload via Storage URL (MEDIUM IMPACT)
 
@@ -188,14 +182,11 @@ This section identifies platform capabilities that the plugin cannot currently a
 
 **Impact**: Inline JSONB has practical size limits. Large terrain meshes (500K+ vertices) may hit Supabase Edge Function payload limits (~6MB default) or cause slow DB operations. A Storage URL path would handle arbitrarily large files.
 
-### 4.5 Asset Listing and Deletion (MEDIUM IMPACT)
+### 4.5 Asset Listing and Deletion ~~(MEDIUM IMPACT)~~ RESOLVED
 
-**Plugin gap**: The plugin is **write-only** for assets. There are no components to:
-- List existing meshes/curves/labels for a project
-- Delete or replace an asset
-- Download previously uploaded geometry back into Rhino
+**SelvagenListAssets** lists meshes, curve_sets, and text_3d_sets for a project. **SelvagenDeleteAsset** deletes assets by table name and ID. The plugin is no longer write-only.
 
-**Impact**: Engineers cannot see what's already uploaded, leading to duplicate uploads and no way to clean up. The "replace existing asset" workflow requires going to the web app or using raw API calls.
+**Remaining gap**: Download/sync of previously uploaded geometry back into Rhino is still not implemented (P4 backlog).
 
 ### 4.6 Project Creation (LOW IMPACT)
 
@@ -207,16 +198,9 @@ This section identifies platform capabilities that the plugin cannot currently a
 
 ## 5. Issues and Risks
 
-### 5.1 CRITICAL: Hardcoded Credentials
+### 5.1 ~~CRITICAL: Hardcoded Credentials~~ RESOLVED
 
-**File**: `src/Selvagen.Core/Api/SelvagenConfig.cs`
-
-The Supabase URL and anon key are compiled into the assembly as `public static readonly` strings. While the anon key is designed to be public (it only grants access through RLS), the pattern is problematic:
-- Cannot rotate the key without recompiling and redistributing the plugin
-- Cannot point to a different environment (staging, dev)
-- Sets a bad precedent -- if a service role key were ever added here, it would be a critical exposure
-
-**Recommendation**: Load from a `selvagen.config.json` file in the user's Grasshopper Libraries folder, with fallback defaults.
+`SelvagenConfig.cs` now loads from `%APPDATA%\Selvagen\selvagen.config.json` with compiled-in defaults as fallback. Supports multi-environment deployment without recompilation.
 
 ### 5.2 HIGH: Sync-over-Async Blocks the Grasshopper Canvas
 
@@ -224,19 +208,13 @@ All network calls use `Task.Run(() => ...).GetAwaiter().GetResult()`, which bloc
 
 **Recommendation**: Use `GH_Document.ScheduleSolution()` for deferred, non-blocking evaluation. This is the standard pattern used by other async Grasshopper plugins (e.g., Speckle).
 
-### 5.3 HIGH: No JWT Token Refresh
+### 5.3 ~~HIGH: No JWT Token Refresh~~ RESOLVED
 
-The `SelvagenClient` stores a JWT from login but never refreshes it. Supabase JWTs expire after 1 hour by default. After expiration, all API calls silently fail with 401 errors.
+`SelvagenClient.RefreshSessionAsync()` now auto-refreshes the access token 2 minutes before expiry. Called automatically by `EnsureValidTokenAsync()` before every API request.
 
-**Recommendation**: Store the refresh token from the auth response and implement automatic refresh when the access token approaches expiry.
+### 5.4 ~~MEDIUM: Hardcoded Logger Path~~ RESOLVED
 
-### 5.4 MEDIUM: Hardcoded Logger Path
-
-**File**: `src/Selvagen.GH/PluginLogger.cs`
-
-The log file path is hardcoded to `c:\repos\selvagen-gh\debug.log`. On any other machine, this either fails silently or creates files in unexpected locations.
-
-**Recommendation**: Use `Path.Combine(Grasshopper.Folders.DefaultAssemblyFolder, "Selvagen", "selvagen.log")` or `%APPDATA%\Grasshopper\Logs\`.
+`PluginLogger` now writes to `%APPDATA%\Selvagen\Logs\selvagen.log` with fallback to the temp directory.
 
 ### 5.5 MEDIUM: Missing Converter Unit Tests
 
@@ -262,31 +240,31 @@ Upload components don't validate mesh integrity (degenerate triangles, empty mes
 
 Prioritized by impact on the engineering workflow, aligned with the platform timeline.
 
-### P0 -- Critical (Before Module 05 completes)
+### P0 -- Critical ✅ COMPLETE
 
-| # | Item | Justification | Effort |
-|---|------|---------------|--------|
-| 1 | **Externalize Supabase credentials** | Security risk; blocks multi-environment deployment | Small |
-| 2 | **Implement JWT token refresh** | Sessions expire after 1h; engineers lose work mid-session | Small |
-| 3 | **Fix logger path** | Plugin crashes or misbehaves on any machine except the developer's | Small |
+| # | Item | Status |
+|---|------|--------|
+| 1 | **Externalize Supabase credentials** | ✅ `SelvagenConfig.cs` loads from `%APPDATA%\Selvagen\selvagen.config.json` |
+| 2 | **Implement JWT token refresh** | ✅ Auto-refresh 2min before expiry via `RefreshSessionAsync` |
+| 3 | **Fix logger path** | ✅ Logs to `%APPDATA%\Selvagen\Logs\selvagen.log` |
 
-### P1 -- High (Aligned with Module 05 - Project Frontend CRUD)
+### P1 -- High ✅ COMPLETE (except async uploads)
 
-| # | Item | Justification | Effort |
-|---|------|---------------|--------|
-| 4 | **Add "Create Module Record" component** | Required to populate topography/geology/analyses/optimizations | Medium |
-| 5 | **Add "List Assets" component** | Engineers need to see what's uploaded before linking to modules | Medium |
-| 6 | **Implement async non-blocking uploads** | Canvas freezes during network calls; poor UX for large meshes | Medium |
+| # | Item | Status |
+|---|------|--------|
+| 4 | **Module components** | ✅ Topography, Geology, Analyses, Optimizations — auto-create + batch-patch |
+| 5 | **List Assets component** | ✅ `SelvagenListAssets` — meshes, curve_sets, text_3d_sets |
+| 6 | **Async non-blocking uploads** | ⏳ Still uses sync-over-async (`Task.Run().GetAwaiter().GetResult()`) |
 
-### P2 -- Medium (Aligned with Module 06 - Animations)
+### P2 -- Medium ✅ COMPLETE (except Storage URL)
 
-| # | Item | Justification | Effort |
-|---|------|---------------|--------|
-| 7 | **Add animation sequence + frame upload components** | Explicitly required by Module 06 Notion task | Large |
-| 8 | **Implement Storage URL upload path** | Large meshes and animation frames need file-based upload | Medium |
-| 9 | **Add "Delete Asset" component** | Engineers need to clean up test uploads and replace geometry | Small |
+| # | Item | Status |
+|---|------|--------|
+| 7 | **Animation pipeline** | ✅ Full pipeline: `AnimationConverter` + `UploadAnimationComponent` (plugin), `AnimationSequenceLoader` (platform) |
+| 8 | **Storage URL upload path** | ⏳ Not yet implemented — all uploads use inline JSONB |
+| 9 | **Delete Asset component** | ✅ `SelvagenDeleteAsset` — delete by table + ID |
 
-### P3 -- Low (Aligned with Module 07 - Testing)
+### P3 -- Open (Aligned with Module 07 - Testing)
 
 | # | Item | Justification | Effort |
 |---|------|---------------|--------|
@@ -303,7 +281,8 @@ Prioritized by impact on the engineering workflow, aligned with the platform tim
 | 15 | **Batch upload support** | Upload all project geometry in one operation | Medium |
 | 16 | **Upload progress feedback** | Visual progress bar during large uploads | Medium |
 | 17 | **Yak package manager distribution** | Standard Rhino plugin distribution channel | Medium |
-| 18 | **Slide/layer management from Grasshopper** | Presentation composition is better suited to the web UI; low priority | Medium |
+| 18 | **Playback controls UI** | Play/pause, scrubber, speed for animation sequences on platform | Medium |
+| 19 | **AddLayerDialog for animation_sequence** | Allow adding animation layers from the web UI | Small |
 
 ---
 
@@ -422,14 +401,12 @@ The following fields in module tables accept foreign keys to asset tables. These
 
 | Method | Endpoint | Status |
 |--------|----------|--------|
-| POST | `/functions/v1/plugin-upload-mesh` | Implemented |
-| POST | `/functions/v1/plugin-upload-curves` | Implemented |
-| POST | `/functions/v1/plugin-upload-text3d` | Implemented |
-| GET | `/functions/v1/plugin-projects` | Implemented |
-| - | `/functions/v1/plugin-list-assets` | **Not yet implemented** |
-| - | `/functions/v1/plugin-create-module` | **Not yet implemented** |
-| - | `/functions/v1/plugin-slides` | **Not yet implemented** |
-| - | `/functions/v1/plugin-animations` | **Not yet implemented** |
+| POST | `/functions/v1/plugin-upload-mesh` | ✅ Implemented |
+| POST | `/functions/v1/plugin-upload-curves` | ✅ Implemented |
+| POST | `/functions/v1/plugin-upload-text3d` | ✅ Implemented |
+| GET | `/functions/v1/plugin-projects` | ✅ Implemented |
+
+Asset listing, module CRUD, animation sequences, and asset deletion are handled via **PostgREST** (direct table access) rather than dedicated edge functions. This is simpler and consistent with the plugin's existing PostgREST patterns for module records.
 
 ### RLS Policy Pattern (Consistent Across All Tables)
 

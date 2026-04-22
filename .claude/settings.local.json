@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(glab:*)",
+      "Bash(git config:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "WebSearch",
+      "WebFetch(domain:developer.rhino3d.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.nuget.org)",
+      "WebFetch(domain:discourse.mcneel.com)",
+      "Bash(xargs wc:*)"
+    ]
+  }
+}

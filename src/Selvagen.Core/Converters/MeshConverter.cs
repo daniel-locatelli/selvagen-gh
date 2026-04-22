@@ -38,6 +38,28 @@ namespace Selvagen.Core.Converters
             for (int i = 0; i < normals.Count; i++)
                 CoordinateHelper.WriteYUp(normals[i], normalArray, i * 3);
 
+            // --- Build vertex color array (RGB normalized 0-1) ---
+            BufferAttribute colorAttribute = null;
+            var vertexColors = mesh.VertexColors;
+            if (vertexColors != null && vertexColors.Count == vertices.Count)
+            {
+                var colorArray = new double[vertices.Count * 3];
+                for (int i = 0; i < vertexColors.Count; i++)
+                {
+                    var c = vertexColors[i];
+                    colorArray[i * 3]     = c.R / 255.0;
+                    colorArray[i * 3 + 1] = c.G / 255.0;
+                    colorArray[i * 3 + 2] = c.B / 255.0;
+                }
+                colorAttribute = new BufferAttribute
+                {
+                    ItemSize = 3,
+                    Type = "Float32Array",
+                    Array = colorArray,
+                    Normalized = false,
+                };
+            }
+
             // --- Build index array (triangulate quads) ---
             var indices = new List<int>();
             for (int i = 0; i < faces.Count; i++)
@@ -77,6 +99,7 @@ namespace Selvagen.Core.Converters
                             Array = normalArray,
                             Normalized = false,
                         },
+                        Color = colorAttribute,
                     },
                     Index = new BufferGeometryIndex
                     {
