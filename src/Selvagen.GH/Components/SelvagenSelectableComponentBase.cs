@@ -257,5 +257,10 @@ namespace Selvagen.GH.Components
         }
 
         public override GH_Exposure Exposure => GH_Exposure.primary;
+
+        public override void CreateAttributes()
+        {
+            Attributes = new SelvagenSelectorAttributes(this);
+        }
     }
 }
