@@ -9,15 +9,15 @@ Geometry is converted from Rhino's Z-up coordinate system to Three.js Y-up forma
 ```
 Selvagen.sln
 ├── src/
-│   ├── Selvagen.Core        Core library: models, converters, API client (net48 + net7.0)
-│   └── Selvagen.GH          Grasshopper components (net48 + net7.0)
+│   ├── Selvagen.Core        Core library: models, converters, API client (net48 + net8.0)
+│   └── Selvagen.GH          Grasshopper components (net48 + net8.0 + net8.0-windows)
 ├── tests/
 │   └── Selvagen.Core.Tests  Unit tests (net8.0, xUnit)
 └── docs/
     └── GEOMETRY_FORMAT.md   JSON schema contract for geometry assets
 ```
 
-`Selvagen.Core` and `Selvagen.GH` both multi-target `net48` and `net7.0`, supporting Rhino 7 (.NET Framework 4.8) and Rhino 8 (.NET 7.0) natively. The test project targets `net8.0` and references Core's `net7.0` build via forward compatibility.
+`Selvagen.Core` multi-targets `net48` and `net8.0`; `Selvagen.GH` additionally targets `net8.0-windows` for the Windows-specific Forms UI. This supports Rhino 7 (.NET Framework 4.8) and Rhino 8 (.NET 8.0) natively. The test project targets `net8.0`.
 
 ## Grasshopper Components
 
@@ -75,7 +75,7 @@ See [`docs/GEOMETRY_FORMAT.md`](docs/GEOMETRY_FORMAT.md) for the full JSON schem
 ## Prerequisites
 
 - [Rhino 7 or 8](https://www.rhino3d.com/) with Grasshopper
-- .NET Framework 4.8 (Rhino 7) or .NET 7.0+ (Rhino 8)
+- .NET Framework 4.8 (Rhino 7) or .NET 8.0+ (Rhino 8)
 - A Selvagen account with a Supabase project URL and anon key
 
 ## Building
@@ -87,7 +87,7 @@ dotnet build Selvagen.sln
 Copy the output from the appropriate target directory into your Grasshopper libraries folder:
 
 - **Rhino 7 (net48):** `src/Selvagen.GH/bin/Debug/net48/`
-- **Rhino 8 (net7.0):** `src/Selvagen.GH/bin/Debug/net7.0/`
+- **Rhino 8 (net8.0-windows):** `src/Selvagen.GH/bin/Debug/net8.0-windows/`
 
 Library folder locations:
 
@@ -100,6 +100,18 @@ Library folder locations:
 dotnet test
 ```
 
+## Running integration tests
+
+End-to-end tests drive a live Grasshopper instance through the Cordyceps MCP
+server. See [`docs/INTEGRATION_TESTING.md`](docs/INTEGRATION_TESTING.md) for
+prerequisites and setup. Quick run:
+
+```powershell
+$env:SELVAGEN_TEST_EMAIL = "you@example.com"
+$env:SELVAGEN_TEST_PASSWORD = "your-test-password"
+pwsh tests/integration/run.ps1
+```
+
 ## Target Framework Guidance
 
 Rhino 8 moved from .NET Framework to .NET Core. The .NET runtime used depends on the Rhino version:
@@ -110,9 +122,9 @@ Rhino 8 moved from .NET Framework to .NET Core. The .NET runtime used depends on
 | Rhino 8 | .NET 7.0 (Framework 4.8 fallback) | .NET 7.0 |
 | Rhino 8.20+ | .NET 8.0 (Framework 4.8 fallback) | .NET 8.0 |
 
-This plugin multi-targets both `net48` and `net7.0`, supporting Rhino 7 and Rhino 8 natively (including macOS). The build produces separate assemblies in `net48/` and `net7.0/` output directories.
+This plugin multi-targets `net48`, `net8.0`, and `net8.0-windows`, supporting Rhino 7 and Rhino 8 natively (including macOS). The build produces separate assemblies in `net48/`, `net8.0/`, and `net8.0-windows/` output directories.
 
-For multi-targeted Yak packages, binaries are placed in `net48/` and `net7.0/` subdirectories within the package. See the [Yak package anatomy guide](https://developer.rhino3d.com/guides/yak/the-anatomy-of-a-package/) and the [ShapeDiver plugin template](https://github.com/shapediver/GrasshopperPluginTemplate) for a community reference.
+For multi-targeted Yak packages, binaries are placed in `net48/` and `net8.0/` subdirectories within the package. See the [Yak package anatomy guide](https://developer.rhino3d.com/guides/yak/the-anatomy-of-a-package/) and the [ShapeDiver plugin template](https://github.com/shapediver/GrasshopperPluginTemplate) for a community reference.
 
 ## API Endpoints
 
