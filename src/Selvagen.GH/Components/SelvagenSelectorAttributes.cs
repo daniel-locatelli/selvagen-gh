@@ -42,78 +42,19 @@ namespace Selvagen.GH.Components
                 _naturalHeight = Bounds.Height;
             }
 
-            // Dropdown sits just below the input row(s).
-            float topOfDropdown = Bounds.Top + ComputeInputRowsHeight() + DropdownPadding / 2f;
-            float bottomOfDropdown = topOfDropdown + DropdownHeight + DropdownPadding / 2f;
-
-            // Find where the topmost output landed after base.Layout positioned everything.
-            float firstOutputY = float.MaxValue;
-            foreach (var output in Owner.Params.Output)
-            {
-                if (output.Attributes == null) continue;
-                if (output.Attributes.Bounds.Y < firstOutputY)
-                    firstOutputY = output.Attributes.Bounds.Y;
-            }
-
-            // Shift outputs only as far as needed to clear the dropdown's bottom edge.
-            float shift = firstOutputY < float.MaxValue
-                ? Math.Max(0f, bottomOfDropdown - firstOutputY)
-                : 0f;
-
-            if (shift > 0f)
-            {
-                foreach (var output in Owner.Params.Output)
-                {
-                    if (output.Attributes == null) continue;
-                    var b = output.Attributes.Bounds;
-                    b.Y += shift;
-                    output.Attributes.Bounds = b;
-                    var p = output.Attributes.Pivot;
-                    p.Y += shift;
-                    output.Attributes.Pivot = p;
-                }
-            }
-
-            // Expand bounds height to encompass the last output plus a small bottom pad.
-            float outputsBottom = Bounds.Top;
-            foreach (var output in Owner.Params.Output)
-            {
-                if (output.Attributes == null) continue;
-                if (output.Attributes.Bounds.Bottom > outputsBottom)
-                    outputsBottom = output.Attributes.Bounds.Bottom;
-            }
+            // Expand bounds downward to make room for the dropdown strip.
+            // Inputs and outputs keep their natural positions in the upper portion;
+            // the dropdown sits as a Karamba-style tag at the bottom.
+            int extra = DropdownHeight + DropdownPadding;
             var bounds = Bounds;
-            float requiredHeight = outputsBottom - Bounds.Top + DropdownPadding;
-            if (requiredHeight > bounds.Height)
-            {
-                bounds.Height = requiredHeight;
-                Bounds = bounds;
-            }
+            bounds.Height = _naturalHeight.Value + extra;
+            Bounds = bounds;
 
             _dropdownRect = new RectangleF(
                 Bounds.Left + InnerSidePadding,
-                topOfDropdown,
+                Bounds.Top + _naturalHeight.Value + DropdownPadding / 2f,
                 Bounds.Width - 2 * InnerSidePadding,
                 DropdownHeight);
-        }
-
-        /// <summary>
-        /// Approximate height occupied by input parameter rows. Grasshopper uses
-        /// ~20 px per row plus a small header band; this estimate is good enough
-        /// for placing the dropdown directly under the input row(s).
-        /// </summary>
-        private int ComputeInputRowsHeight()
-        {
-            // Use the actual span of input attributes if available.
-            float top = Bounds.Top;
-            float bottom = top;
-            foreach (var input in Owner.Params.Input)
-            {
-                if (input.Attributes == null) continue;
-                var b = input.Attributes.Bounds;
-                if (b.Bottom > bottom) bottom = b.Bottom;
-            }
-            return (int)Math.Max(20, bottom - top);
         }
 
         protected override void Render(GH_Canvas canvas, Graphics graphics, GH_CanvasChannel channel)
