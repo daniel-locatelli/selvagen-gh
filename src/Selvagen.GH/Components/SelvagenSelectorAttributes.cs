@@ -19,6 +19,7 @@ namespace Selvagen.GH.Components
         private const int InnerSidePadding = 6;
 
         private RectangleF _dropdownRect;
+        private float? _naturalHeight;
 
         public SelvagenSelectorAttributes(GH_Component owner) : base(owner) { }
 
@@ -26,14 +27,28 @@ namespace Selvagen.GH.Components
 
         protected override void Layout()
         {
+            // Reset bounds to the natural (base) height so base.Layout positions
+            // params from scratch — prevents compounding shifts on repeated calls.
+            if (_naturalHeight.HasValue)
+            {
+                var resetBounds = Bounds;
+                resetBounds.Height = _naturalHeight.Value;
+                Bounds = resetBounds;
+            }
+
             base.Layout();
 
-            // Expand the component bounds downward and shift outputs down to make
-            // room for the dropdown row between the input row and output rows.
-            var bounds = Bounds;
+            if (!_naturalHeight.HasValue)
+            {
+                // First Layout call: capture the natural height base.Layout produced.
+                _naturalHeight = Bounds.Height;
+            }
+
             int extra = DropdownHeight + DropdownPadding;
 
-            bounds.Height += extra;
+            // Expand bounds by exactly `extra` (absolute, not relative).
+            var bounds = Bounds;
+            bounds.Height = _naturalHeight.Value + extra;
             Bounds = bounds;
 
             // Move all output param attributes (right side) down by `extra`.
@@ -89,9 +104,17 @@ namespace Selvagen.GH.Components
             // ▼ glyph
             using (var glyphFont = GH_FontServer.NewFont("Verdana", 7f, FontStyle.Bold))
             using (var textBrush = new SolidBrush(Color.White))
+            using (var glyphFmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center })
+            using (var textFmt = new StringFormat
+            {
+                LineAlignment = StringAlignment.Center,
+                Alignment = StringAlignment.Near,
+                Trimming = StringTrimming.EllipsisCharacter,
+                FormatFlags = StringFormatFlags.NoWrap,
+            })
+            using (var labelFont = GH_FontServer.NewFont("Verdana", 7.0f, FontStyle.Regular))
             {
                 var glyphRect = new RectangleF(_dropdownRect.X + 4, _dropdownRect.Y, 12, _dropdownRect.Height);
-                var glyphFmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center };
                 graphics.DrawString("▼", glyphFont, textBrush, glyphRect, glyphFmt);
 
                 var textRect = new RectangleF(
@@ -99,17 +122,7 @@ namespace Selvagen.GH.Components
                     _dropdownRect.Y,
                     _dropdownRect.Width - 22,
                     _dropdownRect.Height);
-                var textFmt = new StringFormat
-                {
-                    LineAlignment = StringAlignment.Center,
-                    Alignment = StringAlignment.Near,
-                    Trimming = StringTrimming.EllipsisCharacter,
-                    FormatFlags = StringFormatFlags.NoWrap,
-                };
-                using (var labelFont = GH_FontServer.NewFont("Verdana", 7.0f, FontStyle.Regular))
-                {
-                    graphics.DrawString(Selector.CurrentDisplayText, labelFont, textBrush, textRect, textFmt);
-                }
+                graphics.DrawString(Selector.CurrentDisplayText, labelFont, textBrush, textRect, textFmt);
             }
         }
 
@@ -126,6 +139,7 @@ namespace Selvagen.GH.Components
         private void ShowDropdownMenu(GH_Canvas canvas)
         {
             var menu = new ToolStripDropDown { AutoClose = true };
+            Font boldFont = null;
 
             if (!Selector.HasItems)
             {
@@ -136,15 +150,25 @@ namespace Selvagen.GH.Components
                 foreach (var (id, name) in Selector.GetMenuItems())
                 {
                     string capturedId = id;
-                    var item = new ToolStripMenuItem(name)
+                    Font itemFont;
+                    if (id == Selector.SelectedId)
                     {
-                        Font = id == Selector.SelectedId
-                            ? new Font(menu.Font, FontStyle.Bold)
-                            : menu.Font,
-                    };
+                        if (boldFont == null) boldFont = new Font(menu.Font, FontStyle.Bold);
+                        itemFont = boldFont;
+                    }
+                    else
+                    {
+                        itemFont = menu.Font;
+                    }
+                    var item = new ToolStripMenuItem(name) { Font = itemFont };
                     item.Click += (s, ev) => Selector.SetSelectedId(capturedId);
                     menu.Items.Add(item);
                 }
+            }
+
+            if (boldFont != null)
+            {
+                menu.Closed += (s, ev) => boldFont.Dispose();
             }
 
             // Anchor at the bottom-left of the dropdown rect, in screen coordinates.
