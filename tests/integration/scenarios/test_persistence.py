@@ -54,8 +54,14 @@ async def test_selection_persists_across_save_and_reopen(gh, credentials):
         await call(gh, "gh_document", action="open", path=save_path)
 
     # After reopen, the SelectedID output should still be the chosen client.
+    # The List Clients component is freshly re-instantiated on reopen, so its
+    # GUID has changed — re-find it by name rather than reusing clients["guid"].
     # Need to log in again because client cache lives only in memory.
     await call(gh, "gh_document", action="recompute")
-    out2 = await call(gh, "gh_inspect", action="outputs", guid=clients["guid"])
+
+    found = await call(gh, "gh_canvas", action="find", name="Selvagen/List Clients")
+    # Cordyceps `find` returns either a single object or a list — handle both.
+    clients_after = found[0] if isinstance(found, list) else found
+    out2 = await call(gh, "gh_inspect", action="outputs", guid=clients_after["guid"])
     assert out2["outputs"][0]["values"][0] == chosen_id, \
         f"Expected persisted SelectedID {chosen_id}, got {out2['outputs'][0]['values'][0]}"
