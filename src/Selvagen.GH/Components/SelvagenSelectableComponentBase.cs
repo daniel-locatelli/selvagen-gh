@@ -27,7 +27,7 @@ namespace Selvagen.GH.Components
         protected object[] _cachedKey;
         protected string _selectedId;
         protected bool _refreshWasTrue;
-        protected string _lastFetchError;
+        private volatile string _lastFetchError;
 
         // ── Hooks subclasses implement ───────────────────────────────────────
 
