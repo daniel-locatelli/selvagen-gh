@@ -27,8 +27,7 @@ namespace Selvagen.GH.Components
 
         protected override void Layout()
         {
-            // Reset bounds to the natural (base) height so base.Layout positions
-            // params from scratch — prevents compounding shifts on repeated calls.
+            // Reset bounds to natural height so base.Layout positions params from scratch.
             if (_naturalHeight.HasValue)
             {
                 var resetBounds = Bounds;
@@ -40,31 +39,57 @@ namespace Selvagen.GH.Components
 
             if (!_naturalHeight.HasValue)
             {
-                // First Layout call: capture the natural height base.Layout produced.
                 _naturalHeight = Bounds.Height;
             }
 
-            int extra = DropdownHeight + DropdownPadding;
+            // Dropdown sits just below the input row(s).
+            float topOfDropdown = Bounds.Top + ComputeInputRowsHeight() + DropdownPadding / 2f;
+            float bottomOfDropdown = topOfDropdown + DropdownHeight + DropdownPadding / 2f;
 
-            // Expand bounds by exactly `extra` (absolute, not relative).
-            var bounds = Bounds;
-            bounds.Height = _naturalHeight.Value + extra;
-            Bounds = bounds;
-
-            // Move all output param attributes (right side) down by `extra`.
+            // Find where the topmost output landed after base.Layout positioned everything.
+            float firstOutputY = float.MaxValue;
             foreach (var output in Owner.Params.Output)
             {
                 if (output.Attributes == null) continue;
-                var b = output.Attributes.Bounds;
-                b.Y += extra;
-                output.Attributes.Bounds = b;
-                var p = output.Attributes.Pivot;
-                p.Y += extra;
-                output.Attributes.Pivot = p;
+                if (output.Attributes.Bounds.Y < firstOutputY)
+                    firstOutputY = output.Attributes.Bounds.Y;
             }
 
-            // Compute dropdown rectangle: full inner width, just below the input row.
-            float topOfDropdown = Bounds.Top + ComputeInputRowsHeight() + DropdownPadding / 2f;
+            // Shift outputs only as far as needed to clear the dropdown's bottom edge.
+            float shift = firstOutputY < float.MaxValue
+                ? Math.Max(0f, bottomOfDropdown - firstOutputY)
+                : 0f;
+
+            if (shift > 0f)
+            {
+                foreach (var output in Owner.Params.Output)
+                {
+                    if (output.Attributes == null) continue;
+                    var b = output.Attributes.Bounds;
+                    b.Y += shift;
+                    output.Attributes.Bounds = b;
+                    var p = output.Attributes.Pivot;
+                    p.Y += shift;
+                    output.Attributes.Pivot = p;
+                }
+            }
+
+            // Expand bounds height to encompass the last output plus a small bottom pad.
+            float outputsBottom = Bounds.Top;
+            foreach (var output in Owner.Params.Output)
+            {
+                if (output.Attributes == null) continue;
+                if (output.Attributes.Bounds.Bottom > outputsBottom)
+                    outputsBottom = output.Attributes.Bounds.Bottom;
+            }
+            var bounds = Bounds;
+            float requiredHeight = outputsBottom - Bounds.Top + DropdownPadding;
+            if (requiredHeight > bounds.Height)
+            {
+                bounds.Height = requiredHeight;
+                Bounds = bounds;
+            }
+
             _dropdownRect = new RectangleF(
                 Bounds.Left + InnerSidePadding,
                 topOfDropdown,
