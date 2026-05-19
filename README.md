@@ -27,7 +27,6 @@ Selvagen.sln
 | **Selvagen Clients** | Data | SvClients | List firm clients |
 | **Selvagen Projects** | Data | SvProjects | List projects (with optional client filter) |
 | **Selvagen List Assets** | Data | SvAssets | List meshes, curves, or labels for a project |
-| **Selvagen Project Modules** | Data | SvModules | Check which modules have records |
 | **Selvagen Delete Asset** | Data | SvDelete | Delete a geometry asset by ID |
 | **Selvagen Upload Mesh** | Upload | SvUpMesh | Convert and upload a Rhino mesh |
 | **Selvagen Upload Curves** | Upload | SvUpCrv | Tessellate and upload curves |

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
@@ -19,10 +20,13 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("ProjectID", "PID", "Target project ID", GH_ParamAccess.item);
-            pManager.AddPointParameter("Points", "P", "Label positions", GH_ParamAccess.list);
+            pManager.AddPlaneParameter("Planes", "Pl", "Label placement planes (origin = position, orientation drives text rotation)", GH_ParamAccess.list);
             pManager.AddTextParameter("Texts", "T", "Label text strings", GH_ParamAccess.list);
             pManager.AddTextParameter("Name", "N", "Display name for the label set", GH_ParamAccess.item);
+            pManager.AddColourParameter("Color", "C", "Per-label text colour (one per label, or a single colour for all)", GH_ParamAccess.list);
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+
+            Params.Input[4].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -34,19 +38,21 @@ namespace Selvagen.GH.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             string projectId = "", name = "";
-            var points = new List<Point3d>();
+            var planes = new List<Plane>();
             var texts = new List<string>();
+            var colors = new List<Color>();
             bool upload = false;
 
             DA.GetData(0, ref projectId);
-            DA.GetDataList(1, points);
+            DA.GetDataList(1, planes);
             DA.GetDataList(2, texts);
             DA.GetData(3, ref name);
-            DA.GetData(4, ref upload);
+            DA.GetDataList(4, colors);
+            DA.GetData(5, ref upload);
 
             var client = SessionManager.Current;
 
-            if (!upload || client == null || points.Count == 0)
+            if (!upload || client == null || planes.Count == 0)
             {
                 if (client == null && upload)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
@@ -56,11 +62,14 @@ namespace Selvagen.GH.Components
 
             try
             {
-                var textSet = TextConverter.FromPointsAndTexts(points, texts);
+                var textSet = TextConverter.FromPlanesAndTexts(
+                    planes,
+                    texts,
+                    colors: colors.Count > 0 ? colors : null);
                 var result = Task.Run(() => client.UploadText3DAsync(projectId, name, textSet)).GetAwaiter().GetResult();
 
                 DA.SetData(0, result.Id);
-                DA.SetData(1, $"Uploaded: {result.Name} ({points.Count} labels)");
+                DA.SetData(1, $"Uploaded: {result.Name} ({planes.Count} labels)");
             }
             catch (Exception ex)
             {

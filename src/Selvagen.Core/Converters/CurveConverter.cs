@@ -20,13 +20,13 @@ namespace Selvagen.Core.Converters
         /// </summary>
         /// <param name="curves">Rhino curves (Z-up coordinate system).</param>
         /// <param name="colors">Optional per-curve colors. If shorter than curves, the last color repeats.</param>
-        /// <param name="linewidth">Optional uniform line width for all curves.</param>
+        /// <param name="linewidths">Optional per-curve line widths. If shorter than curves, the last width repeats.</param>
         /// <param name="tolerance">Distance tolerance for NURBS → polyline tessellation.</param>
         /// <returns>CurveSet in Y-up coordinate system.</returns>
         public static CurveSet ToCurveSet(
             IEnumerable<Curve> curves,
             IList<Color> colors = null,
-            double? linewidth = null,
+            IList<double> linewidths = null,
             double tolerance = 0.01)
         {
             if (curves == null)
@@ -53,15 +53,14 @@ namespace Selvagen.Core.Converters
                     Closed = curve.IsClosed,
                 };
 
-                // Apply per-curve color (repeat last if list is shorter)
                 if (colors != null && colors.Count > 0)
                 {
                     var c = colors[Math.Min(index, colors.Count - 1)];
                     data.Color = $"#{c.R:x2}{c.G:x2}{c.B:x2}";
                 }
 
-                if (linewidth.HasValue)
-                    data.Linewidth = linewidth.Value;
+                if (linewidths != null && linewidths.Count > 0)
+                    data.Linewidth = linewidths[Math.Min(index, linewidths.Count - 1)];
 
                 curveDataList.Add(data);
                 index++;

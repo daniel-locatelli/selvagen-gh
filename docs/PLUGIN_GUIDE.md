@@ -98,24 +98,6 @@ List existing geometry assets for a project.
 
 ---
 
-#### Selvagen Project Modules (`SvModules`)
-
-List all module types for a project and whether records exist.
-
-| Input | Nickname | Type | Description |
-|-------|----------|------|-------------|
-| Client | C | Object | Authenticated client |
-| ProjectID | ID | Text | Target project UUID |
-| Refresh | R | Boolean | Toggle `true` to re-fetch |
-
-| Output | Nickname | Type | Description |
-|--------|----------|------|-------------|
-| ModuleNames | N | Text List | Module types: `topography`, `geology`, `analyses`, `optimizations` |
-| RecordIDs | ID | Text List | Record UUIDs (empty string if none) |
-| Exists | E | Boolean List | Whether each module has a record |
-
----
-
 #### Selvagen Delete Asset (`SvDelete`)
 
 Delete a geometry asset by ID.
@@ -492,7 +474,7 @@ You work in Rhino's native Z-up coordinate system. The conversion is transparent
 After loading, you should see these tabs on the Grasshopper ribbon under **Selvagen**:
 
 - **Auth** -- Login
-- **Data** -- Clients, Projects, List Assets, Project Modules, Delete Asset
+- **Data** -- Clients, Projects, List Assets, Delete Asset
 - **Upload** -- Upload Mesh, Upload Curves, Upload Labels, Upload Animation
 - **Modules** -- Topography, Geology, Analyses, Optimizations
 

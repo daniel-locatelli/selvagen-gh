@@ -248,33 +248,6 @@ def icon_list_assets():
     finalize(img, "ListAssets")
 
 
-def icon_modules():
-    """2x2 grid of rounded boxes — modular blocks"""
-    img = new()
-    d = ImageDraw.Draw(img)
-
-    boxes = [
-        (3, 3, 11, 11),
-        (13, 3, 21, 11),
-        (3, 13, 11, 21),
-        (13, 13, 21, 21),
-    ]
-    grays = [
-        (BLUE_L, BLUE_D),
-        (TEAL_L, TEAL_D),
-        (GREEN_L, GREEN_D),
-        (SLATE_L, SLATE_D),
-    ]
-    for (x1, y1, x2, y2), (ct, cb) in zip(boxes, grays):
-        pts = sp([(x1, y1), (x2, y1), (x2, y2), (x1, y2)])
-        bgrad = gradient_fill(d, pts, ct, cb)
-        img = Image.alpha_composite(img, bgrad)
-        d = ImageDraw.Draw(img)
-        d.rounded_rectangle([s(x1), s(y1), s(x2), s(y2)], radius=s(1), outline=OUTLINE, width=s(W_SILHOUETTE))
-
-    finalize(img, "Modules")
-
-
 def icon_delete():
     """Red trash can"""
     img = new()
@@ -583,7 +556,6 @@ if __name__ == "__main__":
     icon_clients()
     icon_projects()
     icon_list_assets()
-    icon_modules()
     icon_delete()
     icon_upload_mesh()
     icon_upload_curves()
