@@ -50,6 +50,8 @@ namespace Selvagen.GH.Components
 
         protected sealed override void RegisterInputParams(GH_InputParamManager pManager)
         {
+            pManager.AddGenericParameter("Session", "S", "Authenticated session from Login component. Optional: falls back to global session if not wired.", GH_ParamAccess.item);
+            pManager[0].Optional = true;
             RegisterFilterInputs(pManager);
             pManager.AddBooleanParameter("Refresh", "R", "Force a re-fetch", GH_ParamAccess.item, false);
         }
@@ -78,12 +80,20 @@ namespace Selvagen.GH.Components
             // _lastFetchError survives across solves until cleared by a successful fetch attempt
         }
 
+        private SelvagenClient ResolveClient(IGH_DataAccess DA)
+        {
+            object sessionObj = null;
+            DA.GetData(0, ref sessionObj);
+            if (sessionObj is SelvagenClient wired) return wired;
+            return SessionManager.Current;
+        }
+
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            var client = SessionManager.Current;
+            var client = ResolveClient(DA);
             if (client == null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Wire the Session output from Login, or place a Login component first.");
                 EmitOutputs(DA);
                 return;
             }

@@ -19,7 +19,7 @@ namespace Selvagen.GH.Components
         protected override void RegisterFilterInputs(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("ProjectID", "PID", "Project ID to list assets for", GH_ParamAccess.item, "");
-            pManager[0].Optional = true;
+            pManager[pManager.ParamCount - 1].Optional = true;
             pManager.AddTextParameter("AssetType", "T", "Asset type: meshes, curve_sets, or text_3d_sets", GH_ParamAccess.item, "meshes");
         }
 
@@ -27,8 +27,8 @@ namespace Selvagen.GH.Components
         {
             string projectId = "";
             string assetType = "meshes";
-            da.GetData(0, ref projectId);
-            da.GetData(1, ref assetType);
+            da.GetData(1, ref projectId);
+            da.GetData(2, ref assetType);
             return new object[] { projectId ?? "", assetType ?? "meshes" };
         }
 
