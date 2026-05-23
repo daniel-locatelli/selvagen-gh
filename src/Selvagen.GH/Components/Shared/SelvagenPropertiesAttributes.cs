@@ -11,7 +11,10 @@ namespace Selvagen.GH.Components
     public class SelvagenPropertiesAttributes : GH_ComponentAttributes
     {
         private const int DropdownHeight = 22;
+        private const int DropdownPadding = 4;
+        private const int InnerSidePadding = 6;
         private RectangleF _dropdownBounds;
+        private float? _naturalHeight;
 
         public SelvagenPropertiesAttributes(SelvagenPropertiesComponent owner) : base(owner) { }
 
@@ -19,15 +22,28 @@ namespace Selvagen.GH.Components
 
         protected override void Layout()
         {
+            if (_naturalHeight.HasValue)
+            {
+                var resetBounds = Bounds;
+                resetBounds.Height = _naturalHeight.Value;
+                Bounds = resetBounds;
+            }
+
             base.Layout();
+
+            if (!_naturalHeight.HasValue)
+                _naturalHeight = Bounds.Height;
+
+            int extra = DropdownHeight + DropdownPadding;
             var bounds = Bounds;
-            _dropdownBounds = new RectangleF(
-                bounds.X + 2,
-                bounds.Bottom,
-                bounds.Width - 4,
-                DropdownHeight - 2);
-            bounds.Height += DropdownHeight;
+            bounds.Height = _naturalHeight.Value + extra;
             Bounds = bounds;
+
+            _dropdownBounds = new RectangleF(
+                Bounds.Left + InnerSidePadding,
+                Bounds.Top + _naturalHeight.Value + DropdownPadding / 2f,
+                Bounds.Width - 2 * InnerSidePadding,
+                DropdownHeight);
         }
 
         protected override void Render(GH_Canvas canvas, Graphics graphics, GH_CanvasChannel channel)
@@ -42,27 +58,31 @@ namespace Selvagen.GH.Components
                 ? SelvagenPropertiesComponent.ModuleDisplayNames[selectedIndex]
                 : PropertiesOwner.SelectedModule;
 
-            using (var fill = new SolidBrush(Color.FromArgb(240, 240, 240)))
-            using (var border = new Pen(Color.FromArgb(160, 160, 160)))
-            using (var textBrush = new SolidBrush(Color.FromArgb(40, 40, 40)))
+            var capsule = GH_Capsule.CreateCapsule(_dropdownBounds, GH_Palette.Black);
+            capsule.Render(graphics, Selected, Owner.Locked, false);
+            capsule.Dispose();
+
+            using (var glyphFont = GH_FontServer.NewFont("Verdana", 7f, FontStyle.Bold))
+            using (var textBrush = new SolidBrush(Color.White))
+            using (var glyphFmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center })
+            using (var textFmt = new StringFormat
             {
-                graphics.FillRectangle(fill, _dropdownBounds);
-                graphics.DrawRectangle(border,
-                    _dropdownBounds.X, _dropdownBounds.Y,
-                    _dropdownBounds.Width, _dropdownBounds.Height);
+                LineAlignment = StringAlignment.Center,
+                Alignment = StringAlignment.Near,
+                Trimming = StringTrimming.EllipsisCharacter,
+                FormatFlags = StringFormatFlags.NoWrap,
+            })
+            using (var labelFont = GH_FontServer.NewFont("Verdana", 7.0f, FontStyle.Regular))
+            {
+                var glyphRect = new RectangleF(_dropdownBounds.X + 4, _dropdownBounds.Y, 12, _dropdownBounds.Height);
+                graphics.DrawString("▼", glyphFont, textBrush, glyphRect, glyphFmt);
 
                 var textRect = new RectangleF(
-                    _dropdownBounds.X + 4, _dropdownBounds.Y,
-                    _dropdownBounds.Width - 20, _dropdownBounds.Height);
-                var sf = new StringFormat
-                {
-                    Alignment = StringAlignment.Near,
-                    LineAlignment = StringAlignment.Center,
-                    Trimming = StringTrimming.EllipsisCharacter
-                };
-                graphics.DrawString(displayName, GH_FontServer.Standard, textBrush, textRect, sf);
-                graphics.DrawString("▼", GH_FontServer.Small, textBrush,
-                    _dropdownBounds.Right - 16, _dropdownBounds.Y + 4);
+                    _dropdownBounds.X + 18,
+                    _dropdownBounds.Y,
+                    _dropdownBounds.Width - 22,
+                    _dropdownBounds.Height);
+                graphics.DrawString(displayName, labelFont, textBrush, textRect, textFmt);
             }
         }
 
