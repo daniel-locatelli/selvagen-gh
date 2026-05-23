@@ -12,7 +12,7 @@ namespace Selvagen.GH.Components
     {
         public SelvagenUploadCurvesComponent()
             : base("Upload Curves", "SvUpCrv",
-                "Upload curves from Rhino to the platform.")
+                "Upload curves from Rhino to the platform. [PT: Upload de Curvas]")
         { }
 
         public override Guid ComponentGuid => new Guid("e4f5a6b7-c8d9-0123-4567-890abcdef123");

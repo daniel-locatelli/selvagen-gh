@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public OptRetentionComponent()
             : base("Optimizations Retention", "OptRt",
-                   "Upload optimizations retention wall data", "06 Optimizations") { }
+                   "Upload optimizations retention wall data. [PT: Contenção Otimizada]", "06 Optimizations") { }
 
         protected override string ModuleTable => "optimizations";
         public override Guid ComponentGuid => new Guid("A1000004-0001-4000-8000-000000000005");

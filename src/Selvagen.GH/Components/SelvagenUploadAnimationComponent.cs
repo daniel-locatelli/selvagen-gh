@@ -11,7 +11,7 @@ namespace Selvagen.GH.Components
     {
         public SelvagenUploadAnimationComponent()
             : base("Upload Animation", "SvUpAnim",
-                "Upload a sequence of meshes as an animation to the platform.")
+                "Upload a sequence of meshes as an animation to the platform. [PT: Upload de Animação]")
         { }
 
         public override Guid ComponentGuid => new Guid("E4AF5B60-C7D8-9012-3DEF-456789012345");

@@ -11,7 +11,7 @@ namespace Selvagen.GH.Components
 
         public SelvagenDeleteAssetComponent()
             : base("Delete Asset", "SvDelete",
-                "Delete a mesh, curve set, or text 3D set by ID.",
+                "Delete a mesh, curve set, or text 3D set by ID. [PT: Excluir Asset]",
                 "Selvagen", "02 Admin")
         { }
 

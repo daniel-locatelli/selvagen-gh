@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public TopoElevationComponent()
             : base("Topography Elevation", "TpEl",
-                   "Upload topography elevation data", "03 Topography") { }
+                   "Upload topography elevation data. [PT: Gradiente de Elevação]", "03 Topography") { }
 
         protected override string ModuleTable => "topography";
 

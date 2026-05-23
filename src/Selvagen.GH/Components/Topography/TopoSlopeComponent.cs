@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public TopoSlopeComponent()
             : base("Topography Slope", "TpSl",
-                   "Upload topography slope data", "03 Topography") { }
+                   "Upload topography slope data. [PT: Declividade]", "03 Topography") { }
 
         protected override string ModuleTable => "topography";
 

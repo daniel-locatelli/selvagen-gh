@@ -12,7 +12,7 @@ namespace Selvagen.GH.Components
     {
         public SelvagenUploadLabelsComponent()
             : base("Upload Labels", "SvUpLbl",
-                "Upload text labels from Rhino to the platform.")
+                "Upload text labels from Rhino to the platform. [PT: Upload de Rótulos 3D]")
         { }
 
         public override Guid ComponentGuid => new Guid("f5a6b7c8-d9e0-1234-5678-90abcdef1234");

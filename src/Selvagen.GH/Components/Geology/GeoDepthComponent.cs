@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public GeoDepthComponent()
             : base("Geology Depth", "GeoDp",
-                   "Upload geology depth data", "04 Geology") { }
+                   "Upload geology depth data. [PT: Profundidade do Solo]", "04 Geology") { }
 
         protected override string ModuleTable => "geology";
         public override Guid ComponentGuid => new Guid("A1000002-0001-4000-8000-000000000005");

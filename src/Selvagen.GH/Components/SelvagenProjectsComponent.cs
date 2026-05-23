@@ -10,7 +10,7 @@ namespace Selvagen.GH.Components
     {
         public SelvagenProjectsComponent()
             : base("List Projects", "SvProjects",
-                "List projects from the platform. Optionally filter by ClientID; pick one from the inline dropdown.",
+                "List projects from the platform. Optionally filter by ClientID; pick one from the inline dropdown. [PT: Listar Projetos]",
                 "02 Admin")
         { }
 

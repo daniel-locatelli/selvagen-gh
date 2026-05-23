@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public AnlRetentionComponent()
             : base("Analyses Retention", "AnlRt",
-                   "Upload analyses retention wall data", "05 Analysis") { }
+                   "Upload analysis retention wall data. [PT: Muro de Contenção]", "05 Analysis") { }
 
         protected override string ModuleTable => "analyses";
         public override Guid ComponentGuid => new Guid("A1000003-0001-4000-8000-000000000002");
