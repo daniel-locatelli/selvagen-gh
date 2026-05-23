@@ -15,8 +15,8 @@ namespace Selvagen.GH.Components
     {
         protected abstract string ModuleTable { get; }
 
-        protected SelvagenModuleComponentBase(string name, string nickname, string description)
-            : base(name, nickname, description, "Selvagen", "Modules") { }
+        protected SelvagenModuleComponentBase(string name, string nickname, string description, string subcategory = "Modules")
+            : base(name, nickname, description, "Selvagen", subcategory) { }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
@@ -36,8 +36,13 @@ namespace Selvagen.GH.Components
             bool upload = false;
 
             DA.GetData(0, ref projectId);
-            // Upload is always the last input parameter
-            DA.GetData(Params.Input.Count - 1, ref upload);
+            // Upload is the last input parameter; find it by name for safety
+            int uploadIndex = Params.Input.Count - 1;
+            for (int i = Params.Input.Count - 1; i >= 0; i--)
+            {
+                if (Params.Input[i].Name == "Upload") { uploadIndex = i; break; }
+            }
+            DA.GetData(uploadIndex, ref upload);
 
             var client = SessionManager.Current;
 
