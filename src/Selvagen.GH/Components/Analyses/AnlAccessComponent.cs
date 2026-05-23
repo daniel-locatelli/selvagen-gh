@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public AnlAccessComponent()
             : base("Analyses Access", "AnlAc",
-                   "Upload analysis access data. [PT: Acessibilidade]", "05 Analysis") { }
+                   "Upload analysis access data. [Acessibilidade]", "05 Analysis") { }
 
         protected override string ModuleTable => "analyses";
         public override Guid ComponentGuid => new Guid("A1000003-0001-4000-8000-000000000004");

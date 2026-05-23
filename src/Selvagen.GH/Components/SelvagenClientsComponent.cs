@@ -10,7 +10,7 @@ namespace Selvagen.GH.Components
     {
         public SelvagenClientsComponent()
             : base("List Clients", "SvClients",
-                "List clients of the firm. Pick one from the inline dropdown to feed downstream components. [PT: Listar Clientes]",
+                "List clients of the firm. Pick one from the inline dropdown to feed downstream components. [Listar Clientes]",
                 "02 Admin")
         { }
 

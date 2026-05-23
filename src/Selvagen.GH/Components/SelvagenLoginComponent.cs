@@ -12,7 +12,7 @@ namespace Selvagen.GH.Components
 
         public SelvagenLoginComponent()
             : base("Login", "SvLogin",
-                "Authenticate with the platform using email and password. [PT: Autenticação]",
+                "Authenticate with the platform using email and password. [Autenticação]",
                 "Selvagen", "01 Auth")
         {
             // Route all SelvagenClient (Core) logs through PluginLogger

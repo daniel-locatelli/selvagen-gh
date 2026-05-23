@@ -16,7 +16,7 @@ namespace Selvagen.GH.Components
 
         public SelvagenPropertiesComponent()
             : base("Custom Properties", "SvProps",
-                   "Upload custom JSON properties to any module. [PT: Propriedades Personalizadas]", "07 Shared") { }
+                   "Upload custom JSON properties to any module. [Propriedades Personalizadas]", "07 Shared") { }
 
         protected override string ModuleTable => _selectedModule;
 

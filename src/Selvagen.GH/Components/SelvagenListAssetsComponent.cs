@@ -10,7 +10,7 @@ namespace Selvagen.GH.Components
     {
         public SelvagenListAssetsComponent()
             : base("List Assets", "SvAssets",
-                "List meshes, curve sets, or text 3D sets for a project. Pick one from the inline dropdown. [PT: Listar Assets]",
+                "List meshes, curve sets, or text 3D sets for a project. Pick one from the inline dropdown. [Listar Assets]",
                 "08 Assets")
         { }
 

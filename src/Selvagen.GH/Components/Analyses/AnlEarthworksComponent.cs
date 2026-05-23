@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public AnlEarthworksComponent()
             : base("Analyses Earthworks", "AnlEw",
-                   "Upload analysis earthworks data. [PT: Movimentação de Terra]", "05 Analysis") { }
+                   "Upload analysis earthworks data. [Movimentação de Terra]", "05 Analysis") { }
 
         protected override string ModuleTable => "analyses";
         public override Guid ComponentGuid => new Guid("A1000003-0001-4000-8000-000000000001");

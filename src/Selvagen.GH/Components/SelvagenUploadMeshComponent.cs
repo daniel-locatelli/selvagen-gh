@@ -10,7 +10,7 @@ namespace Selvagen.GH.Components
     {
         public SelvagenUploadMeshComponent()
             : base("Upload Mesh", "SvUpMesh",
-                "Upload a Rhino mesh to the platform. [PT: Upload de Malha]")
+                "Upload a Rhino mesh to the platform. [Upload de Malha]")
         { }
 
         public override Guid ComponentGuid => new Guid("d3e4f5a6-b7c8-9012-3456-7890abcdef12");

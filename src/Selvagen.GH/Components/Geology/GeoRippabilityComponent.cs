@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public GeoRippabilityComponent()
             : base("Geology Rippability", "GeoRp",
-                   "Upload geology rippability data. [PT: Escavabilidade]", "04 Geology") { }
+                   "Upload geology rippability data. [Escavabilidade]", "04 Geology") { }
 
         protected override string ModuleTable => "geology";
         public override Guid ComponentGuid => new Guid("A1000002-0001-4000-8000-000000000003");
