@@ -14,21 +14,19 @@ namespace Selvagen.Core.Tests.Components
                 hasCachedItems: false,
                 cachedKey: new object[] { "a" },
                 currentKey: new object[] { "a" },
-                refresh: false,
-                refreshWasTrue: false);
+                forceRefresh: false);
 
             Assert.True(result);
         }
 
         [Fact]
-        public void NeedsFetch_False_When_KeysMatch_AndNoRefreshEdge()
+        public void NeedsFetch_False_When_KeysMatch_AndNoForceRefresh()
         {
             var result = CacheDecision.NeedsFetch(
                 hasCachedItems: true,
                 cachedKey: new object[] { "a", "meshes" },
                 currentKey: new object[] { "a", "meshes" },
-                refresh: false,
-                refreshWasTrue: false);
+                forceRefresh: false);
 
             Assert.False(result);
         }
@@ -40,49 +38,21 @@ namespace Selvagen.Core.Tests.Components
                 hasCachedItems: true,
                 cachedKey: new object[] { "old-id" },
                 currentKey: new object[] { "new-id" },
-                refresh: false,
-                refreshWasTrue: false);
+                forceRefresh: false);
 
             Assert.True(result);
         }
 
         [Fact]
-        public void NeedsFetch_True_On_RefreshEdge_FalseToTrue()
+        public void NeedsFetch_True_When_ForceRefresh()
         {
             var result = CacheDecision.NeedsFetch(
                 hasCachedItems: true,
                 cachedKey: new object[] { "a" },
                 currentKey: new object[] { "a" },
-                refresh: true,
-                refreshWasTrue: false);
+                forceRefresh: true);
 
             Assert.True(result);
-        }
-
-        [Fact]
-        public void NeedsFetch_False_When_Refresh_HeldHigh()
-        {
-            var result = CacheDecision.NeedsFetch(
-                hasCachedItems: true,
-                cachedKey: new object[] { "a" },
-                currentKey: new object[] { "a" },
-                refresh: true,
-                refreshWasTrue: true);
-
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void NeedsFetch_False_When_KeysMatch_AndRefreshDropped()
-        {
-            var result = CacheDecision.NeedsFetch(
-                hasCachedItems: true,
-                cachedKey: new object[] { "a" },
-                currentKey: new object[] { "a" },
-                refresh: false,
-                refreshWasTrue: true);
-
-            Assert.False(result);
         }
 
         [Fact]
@@ -92,8 +62,7 @@ namespace Selvagen.Core.Tests.Components
                 hasCachedItems: true,
                 cachedKey: null,
                 currentKey: new object[] { "a" },
-                refresh: false,
-                refreshWasTrue: false);
+                forceRefresh: false);
 
             Assert.True(result);
         }
@@ -101,7 +70,6 @@ namespace Selvagen.Core.Tests.Components
         [Fact]
         public void NeedsFetch_KeyEquality_Uses_ValueComparison()
         {
-            // string interning aside, equal-valued object[] should compare equal
             var k1 = new object[] { "a", 1 };
             var k2 = new object[] { "a", 1 };
 
@@ -109,8 +77,7 @@ namespace Selvagen.Core.Tests.Components
                 hasCachedItems: true,
                 cachedKey: k1,
                 currentKey: k2,
-                refresh: false,
-                refreshWasTrue: false);
+                forceRefresh: false);
 
             Assert.False(result);
         }

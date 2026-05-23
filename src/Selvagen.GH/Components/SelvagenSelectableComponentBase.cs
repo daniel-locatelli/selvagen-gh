@@ -26,7 +26,7 @@ namespace Selvagen.GH.Components
         protected TItem[] _cachedItems;
         protected object[] _cachedKey;
         protected string _selectedId;
-        protected bool _refreshWasTrue;
+        private bool _forceRefresh;
         private volatile string _lastFetchError;
 
         // ── Hooks subclasses implement ───────────────────────────────────────
@@ -43,7 +43,7 @@ namespace Selvagen.GH.Components
         /// <summary>Default: cache key is the captured inputs array. Override to project a subset.</summary>
         protected virtual object[] GetCacheKey(object[] inputs) => inputs;
 
-        /// <summary>Subclasses register their filter inputs here. Refresh is appended automatically.</summary>
+        /// <summary>Subclasses register their filter inputs here.</summary>
         protected virtual void RegisterFilterInputs(GH_InputParamManager pManager) { }
 
         // ── Input/output registration ────────────────────────────────────────
@@ -51,7 +51,6 @@ namespace Selvagen.GH.Components
         protected sealed override void RegisterInputParams(GH_InputParamManager pManager)
         {
             RegisterFilterInputs(pManager);
-            pManager.AddBooleanParameter("Refresh", "R", "Force a re-fetch", GH_ParamAccess.item, false);
         }
 
         protected sealed override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -61,8 +60,6 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("IDs", "IDs", "All item UUIDs.", GH_ParamAccess.list);
             pManager.AddTextParameter("Names", "Names", "All item display names.", GH_ParamAccess.list);
         }
-
-        protected int RefreshInputIndex => Params.Input.Count - 1;
 
         // ── SolveInstance — two-phase via GH_TaskCapableComponent ────────────
 
@@ -90,9 +87,6 @@ namespace Selvagen.GH.Components
 
             if (InPreSolve)
             {
-                bool refresh = false;
-                DA.GetData(RefreshInputIndex, ref refresh);
-
                 object[] inputs = CaptureInputs(DA);
                 object[] currentKey = GetCacheKey(inputs);
 
@@ -100,10 +94,9 @@ namespace Selvagen.GH.Components
                     hasCachedItems: _cachedItems != null,
                     cachedKey: _cachedKey,
                     currentKey: currentKey,
-                    refresh: refresh,
-                    refreshWasTrue: _refreshWasTrue);
+                    forceRefresh: _forceRefresh);
 
-                _refreshWasTrue = refresh;
+                _forceRefresh = false;
                 _pendingFetch = needsFetch;
                 _pendingKey = currentKey;
 
@@ -206,6 +199,12 @@ namespace Selvagen.GH.Components
         {
             if (id == _selectedId) return;
             _selectedId = id;
+            ExpireSolution(true);
+        }
+
+        public void RequestUpdate()
+        {
+            _forceRefresh = true;
             ExpireSolution(true);
         }
 

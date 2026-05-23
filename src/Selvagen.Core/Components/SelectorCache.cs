@@ -14,13 +14,12 @@ namespace Selvagen.Core.Components
             bool hasCachedItems,
             object[] cachedKey,
             object[] currentKey,
-            bool refresh,
-            bool refreshWasTrue)
+            bool forceRefresh)
         {
             if (!hasCachedItems) return true;
             if (cachedKey == null) return true;
             if (!KeysEqual(cachedKey, currentKey)) return true;
-            if (refresh && !refreshWasTrue) return true;
+            if (forceRefresh) return true;
             return false;
         }
 

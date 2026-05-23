@@ -22,5 +22,8 @@ namespace Selvagen.GH.Components
 
         /// <summary>Pick an item by id. No-op when id matches current selection.</summary>
         void SetSelectedId(string id);
+
+        /// <summary>Force a re-fetch of the item list (triggered by the on-canvas Update button).</summary>
+        void RequestUpdate();
     }
 }
