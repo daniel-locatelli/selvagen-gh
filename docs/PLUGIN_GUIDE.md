@@ -231,129 +231,65 @@ All data inputs are **optional**. Connect only the ones you need -- the componen
 
 ---
 
-#### Selvagen Topography (`SvTopo`)
+### Module Components (Composable Groups)
 
-28 data inputs organized by section:
+Each module is composed of small, focused components. Every component has `ProjectID` (required) and `Upload` (boolean trigger) as bookend inputs, with group-specific optional data fields in between. Multiple components targeting the same module independently PATCH the same database row.
 
-| Section | Input | Nickname | DB Column | Type |
-|---------|-------|----------|-----------|------|
-| **Base** | BaseMeshID | BM | `base_mesh_id` | Text (UUID) |
-| | BaseArea2D | BA2 | `base_area_2d` | Number |
-| | BaseArea3D | BA3 | `base_area_3d` | Number |
-| | BaseTDR | BTDR | `base_true_dimension_rate` | Number |
-| **Contours** | OutlineCurvesID | OC | `outline_curve_set_id` | Text (UUID) |
-| | ContoursCurvesID | CC | `contours_curve_set_id` | Text (UUID) |
-| | ContoursLabelsID | CL | `contours_text_3d_set_id` | Text (UUID) |
-| | ContourInterval | CI | `contour_interval` | Number |
-| **Urbanization** | UrbanCurvesID | UC | `urbanization_curve_set_id` | Text (UUID) |
-| **Elevation** | ElevMeshID | EM | `elevation_mesh_id` | Text (UUID) |
-| | ElevCurvesID | EC | `elevation_curve_set_id` | Text (UUID) |
-| | ElevMin | Emn | `elevation_min` | Number |
-| | ElevMax | Emx | `elevation_max` | Number |
-| **Slope** | SlopeMeshID | SM | `slope_mesh_id` | Text (UUID) |
-| | SlopeRef | SR | `slope_ref` | Number |
-| | SlopeRestRate | SRR | `slope_restricted_area_rate` | Number |
-| | SlopeMin | Smn | `slope_min` | Number |
-| | SlopeMax | Smx | `slope_max` | Number |
-| **Access 8%** | Acc8MeshID | A8M | `access8_mesh_id` | Text (UUID) |
-| | Acc8Ref | A8R | `access8_ref` | Number |
-| | Acc8Rate | A8% | `access8_rate` | Number |
-| **Access 5%** | Acc5MeshID | A5M | `access5_mesh_id` | Text (UUID) |
-| | Acc5Ref | A5R | `access5_ref` | Number |
-| | Acc5Rate | A5% | `access5_rate` | Number |
-| **Drainage** | DrainCurvesID | DC | `drainage_curve_set_id` | Text (UUID) |
-| | DrainFlowPaths | DFP | `drainage_total_flow_paths` | Integer |
-| | DrainConcRate | DCR | `drainage_concentration_rate` | Number |
+#### Topography (8 components — ribbon group: Topography)
 
----
+| Component | Inputs (besides ProjectID & Upload) | DB Columns |
+|---|---|---|
+| Topography Base | BaseMeshID, BaseArea2D, BaseArea3D, BaseTDR | `base_mesh_id`, `base_area_2d`, `base_area_3d`, `base_true_dimension_rate` |
+| Topography Contours | OutlineCurvesID, ContoursCurvesID, ContoursLabelsID, ContourInterval | `outline_curve_set_id`, `contours_curve_set_id`, `contours_text_3d_set_id`, `contour_interval` |
+| Topography Urbanization | UrbanCurvesID | `urbanization_curve_set_id` |
+| Topography Elevation | ElevMeshID, ElevCurvesID, ElevMin, ElevMax | `elevation_mesh_id`, `elevation_curve_set_id`, `elevation_min`, `elevation_max` |
+| Topography Slope | SlopeMeshID, SlopeRef, SlopeRestRate, SlopeMin, SlopeMax | `slope_mesh_id`, `slope_ref`, `slope_restricted_area_rate`, `slope_min`, `slope_max` |
+| Topography Access 8 | Acc8MeshID, Acc8Ref, Acc8Rate | `access8_mesh_id`, `access8_ref`, `access8_rate` |
+| Topography Access 5 | Acc5MeshID, Acc5Ref, Acc5Rate | `access5_mesh_id`, `access5_ref`, `access5_rate` |
+| Topography Drainage | DrainCurvesID, DrainFlowPaths, DrainConcRate | `drainage_curve_set_id`, `drainage_total_flow_paths`, `drainage_concentration_rate` |
 
-#### Selvagen Geology (`SvGeo`)
+#### Geology (5 components — ribbon group: Geology)
 
-14 data inputs:
+| Component | Inputs (besides ProjectID & Upload) | DB Columns |
+|---|---|---|
+| Geology Coverage | CovMeshID, CovNumPoints, CovArea, CovRate | `coverage_mesh_id`, `coverage_number_points`, `coverage_area`, `coverage_rate` |
+| Geology Rock | RockMeshID, RockCurvesID, RockContourInt | `rock_mesh_id`, `rock_curve_set_id`, `rock_contour_interval` |
+| Geology Rippability | RipMeshID | `rippability_mesh_id` |
+| Geology Soil | SoilMeshID, SoilHMin, SoilHMax | `soil_mesh_id`, `soil_height_min`, `soil_height_max` |
+| Geology Depth | DepthMeshID, DepthRef, DepthUsRate | `depth_mesh_id`, `depth_ref`, `depth_usability_rate` |
 
-| Section | Input | Nickname | DB Column | Type |
-|---------|-------|----------|-----------|------|
-| **Coverage** | CovMeshID | CovM | `coverage_mesh_id` | Text (UUID) |
-| | CovNumPoints | CovNP | `coverage_number_points` | Integer |
-| | CovArea | CovA | `coverage_area` | Number |
-| | CovRate | CovR | `coverage_rate` | Number |
-| **Rock** | RockMeshID | RkM | `rock_mesh_id` | Text (UUID) |
-| | RockCurvesID | RkC | `rock_curve_set_id` | Text (UUID) |
-| | RockContourInt | RkCI | `rock_contour_interval` | Number |
-| **Rippability** | RipMeshID | RipM | `rippability_mesh_id` | Text (UUID) |
-| **Soil** | SoilMeshID | SoilM | `soil_mesh_id` | Text (UUID) |
-| | SoilHMin | SHMin | `soil_height_min` | Number |
-| | SoilHMax | SHMax | `soil_height_max` | Number |
-| **Depth** | DepthMeshID | DepM | `depth_mesh_id` | Text (UUID) |
-| | DepthRef | DepR | `depth_ref` | Number |
-| | DepthUsRate | DepUR | `depth_usability_rate` | Number |
+#### Analyses (4 components — ribbon group: Analyses)
 
----
+| Component | Inputs (besides ProjectID & Upload) | DB Columns |
+|---|---|---|
+| Analyses Earthworks | EarthTerrainMeshID, EarthMassingMeshID, EarthVolFill, EarthVolCut, EarthVolImport, EarthVolExport, EarthCostImport, EarthCostExport | `earth_mesh_terrain_id`, `earth_mesh_massing_id`, `earth_vol_fill`, `earth_vol_cut`, `earth_vol_import`, `earth_vol_export`, `earth_cost_import`, `earth_cost_export` |
+| Analyses Retention | RetHMin, RetHMax, RetArea, RetCost | `retention_height_min`, `retention_height_max`, `retention_area`, `retention_cost` |
+| Analyses Rock | RockMeshID, RockLabelsHID, RockLabelsVID, RockHMin, RockHMax, RockTotalVolCut | `rock_mesh_id`, `rock_text_3d_set_height_id`, `rock_text_3d_set_vol_id`, `rock_height_min`, `rock_height_max`, `rock_total_vol_cut` |
+| Analyses Access | AccCurvesID, AccLabelsID, AccRef, AccRate | `access_curve_set_id`, `access_text_3d_set_id`, `access_ref`, `access_rate` |
 
-#### Selvagen Analyses (`SvAnalyses`)
+#### Optimizations (5 components — ribbon group: Optimizations)
 
-22 data inputs:
+| Component | Inputs (besides ProjectID & Upload) | DB Columns |
+|---|---|---|
+| Optimizations Access | AccCurvesID, AccLabelsID, AccRef, AccRate | `access_curve_set_id`, `access_text_3d_set_id`, `access_ref`, `access_rate` |
+| Optimizations Earth Terrain | TerrMeshID, TerrVolCompFill, TerrVolBulkFill, TerrVolCut, TerrVolImport, TerrVolExport | `earth_mesh_terrain_id`, `earth_terrain_vol_compact_fill`, `earth_terrain_vol_bulking_fill`, `earth_terrain_vol_cut`, `earth_terrain_vol_import`, `earth_terrain_vol_export` |
+| Optimizations Earth Lots | LotsMeshID, LotsVolCompFill, LotsVolBulkFill, LotsVolCut, LotsVolImport, LotsVolExport | `earth_mesh_lots_id`, `earth_lots_vol_compact_fill`, `earth_lots_vol_bulking_fill`, `earth_lots_vol_cut`, `earth_lots_vol_import`, `earth_lots_vol_export` |
+| Optimizations Earth Total | TotalVolCompFill, TotalVolBulkFill, TotalVolCut, TotalVolImport, TotalVolExport, TotalCostImport, TotalCostExport | `earth_total_vol_compact_fill`, `earth_total_vol_bulking_fill`, `earth_total_vol_cut`, `earth_total_vol_import`, `earth_total_vol_export`, `earth_total_cost_import`, `earth_total_cost_export` |
+| Optimizations Retention | RetHMin, RetHMax, RetArea, RetCost | `retention_height_min`, `retention_height_max`, `retention_area`, `retention_cost` |
 
-| Section | Input | Nickname | DB Column | Type |
-|---------|-------|----------|-----------|------|
-| **Earthworks** | EarthTerrainMeshID | ETM | `earth_mesh_terrain_id` | Text (UUID) |
-| | EarthMassingMeshID | EMM | `earth_mesh_massing_id` | Text (UUID) |
-| | EarthVolFill | EVF | `earth_vol_fill` | Number |
-| | EarthVolCut | EVC | `earth_vol_cut` | Number |
-| | EarthVolImport | EVI | `earth_vol_import` | Number |
-| | EarthVolExport | EVE | `earth_vol_export` | Number |
-| | EarthCostImport | ECI | `earth_cost_import` | Number |
-| | EarthCostExport | ECE | `earth_cost_export` | Number |
-| **Retention** | RetHMin | RHn | `retention_height_min` | Number |
-| | RetHMax | RHx | `retention_height_max` | Number |
-| | RetArea | RA | `retention_area` | Number |
-| | RetCost | RC | `retention_cost` | Number |
-| **Rock** | RockMeshID | RM | `rock_mesh_id` | Text (UUID) |
-| | RockLabelsHID | RLH | `rock_text_3d_set_height_id` | Text (UUID) |
-| | RockLabelsVID | RLV | `rock_text_3d_set_vol_id` | Text (UUID) |
-| | RockHMin | RkHn | `rock_height_min` | Number |
-| | RockHMax | RkHx | `rock_height_max` | Number |
-| | RockTotalVolCut | RTV | `rock_total_vol_cut` | Number |
-| **Access** | AccCurvesID | AC | `access_curve_set_id` | Text (UUID) |
-| | AccLabelsID | AL | `access_text_3d_set_id` | Text (UUID) |
-| | AccRef | AR | `access_ref` | Number |
-| | AccRate | ARt | `access_rate` | Number |
+#### Properties (1 component — ribbon group: Shared)
 
----
+| Component | Inputs (besides ProjectID & Upload) | DB Columns |
+|---|---|---|
+| Properties | JSON (text), Module (face dropdown: Topography/Geology/Analyses/Optimizations) | `properties` |
 
-#### Selvagen Optimizations (`SvOptim`)
+The Properties component targets whichever module is selected via the dropdown on its face. It PATCHes only the `properties` jsonb column.
 
-27 data inputs:
+### Migration from v1 Components
 
-| Section | Input | Nickname | DB Column | Type |
-|---------|-------|----------|-----------|------|
-| **Access** | AccCurvesID | AccCrv | `access_curve_set_id` | Text (UUID) |
-| | AccLabelsID | AccLbl | `access_text_3d_set_id` | Text (UUID) |
-| | AccRef | AccRef | `access_ref` | Number |
-| | AccRate | AccRt | `access_rate` | Number |
-| **Earth Terrain** | TerrMeshID | TerrM | `earth_mesh_terrain_id` | Text (UUID) |
-| | TerrVolCompFill | TerrCF | `earth_terrain_vol_compact_fill` | Number |
-| | TerrVolBulkFill | TerrBF | `earth_terrain_vol_bulking_fill` | Number |
-| | TerrVolCut | TerrCt | `earth_terrain_vol_cut` | Number |
-| | TerrVolImport | TerrIm | `earth_terrain_vol_import` | Number |
-| | TerrVolExport | TerrEx | `earth_terrain_vol_export` | Number |
-| **Earth Lots** | LotsMeshID | LotsM | `earth_mesh_lots_id` | Text (UUID) |
-| | LotsVolCompFill | LotsCF | `earth_lots_vol_compact_fill` | Number |
-| | LotsVolBulkFill | LotsBF | `earth_lots_vol_bulking_fill` | Number |
-| | LotsVolCut | LotsCt | `earth_lots_vol_cut` | Number |
-| | LotsVolImport | LotsIm | `earth_lots_vol_import` | Number |
-| | LotsVolExport | LotsEx | `earth_lots_vol_export` | Number |
-| **Earth Total** | TotalVolCompFill | TotCF | `earth_total_vol_compact_fill` | Number |
-| | TotalVolBulkFill | TotBF | `earth_total_vol_bulking_fill` | Number |
-| | TotalVolCut | TotCt | `earth_total_vol_cut` | Number |
-| | TotalVolImport | TotIm | `earth_total_vol_import` | Number |
-| | TotalVolExport | TotEx | `earth_total_vol_export` | Number |
-| | TotalCostImport | TotCIm | `earth_total_cost_import` | Number |
-| | TotalCostExport | TotCEx | `earth_total_cost_export` | Number |
-| **Retention** | RetHMin | RetMin | `retention_height_min` | Number |
-| | RetHMax | RetMax | `retention_height_max` | Number |
-| | RetArea | RetA | `retention_area` | Number |
-| | RetCost | RetC | `retention_cost` | Number |
+The previous single-component-per-module design (Topography, Geology, Analyses, Optimizations) has been removed. Any `.gh` file using the old components will show "missing component" errors.
+
+**To migrate:** replace each old component with the group components you need. Wire the same `ProjectID` to each group component. Each group component independently creates/updates the module record.
 
 ---
 
