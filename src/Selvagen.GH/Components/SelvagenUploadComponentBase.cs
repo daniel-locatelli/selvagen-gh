@@ -10,7 +10,7 @@ namespace Selvagen.GH.Components
     public abstract class SelvagenUploadComponentBase : GH_Component
     {
         protected SelvagenUploadComponentBase(string name, string nickname, string description)
-            : base(name, nickname, description, "Selvagen", "Upload") { }
+            : base(name, nickname, description, "Selvagen", "08 Assets") { }
 
         protected void SetWaiting(IGH_DataAccess DA)
         {

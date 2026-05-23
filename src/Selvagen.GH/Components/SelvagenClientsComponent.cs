@@ -11,7 +11,7 @@ namespace Selvagen.GH.Components
         public SelvagenClientsComponent()
             : base("List Clients", "SvClients",
                 "List clients of the firm. Pick one from the inline dropdown to feed downstream components.",
-                "Data")
+                "02 Admin")
         { }
 
         public override Guid ComponentGuid => new Guid("F23D9E81-A7C2-4B1D-8F9E-3D4C5B6A7E8F");

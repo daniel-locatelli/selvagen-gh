@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public TopoAccess8Component()
             : base("Topography Access 8", "TpA8",
-                   "Upload topography access 8m data", "Topography") { }
+                   "Upload topography access 8m data", "03 Topography") { }
 
         protected override string ModuleTable => "topography";
 

@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public OptEarthTotalComponent()
             : base("Optimizations Earth Total", "OptETt",
-                   "Upload optimizations earth total data", "Optimizations") { }
+                   "Upload optimizations earth total data", "06 Optimizations") { }
 
         protected override string ModuleTable => "optimizations";
         public override Guid ComponentGuid => new Guid("A1000004-0001-4000-8000-000000000004");

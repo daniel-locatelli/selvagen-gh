@@ -11,7 +11,7 @@ namespace Selvagen.GH.Components
         public SelvagenProjectsComponent()
             : base("List Projects", "SvProjects",
                 "List projects from the platform. Optionally filter by ClientID; pick one from the inline dropdown.",
-                "Data")
+                "02 Admin")
         { }
 
         public override Guid ComponentGuid => new Guid("c2d3e4f5-a6b7-8901-2345-67890abcdef1");

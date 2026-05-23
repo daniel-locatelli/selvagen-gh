@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public GeoSoilComponent()
             : base("Geology Soil", "GeoSl",
-                   "Upload geology soil data", "Geology") { }
+                   "Upload geology soil data", "04 Geology") { }
 
         protected override string ModuleTable => "geology";
         public override Guid ComponentGuid => new Guid("A1000002-0001-4000-8000-000000000004");

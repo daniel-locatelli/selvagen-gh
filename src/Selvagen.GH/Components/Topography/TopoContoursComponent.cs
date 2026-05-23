@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public TopoContoursComponent()
             : base("Topography Contours", "TpCn",
-                   "Upload topography contour data", "Topography") { }
+                   "Upload topography contour data", "03 Topography") { }
 
         protected override string ModuleTable => "topography";
 

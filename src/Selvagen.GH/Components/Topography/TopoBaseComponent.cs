@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public TopoBaseComponent()
             : base("Topography Base", "TpBs",
-                   "Upload topography base data (mesh, areas, TDR)", "Topography") { }
+                   "Upload topography base data (mesh, areas, TDR)", "03 Topography") { }
 
         protected override string ModuleTable => "topography";
 

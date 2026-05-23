@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public AnlRockComponent()
             : base("Analyses Rock", "AnlRk",
-                   "Upload analyses rock data", "Analyses") { }
+                   "Upload analyses rock data", "05 Analysis") { }
 
         protected override string ModuleTable => "analyses";
         public override Guid ComponentGuid => new Guid("A1000003-0001-4000-8000-000000000003");

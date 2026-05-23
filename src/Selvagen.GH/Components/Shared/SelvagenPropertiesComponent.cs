@@ -15,8 +15,8 @@ namespace Selvagen.GH.Components
         private string _selectedModule = "topography";
 
         public SelvagenPropertiesComponent()
-            : base("Properties", "SvProps",
-                   "Upload custom JSON properties to any module", "Shared") { }
+            : base("Custom Properties", "SvProps",
+                   "Upload custom JSON properties to any module", "07 Shared") { }
 
         protected override string ModuleTable => _selectedModule;
 

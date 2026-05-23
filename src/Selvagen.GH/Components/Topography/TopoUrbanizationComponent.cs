@@ -8,7 +8,7 @@ namespace Selvagen.GH.Components
     {
         public TopoUrbanizationComponent()
             : base("Topography Urbanization", "TpUr",
-                   "Upload topography urbanization data", "Topography") { }
+                   "Upload topography urbanization data", "03 Topography") { }
 
         protected override string ModuleTable => "topography";
 

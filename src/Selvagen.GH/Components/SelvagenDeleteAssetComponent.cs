@@ -12,7 +12,7 @@ namespace Selvagen.GH.Components
         public SelvagenDeleteAssetComponent()
             : base("Delete Asset", "SvDelete",
                 "Delete a mesh, curve set, or text 3D set by ID.",
-                "Selvagen", "Data")
+                "Selvagen", "02 Admin")
         { }
 
         public override Guid ComponentGuid => new Guid("C39D4E5F-A6B7-8901-2CDE-F34567890123");
