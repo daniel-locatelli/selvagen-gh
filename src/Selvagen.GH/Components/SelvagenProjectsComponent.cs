@@ -19,13 +19,13 @@ namespace Selvagen.GH.Components
         protected override void RegisterFilterInputs(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("ClientID", "Id", "Optional client filter", GH_ParamAccess.item, "");
-            pManager[pManager.ParamCount - 1].Optional = true;
+            pManager[0].Optional = true;
         }
 
         protected override object[] CaptureInputs(IGH_DataAccess da)
         {
             string clientId = "";
-            da.GetData(1, ref clientId);
+            da.GetData(0, ref clientId);
             return new object[] { clientId ?? "" };
         }
 

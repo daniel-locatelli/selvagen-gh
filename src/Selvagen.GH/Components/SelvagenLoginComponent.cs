@@ -47,16 +47,7 @@ namespace Selvagen.GH.Components
 
             if (!login)
             {
-                if (_client != null)
-                {
-                    _client.Dispose();
-                    _client = null;
-                    SessionManager.Current = null;
-                    _statusMessage = "Not connected";
-                    PluginLogger.Log("Session cleared (login=false)");
-                    ScheduleDownstreamRecompute();
-                }
-                DA.SetData(0, null);
+                DA.SetData(0, _client);
                 DA.SetData(1, _statusMessage);
                 return;
             }
@@ -64,7 +55,7 @@ namespace Selvagen.GH.Components
             try
             {
                 _client?.Dispose();
-
+                
                 string url = SelvagenConfig.SupabaseUrl;
                 string key = SelvagenConfig.SupabaseAnonKey;
 
@@ -75,7 +66,6 @@ namespace Selvagen.GH.Components
                 SessionManager.Current = _client;
                 _statusMessage = $"Logged in as {result.User?.Email ?? email}";
                 PluginLogger.Log($"Login successful: {_statusMessage}");
-                ScheduleDownstreamRecompute();
             }
             catch (Exception ex)
             {
@@ -88,16 +78,6 @@ namespace Selvagen.GH.Components
 
             DA.SetData(0, _client);
             DA.SetData(1, _statusMessage);
-        }
-
-        private void ScheduleDownstreamRecompute()
-        {
-            OnPingDocument()?.ScheduleSolution(50, doc =>
-            {
-                foreach (var obj in doc.Objects)
-                    if (obj is GH_Component comp && comp != this && comp.GetType().Namespace == GetType().Namespace)
-                        comp.ExpireSolution(false);
-            });
         }
 
         public override GH_Exposure Exposure => GH_Exposure.primary;
