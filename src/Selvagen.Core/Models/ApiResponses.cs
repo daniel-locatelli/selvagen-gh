@@ -156,4 +156,100 @@ namespace Selvagen.Core.Models
             ApiError = apiError;
         }
     }
+
+    /// <summary>
+    /// Full mesh row from PostgREST, including geometry data.
+    /// </summary>
+    public class MeshAssetFull
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = "";
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = "";
+
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = "";
+
+        [JsonPropertyName("geometry_data")]
+        public BufferGeometry GeometryData { get; set; }
+
+        [JsonPropertyName("geometry_url")]
+        public string GeometryUrl { get; set; }
+    }
+
+    /// <summary>
+    /// Full curve set row from PostgREST, including geometry data.
+    /// </summary>
+    public class CurveSetAssetFull
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = "";
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = "";
+
+        [JsonPropertyName("geometry_data")]
+        public CurveSet GeometryData { get; set; }
+
+        [JsonPropertyName("geometry_url")]
+        public string GeometryUrl { get; set; }
+    }
+
+    /// <summary>
+    /// Full text 3D set row from PostgREST, including text data.
+    /// </summary>
+    public class Text3DSetAssetFull
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = "";
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = "";
+
+        [JsonPropertyName("text_data")]
+        public Text3DSet TextData { get; set; }
+
+        [JsonPropertyName("geometry_url")]
+        public string GeometryUrl { get; set; }
+    }
+
+    /// <summary>
+    /// Full animation sequence metadata from PostgREST.
+    /// </summary>
+    public class AnimationSequenceFull
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = "";
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = "";
+
+        [JsonPropertyName("fps")]
+        public double? Fps { get; set; }
+
+        [JsonPropertyName("loop")]
+        public bool? Loop { get; set; }
+
+        [JsonPropertyName("base_asset_id")]
+        public string BaseAssetId { get; set; } = "";
+
+        [JsonPropertyName("frame_count")]
+        public int FrameCount { get; set; }
+    }
+
+    /// <summary>
+    /// Full animation frame row from PostgREST, including geometry data.
+    /// </summary>
+    public class AnimationFrameFull
+    {
+        [JsonPropertyName("frame_index")]
+        public int FrameIndex { get; set; }
+
+        [JsonPropertyName("geometry_data")]
+        public AnimationFrameData GeometryData { get; set; }
+
+        [JsonPropertyName("label")]
+        public string Label { get; set; }
+    }
 }
