@@ -71,6 +71,22 @@ FAMILY_ICONS = {
 
 # ── Standalone icons (no family compositing) ──────────────────────────
 
+UPLOAD_DOWNLOAD_ICONS = {
+    # Upload — base + up arrow
+    "UploadMesh":           ("mdi:vector-triangle",  "mdi:arrow-up-bold"),
+    "UploadCurves":         ("mdi:vector-curve",     "mdi:arrow-up-bold"),
+    "UploadLabels":         ("mdi:format-text",      "mdi:arrow-up-bold"),
+    "UploadAnimation":      ("mdi:animation-play",   "mdi:arrow-up-bold"),
+
+    # Download — base + down arrow
+    "DownloadMesh":         ("mdi:vector-triangle",  "mdi:arrow-down-bold"),
+    "DownloadCurves":       ("mdi:vector-curve",     "mdi:arrow-down-bold"),
+    "DownloadLabels":       ("mdi:format-text",      "mdi:arrow-down-bold"),
+    "DownloadAnimation":    ("mdi:animation-play",   "mdi:arrow-down-bold"),
+}
+
+# ── Standalone icons (no family compositing) ──────────────────────────
+
 STANDALONE_ICONS = {
     # 01 Auth
     "Login":            "mdi:login",
@@ -84,11 +100,7 @@ STANDALONE_ICONS = {
     "Properties":       "mdi:tune",
 
     # 08 Assets
-    "ListAssets":       "mdi:package-variant",
-    "UploadMesh":       "mdi:cube-outline",
-    "UploadCurves":     "mdi:vector-curve",
-    "UploadLabels":     "mdi:format-text",
-    "UploadAnimation":  "mdi:animation-play",
+    "ListAssets":       "mdi:format-list-bulleted",
 }
 
 _svg_cache = {}
@@ -162,13 +174,21 @@ def generate_composite(component_name: str, base_id: str, badge_id: str | None):
 
 
 def main():
-    total = len(FAMILY_ICONS) + len(STANDALONE_ICONS)
-    print(f"Generating {total} icons ({len(FAMILY_ICONS)} composites, {len(STANDALONE_ICONS)} standalone)...\n")
+    total = len(FAMILY_ICONS) + len(UPLOAD_DOWNLOAD_ICONS) + len(STANDALONE_ICONS)
+    print(f"Generating {total} icons ({len(FAMILY_ICONS)} family, {len(UPLOAD_DOWNLOAD_ICONS)} upload/download, {len(STANDALONE_ICONS)} standalone)...\n")
 
     errors = []
 
     print("-- Family icons (base + badge) --")
     for comp, (base_id, badge_id) in FAMILY_ICONS.items():
+        try:
+            generate_composite(comp, base_id, badge_id)
+        except Exception as e:
+            errors.append((comp, str(e)))
+            print(f"  ERROR {comp}: {e}")
+
+    print("\n-- Upload/Download icons (base + arrow badge) --")
+    for comp, (base_id, badge_id) in UPLOAD_DOWNLOAD_ICONS.items():
         try:
             generate_composite(comp, base_id, badge_id)
         except Exception as e:
