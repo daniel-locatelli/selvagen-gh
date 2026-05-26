@@ -17,6 +17,7 @@ namespace Selvagen.GH.Components
         private List<string> _cachedTexts;
         private List<Color> _cachedColors;
         private List<double> _cachedFontSizes;
+        private List<int> _cachedJustifications;
         private string _cachedName;
 
         public SelvagenDownloadLabelsComponent()
@@ -28,7 +29,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Asset ID", "AstID", "Text 3D set asset ID (from List Assets)", GH_ParamAccess.item);
+            pManager.AddTextParameter("Asset ID", "AstID", "Label set asset ID (from List Assets)", GH_ParamAccess.item);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -37,6 +38,7 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("Texts", "Txt", "Label text strings", GH_ParamAccess.list);
             pManager.AddColourParameter("Colors", "C", "Per-label color", GH_ParamAccess.list);
             pManager.AddNumberParameter("Font Sizes", "Fs", "Per-label font size", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Justification", "J", "Per-label justification (0-8)", GH_ParamAccess.list);
             pManager.AddTextParameter("Name", "N", "Asset name", GH_ParamAccess.item);
             pManager.AddTextParameter("Status", "S", "Download status", GH_ParamAccess.item);
         }
@@ -50,14 +52,14 @@ namespace Selvagen.GH.Components
 
             if (string.IsNullOrEmpty(assetId))
             {
-                DA.SetData(5, "Provide an Asset ID.");
+                DA.SetData(6, "Provide an Asset ID.");
                 return;
             }
 
             if (client == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
-                DA.SetData(5, "Not logged in.");
+                DA.SetData(6, "Not logged in.");
                 return;
             }
 
@@ -67,8 +69,9 @@ namespace Selvagen.GH.Components
                 DA.SetDataList(1, _cachedTexts);
                 DA.SetDataList(2, _cachedColors);
                 DA.SetDataList(3, _cachedFontSizes);
-                DA.SetData(4, _cachedName);
-                DA.SetData(5, $"Cached: {_cachedName} ({_cachedPlanes.Count} labels)");
+                DA.SetDataList(4, _cachedJustifications);
+                DA.SetData(5, _cachedName);
+                DA.SetData(6, $"Cached: {_cachedName} ({_cachedPlanes.Count} labels)");
                 return;
             }
 
@@ -79,7 +82,7 @@ namespace Selvagen.GH.Components
                 if (asset.TextData == null)
                 {
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Label set has no inline text data.");
-                    DA.SetData(5, "No text data.");
+                    DA.SetData(6, "No text data.");
                     return;
                 }
 
@@ -91,20 +94,22 @@ namespace Selvagen.GH.Components
                 _cachedTexts = texts;
                 _cachedColors = colors;
                 _cachedFontSizes = fontSizes;
+                _cachedJustifications = justifications;
                 _cachedName = asset.Name;
 
                 DA.SetDataList(0, planes);
                 DA.SetDataList(1, texts);
                 DA.SetDataList(2, colors);
                 DA.SetDataList(3, fontSizes);
-                DA.SetData(4, asset.Name);
-                DA.SetData(5, $"Downloaded: {asset.Name} ({planes.Count} labels)");
+                DA.SetDataList(4, justifications);
+                DA.SetData(5, asset.Name);
+                DA.SetData(6, $"Downloaded: {asset.Name} ({planes.Count} labels)");
             }
             catch (Exception ex)
             {
                 var msg = ex.InnerException?.Message ?? ex.Message;
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
-                DA.SetData(5, $"Error: {msg}");
+                DA.SetData(6, $"Error: {msg}");
             }
         }
 

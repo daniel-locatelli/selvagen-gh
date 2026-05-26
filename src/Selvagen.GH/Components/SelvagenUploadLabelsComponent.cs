@@ -24,8 +24,10 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("Texts", "T", "Label text strings", GH_ParamAccess.list);
             pManager.AddTextParameter("Name", "N", "Display name for the label set", GH_ParamAccess.item);
             pManager.AddColourParameter("Color", "C", "Per-label text colour (one per label, or a single colour for all)", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Justification", "J", "Per-label justification (0=BotLeft, 1=BotCenter, 2=BotRight, 3=MidLeft, 4=MidCenter, 5=MidRight, 6=TopLeft, 7=TopCenter, 8=TopRight)", GH_ParamAccess.list);
 
             Params.Input[4].Optional = true;
+            Params.Input[5].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -40,12 +42,14 @@ namespace Selvagen.GH.Components
             var planes = new List<Plane>();
             var texts = new List<string>();
             var colors = new List<Color>();
+            var justifications = new List<int>();
 
             DA.GetData(0, ref projectId);
             DA.GetDataList(1, planes);
             DA.GetDataList(2, texts);
             DA.GetData(3, ref name);
             DA.GetDataList(4, colors);
+            DA.GetDataList(5, justifications);
 
             var client = SessionManager.Current;
 
@@ -72,7 +76,8 @@ namespace Selvagen.GH.Components
                 var labelSet = LabelConverter.ToLabelSet(
                     planes,
                     texts,
-                    colors: colors.Count > 0 ? colors : null);
+                    colors: colors.Count > 0 ? colors : null,
+                    justifications: justifications.Count > 0 ? justifications : null);
                 var result = Task.Run(() => client.UploadLabelSetAsync(projectId, name, labelSet)).GetAwaiter().GetResult();
 
                 DA.SetData(0, result.Id);
