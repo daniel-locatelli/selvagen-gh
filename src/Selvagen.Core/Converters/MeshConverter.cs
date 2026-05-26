@@ -109,5 +109,57 @@ namespace Selvagen.Core.Converters
                 },
             };
         }
+
+        /// <summary>
+        /// Convert a Three.js BufferGeometry model back to a Rhino Mesh.
+        /// Handles Y-up → Z-up coordinate swap and optional vertex colors.
+        /// </summary>
+        public static Mesh FromBufferGeometry(BufferGeometry bg)
+        {
+            if (bg == null)
+                throw new ArgumentNullException(nameof(bg));
+
+            var mesh = new Mesh();
+            var posArr = bg.Data.Attributes.Position.Array;
+            int vertCount = posArr.Length / 3;
+
+            for (int i = 0; i < vertCount; i++)
+                mesh.Vertices.Add(CoordinateHelper.FromYUp(posArr, i * 3));
+
+            var idxArr = bg.Data.Index?.Array;
+            if (idxArr != null)
+            {
+                for (int i = 0; i + 2 < idxArr.Length; i += 3)
+                    mesh.Faces.AddFace(idxArr[i], idxArr[i + 1], idxArr[i + 2]);
+            }
+
+            var normAttr = bg.Data.Attributes.Normal;
+            if (normAttr?.Array != null && normAttr.Array.Length == vertCount * 3)
+            {
+                var normArr = normAttr.Array;
+                for (int i = 0; i < vertCount; i++)
+                    mesh.Normals.Add(CoordinateHelper.VectorFromYUp(
+                        normArr[i * 3], normArr[i * 3 + 1], normArr[i * 3 + 2]));
+            }
+            else
+            {
+                mesh.Normals.ComputeNormals();
+            }
+
+            var colorAttr = bg.Data.Attributes.Color;
+            if (colorAttr?.Array != null && colorAttr.Array.Length == vertCount * 3)
+            {
+                var colArr = colorAttr.Array;
+                for (int i = 0; i < vertCount; i++)
+                {
+                    int r = Math.Max(0, Math.Min(255, (int)Math.Round(colArr[i * 3] * 255.0)));
+                    int g = Math.Max(0, Math.Min(255, (int)Math.Round(colArr[i * 3 + 1] * 255.0)));
+                    int b = Math.Max(0, Math.Min(255, (int)Math.Round(colArr[i * 3 + 2] * 255.0)));
+                    mesh.VertexColors.Add(r, g, b);
+                }
+            }
+
+            return mesh;
+        }
     }
 }
