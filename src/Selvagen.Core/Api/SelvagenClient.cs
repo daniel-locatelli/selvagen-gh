@@ -250,6 +250,16 @@ namespace Selvagen.Core.Api
         }
 
         /// <summary>
+        /// List animation sequences belonging to a project.
+        /// </summary>
+        public async Task<AssetInfo[]> ListAnimationSequencesAsync(string projectId)
+        {
+            if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
+            var path = $"/rest/v1/animation_sequences?project_id=eq.{projectId}&select=id,name,created_at&order=created_at.desc";
+            return await QueryAssetsAsync(path, "animation_sequences").ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Delete an asset by table name and ID.
         /// </summary>
         public async Task DeleteAssetAsync(string tableName, string assetId)
@@ -280,6 +290,109 @@ namespace Selvagen.Core.Api
                 throw new SelvagenApiException($"List {label} failed: {json}", (int)response.StatusCode);
 
             return JsonSerializer.Deserialize<AssetInfo[]>(json);
+        }
+
+        // ── Asset Downloads (full data) ─────────────────────────────────
+
+        /// <summary>
+        /// Fetch a single mesh including its geometry data.
+        /// </summary>
+        public async Task<MeshAssetFull> GetMeshAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
+            var path = $"/rest/v1/meshes?id=eq.{id}&select=id,name,type,geometry_data,geometry_url";
+            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"Get mesh failed: {json}", (int)response.StatusCode);
+
+            var results = JsonSerializer.Deserialize<MeshAssetFull[]>(json);
+            if (results == null || results.Length == 0)
+                throw new SelvagenApiException($"Mesh not found: {id}", 404);
+
+            return results[0];
+        }
+
+        /// <summary>
+        /// Fetch a single curve set including its geometry data.
+        /// </summary>
+        public async Task<CurveSetAssetFull> GetCurveSetAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
+            var path = $"/rest/v1/curve_sets?id=eq.{id}&select=id,name,geometry_data,geometry_url";
+            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"Get curve set failed: {json}", (int)response.StatusCode);
+
+            var results = JsonSerializer.Deserialize<CurveSetAssetFull[]>(json);
+            if (results == null || results.Length == 0)
+                throw new SelvagenApiException($"Curve set not found: {id}", 404);
+
+            return results[0];
+        }
+
+        /// <summary>
+        /// Fetch a single text 3D set including its text data.
+        /// </summary>
+        public async Task<Text3DSetAssetFull> GetText3DSetAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
+            var path = $"/rest/v1/text_3d_sets?id=eq.{id}&select=id,name,text_data,geometry_url";
+            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"Get text 3D set failed: {json}", (int)response.StatusCode);
+
+            var results = JsonSerializer.Deserialize<Text3DSetAssetFull[]>(json);
+            if (results == null || results.Length == 0)
+                throw new SelvagenApiException($"Text 3D set not found: {id}", 404);
+
+            return results[0];
+        }
+
+        /// <summary>
+        /// Fetch animation sequence metadata.
+        /// </summary>
+        public async Task<AnimationSequenceFull> GetAnimationSequenceInfoAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
+            var path = $"/rest/v1/animation_sequences?id=eq.{id}&select=id,name,fps,loop,base_asset_id,frame_count";
+            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"Get animation sequence failed: {json}", (int)response.StatusCode);
+
+            var results = JsonSerializer.Deserialize<AnimationSequenceFull[]>(json);
+            if (results == null || results.Length == 0)
+                throw new SelvagenApiException($"Animation sequence not found: {id}", 404);
+
+            return results[0];
+        }
+
+        /// <summary>
+        /// Fetch all frames for an animation sequence, ordered by frame_index.
+        /// </summary>
+        public async Task<AnimationFrameFull[]> GetAnimationFramesAsync(string sequenceId)
+        {
+            if (string.IsNullOrEmpty(sequenceId)) throw new ArgumentNullException(nameof(sequenceId));
+
+            var path = $"/rest/v1/animation_frames?sequence_id=eq.{sequenceId}&select=frame_index,geometry_data,label&order=frame_index";
+            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"Get animation frames failed: {json}", (int)response.StatusCode);
+
+            return JsonSerializer.Deserialize<AnimationFrameFull[]>(json) ?? new AnimationFrameFull[0];
         }
 
         // ── Module Records ───────────────────────────────────────────────
