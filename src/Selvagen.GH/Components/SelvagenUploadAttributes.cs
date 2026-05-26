@@ -58,24 +58,25 @@ namespace Selvagen.GH.Components
             Color topColor, bottomColor;
             if (_buttonPressed)
             {
-                topColor = Color.FromArgb(100, 160, 140);
-                bottomColor = Color.FromArgb(40, 100, 80);
+                topColor = Color.FromArgb(170, 170, 170);
+                bottomColor = Color.FromArgb(110, 110, 110);
             }
             else
             {
-                topColor = Color.FromArgb(60, 140, 120);
-                bottomColor = Color.FromArgb(20, 80, 60);
+                topColor = Color.FromArgb(130, 130, 130);
+                bottomColor = Color.FromArgb(50, 50, 50);
             }
 
             using (var fill = new LinearGradientBrush(r, topColor, bottomColor, 90f))
                 g.FillPath(fill, path);
-            using (var pen = new Pen(Color.FromArgb(10, 50, 40), 1f))
+            using (var pen = new Pen(Color.FromArgb(30, 30, 30), 1f))
                 g.DrawPath(pen, path);
 
             var label = UploadOwner.IsUploading ? "Uploading..." : "Upload";
-            using (var font = GH_FontServer.NewFont(GH_FontServer.Standard, 6f))
+            using (var font = new Font("Verdana", 6f, FontStyle.Regular))
+            using (var brush = new SolidBrush(Color.White))
             using (var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
-                g.DrawString(label, font, Brushes.White, r, fmt);
+                g.DrawString(label, font, brush, r, fmt);
 
             path.Dispose();
         }
