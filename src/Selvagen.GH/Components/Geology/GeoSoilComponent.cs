@@ -15,14 +15,14 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("SoilMeshID", "SoilM", "Soil mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Soil Mesh ID", "SoilM", "Soil mesh asset ID [Malha de Solo]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("SoilHMin", "SHMin", "Soil minimum height", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Soil Height Minimum", "SHMin", "Soil minimum height [Altura Mínima do Solo]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("SoilHMax", "SHMax", "Soil maximum height", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Soil Height Maximum", "SHMax", "Soil maximum height [Altura Máxima do Solo]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

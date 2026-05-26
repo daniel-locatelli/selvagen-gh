@@ -15,20 +15,20 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("RockMeshID", "RM", "Rock mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Rock Mesh ID", "RM", "Rock mesh asset ID [Malha de Rocha]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddTextParameter("RockLabelsHID", "RLH", "Rock height labels asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Rock Height Labels ID", "RLH", "Rock height labels asset ID [Rótulos de Altura de Rocha]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddTextParameter("RockLabelsVID", "RLV", "Rock volume labels asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Rock Volume Labels ID", "RLV", "Rock volume labels asset ID [Rótulos de Volume de Rocha]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("RockHMin", "RkHn", "Rock minimum height (m)", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Rock Height Minimum", "RkHn", "Rock minimum height (m) [Altura Mínima de Rocha]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("RockHMax", "RkHx", "Rock maximum height (m)", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Rock Height Maximum", "RkHx", "Rock maximum height (m) [Altura Máxima de Rocha]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddNumberParameter("RockTotalVolCut", "RTV", "Rock total volume cut", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Rock Total Volume Cut", "RTV", "Rock total volume cut [Volume Total de Corte de Rocha]", GH_ParamAccess.item);
             pManager[6].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

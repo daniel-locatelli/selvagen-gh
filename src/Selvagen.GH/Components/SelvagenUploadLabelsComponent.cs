@@ -19,12 +19,12 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID", GH_ParamAccess.item);
-            pManager.AddPlaneParameter("Planes", "Pl", "Label placement planes (origin = position, orientation drives text rotation)", GH_ParamAccess.list);
-            pManager.AddTextParameter("Texts", "T", "Label text strings", GH_ParamAccess.list);
-            pManager.AddTextParameter("Name", "N", "Display name for the label set", GH_ParamAccess.item);
-            pManager.AddColourParameter("Color", "C", "Per-label text colour (one per label, or a single colour for all)", GH_ParamAccess.list);
-            pManager.AddIntegerParameter("Justification", "J", "Per-label justification (0=BotLeft, 1=BotCenter, 2=BotRight, 3=MidLeft, 4=MidCenter, 5=MidRight, 6=TopLeft, 7=TopCenter, 8=TopRight)", GH_ParamAccess.list);
+            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddPlaneParameter("Planes", "Pl", "Label placement planes (origin = position, orientation drives text rotation) [Planos de Posicionamento]", GH_ParamAccess.list);
+            pManager.AddTextParameter("Texts", "T", "Label text strings [Textos dos Rótulos]", GH_ParamAccess.list);
+            pManager.AddTextParameter("Name", "N", "Display name for the label set [Nome de Exibição]", GH_ParamAccess.item);
+            pManager.AddColourParameter("Color", "C", "Per-label text colour (one per label, or a single colour for all) [Cor do Texto]", GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Justification", "J", "Per-label justification (0=BotLeft, 1=BotCenter, 2=BotRight, 3=MidLeft, 4=MidCenter, 5=MidRight, 6=TopLeft, 7=TopCenter, 8=TopRight) [Justificação do Texto]", GH_ParamAccess.list);
 
             Params.Input[4].Optional = true;
             Params.Input[5].Optional = true;

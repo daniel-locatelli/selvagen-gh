@@ -15,24 +15,24 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("EarthTerrainMeshID", "ETM", "Terrain mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Terrain Mesh ID", "ETM", "Terrain mesh asset ID [Malha do Terreno]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddTextParameter("EarthMassingMeshID", "EMM", "Massing mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Massing Mesh ID", "EMM", "Massing mesh asset ID [Malha de Volumetria]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("EarthVolFill", "EVF", "Earth volume fill", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Earth Volume Fill", "EVF", "Earth volume fill [Volume de Aterro]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("EarthVolCut", "EVC", "Earth volume cut", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Earth Volume Cut", "EVC", "Earth volume cut [Volume de Corte]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("EarthVolImport", "EVI", "Earth volume import", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Earth Volume Import", "EVI", "Earth volume import [Volume de Importação]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddNumberParameter("EarthVolExport", "EVE", "Earth volume export", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Earth Volume Export", "EVE", "Earth volume export [Volume de Exportação]", GH_ParamAccess.item);
             pManager[6].Optional = true;
-            pManager.AddNumberParameter("EarthCostImport", "ECI", "Earth import cost", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Earth Cost Import", "ECI", "Earth import cost [Custo de Importação]", GH_ParamAccess.item);
             pManager[7].Optional = true;
-            pManager.AddNumberParameter("EarthCostExport", "ECE", "Earth export cost", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Earth Cost Export", "ECE", "Earth export cost [Custo de Exportação]", GH_ParamAccess.item);
             pManager[8].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

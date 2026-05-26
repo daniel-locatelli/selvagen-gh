@@ -23,9 +23,9 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Email", "E", "User email address", GH_ParamAccess.item);
-            pManager.AddTextParameter("Password", "P", "User password", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Login", "L", "Set to true to login", GH_ParamAccess.item, false);
+            pManager.AddTextParameter("Email", "E", "User email address [E-mail do Usuário]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Password", "P", "User password [Senha do Usuário]", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Login", "L", "Set to true to login [Entrar]", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)

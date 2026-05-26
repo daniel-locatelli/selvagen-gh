@@ -15,20 +15,20 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("LotsMeshID", "LotsM", "Lots mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Lots Mesh ID", "LotsM", "Lots mesh asset ID [Malha dos Lotes]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("LotsVolCompFill", "LotsCF", "Lots volume compact fill", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Lots Volume Compact Fill", "LotsCF", "Lots volume compact fill [Volume de Aterro Compactado]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("LotsVolBulkFill", "LotsBF", "Lots volume bulking fill", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Lots Volume Bulking Fill", "LotsBF", "Lots volume bulking fill [Volume de Aterro Empolado]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("LotsVolCut", "LotsCt", "Lots volume cut", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Lots Volume Cut", "LotsCt", "Lots volume cut [Volume de Corte]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("LotsVolImport", "LotsIm", "Lots volume import", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Lots Volume Import", "LotsIm", "Lots volume import [Volume de Importação]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddNumberParameter("LotsVolExport", "LotsEx", "Lots volume export", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Lots Volume Export", "LotsEx", "Lots volume export [Volume de Exportação]", GH_ParamAccess.item);
             pManager[6].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

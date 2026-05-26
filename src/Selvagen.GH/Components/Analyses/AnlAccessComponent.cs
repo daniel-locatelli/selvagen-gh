@@ -15,16 +15,16 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("AccCurvesID", "AC", "Access curves asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Access Curves ID", "AC", "Access curves asset ID [Curvas de Acessibilidade]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddTextParameter("AccLabelsID", "AL", "Access labels asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Access Labels ID", "AL", "Access labels asset ID [Rótulos de Acessibilidade]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("AccRef", "AR", "Access reference value", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Access Reference", "AR", "Access reference value [Referência de Acessibilidade]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("AccRate", "ARt", "Access rate", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Access Rate", "ARt", "Access rate [Taxa de Acessibilidade]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

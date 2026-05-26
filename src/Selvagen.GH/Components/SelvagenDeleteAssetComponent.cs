@@ -19,9 +19,9 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Asset Table", "Table", "Table name: meshes, curve_sets, label_sets, or animation_sequences", GH_ParamAccess.item);
-            pManager.AddTextParameter("Asset ID", "AstID", "ID of the asset to delete", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Delete", "Go", "Set to true to delete", GH_ParamAccess.item, false);
+            pManager.AddTextParameter("Asset Table", "Table", "Table name: meshes, curve_sets, label_sets, or animation_sequences [Tabela do Asset]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Asset ID", "AstID", "ID of the asset to delete [ID do Asset]", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Delete", "Go", "Set to true to delete [Excluir]", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)

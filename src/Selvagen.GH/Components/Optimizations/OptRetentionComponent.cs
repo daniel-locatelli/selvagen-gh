@@ -15,16 +15,16 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddNumberParameter("RetHMin", "RetMin", "Retention height min", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Retention Height Min", "RetMin", "Retention height min [Altura Mínima de Contenção]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("RetHMax", "RetMax", "Retention height max", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Retention Height Max", "RetMax", "Retention height max [Altura Máxima de Contenção]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("RetArea", "RetA", "Retention area", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Retention Area", "RetA", "Retention area [Área de Contenção]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("RetCost", "RetC", "Retention cost", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Retention Cost", "RetC", "Retention cost [Custo de Contenção]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

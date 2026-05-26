@@ -15,20 +15,20 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("TerrMeshID", "TerrM", "Terrain mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Terrain Mesh ID", "TerrM", "Terrain mesh asset ID [Malha do Terreno]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("TerrVolCompFill", "TerrCF", "Terrain volume compact fill", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Terrain Volume Compact Fill", "TerrCF", "Terrain volume compact fill [Volume de Aterro Compactado]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("TerrVolBulkFill", "TerrBF", "Terrain volume bulking fill", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Terrain Volume Bulking Fill", "TerrBF", "Terrain volume bulking fill [Volume de Aterro Empolado]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("TerrVolCut", "TerrCt", "Terrain volume cut", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Terrain Volume Cut", "TerrCt", "Terrain volume cut [Volume de Corte]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("TerrVolImport", "TerrIm", "Terrain volume import", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Terrain Volume Import", "TerrIm", "Terrain volume import [Volume de Importação]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddNumberParameter("TerrVolExport", "TerrEx", "Terrain volume export", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Terrain Volume Export", "TerrEx", "Terrain volume export [Volume de Exportação]", GH_ParamAccess.item);
             pManager[6].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

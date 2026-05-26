@@ -27,7 +27,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Sequence ID", "SeqID", "Animation sequence ID (from List Assets)", GH_ParamAccess.item);
+            pManager.AddTextParameter("Sequence ID", "SeqID", "Animation sequence ID (from List Assets) [ID da Sequência de Animação]", GH_ParamAccess.item);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)

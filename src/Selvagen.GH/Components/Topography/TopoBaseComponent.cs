@@ -16,16 +16,16 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("BaseMeshID", "BM", "Base mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Base Mesh ID", "BM", "Base mesh asset ID [Malha de Base]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("BaseArea2D", "BA2", "Base 2D area", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Base Area 2D", "BA2", "Base 2D area [Área 2D de Base]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("BaseArea3D", "BA3", "Base 3D area", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Base Area 3D", "BA3", "Base 3D area [Área 3D de Base]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("BaseTDR", "BTDR", "Base true dimension rate", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Base True Dimension Rate", "BTDR", "Base true dimension rate [Taxa de Dimensão Real]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

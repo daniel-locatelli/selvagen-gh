@@ -17,9 +17,9 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID", GH_ParamAccess.item);
-            pManager.AddMeshParameter("Mesh", "M", "Rhino mesh to upload", GH_ParamAccess.item);
-            pManager.AddTextParameter("Name", "N", "Display name for the mesh", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "M", "Rhino mesh to upload [Malha do Rhino]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Name", "N", "Display name for the mesh [Nome de Exibição]", GH_ParamAccess.item);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)

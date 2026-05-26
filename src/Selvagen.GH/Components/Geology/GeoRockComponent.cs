@@ -15,14 +15,14 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("RockMeshID", "RkM", "Rock mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Rock Mesh ID", "RkM", "Rock mesh asset ID [Malha de Afloramento]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddTextParameter("RockCurvesID", "RkC", "Rock curve set asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Rock Curves ID", "RkC", "Rock curve set asset ID [Curvas de Afloramento]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("RockContourInt", "RkCI", "Rock contour interval", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Rock Contour Interval", "RkCI", "Rock contour interval [Intervalo de Contorno de Rocha]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

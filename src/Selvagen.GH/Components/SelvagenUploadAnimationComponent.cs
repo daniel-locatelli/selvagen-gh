@@ -18,11 +18,11 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID", GH_ParamAccess.item);
-            pManager.AddMeshParameter("Meshes", "M", "List of meshes (one per frame, in order)", GH_ParamAccess.list);
-            pManager.AddTextParameter("Name", "N", "Display name for the animation", GH_ParamAccess.item);
-            pManager.AddNumberParameter("FPS", "FPS", "Frames per second", GH_ParamAccess.item, 1.0);
-            pManager.AddBooleanParameter("Loop", "L", "Loop playback", GH_ParamAccess.item, false);
+            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Meshes", "M", "List of meshes (one per frame, in order) [Malhas por Quadro]", GH_ParamAccess.list);
+            pManager.AddTextParameter("Name", "N", "Display name for the animation [Nome de Exibição]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("FPS", "FPS", "Frames per second [Quadros por Segundo]", GH_ParamAccess.item, 1.0);
+            pManager.AddBooleanParameter("Loop", "L", "Loop playback [Reprodução em Loop]", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)

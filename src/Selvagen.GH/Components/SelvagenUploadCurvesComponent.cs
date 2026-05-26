@@ -19,11 +19,11 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID", GH_ParamAccess.item);
-            pManager.AddCurveParameter("Curves", "Crv", "Rhino curves to upload", GH_ParamAccess.list);
-            pManager.AddTextParameter("Name", "N", "Display name for the curve set", GH_ParamAccess.item);
-            pManager.AddColourParameter("Color", "C", "Per-curve colour (one per curve, or a single colour for all)", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Thickness", "T", "Per-curve line thickness in pixels (one per curve, or a single value for all)", GH_ParamAccess.list);
+            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Curves", "Crv", "Rhino curves to upload [Curvas do Rhino]", GH_ParamAccess.list);
+            pManager.AddTextParameter("Name", "N", "Display name for the curve set [Nome de Exibição]", GH_ParamAccess.item);
+            pManager.AddColourParameter("Color", "C", "Per-curve colour (one per curve, or a single colour for all) [Cor por Curva]", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Thickness", "T", "Per-curve line thickness in pixels (one per curve, or a single value for all) [Espessura de Linha]", GH_ParamAccess.list);
 
             Params.Input[3].Optional = true;
             Params.Input[4].Optional = true;

@@ -21,7 +21,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Asset ID", "AstID", "Mesh asset ID (from List Assets)", GH_ParamAccess.item);
+            pManager.AddTextParameter("Asset ID", "AstID", "Mesh asset ID (from List Assets) [ID do Asset de Malha]", GH_ParamAccess.item);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)

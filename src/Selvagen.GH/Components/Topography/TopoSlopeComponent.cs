@@ -16,18 +16,18 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("SlopeMeshID", "SM", "Slope mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Slope Mesh ID", "SM", "Slope mesh asset ID [Malha de Declividade]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("SlopeRef", "SR", "Slope reference value", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Slope Reference", "SR", "Slope reference value [Referência de Declividade]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("SlopeRestRate", "SRR", "Slope restricted area rate", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Slope Restricted Rate", "SRR", "Slope restricted area rate [Taxa de Área Restrita]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("SlopeMin", "Smn", "Minimum slope", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Slope Minimum", "Smn", "Minimum slope [Declividade Mínima]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("SlopeMax", "Smx", "Maximum slope", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Slope Maximum", "Smx", "Maximum slope [Declividade Máxima]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

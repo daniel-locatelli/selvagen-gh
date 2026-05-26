@@ -16,14 +16,14 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("Acc8MeshID", "A8M", "Access 8m mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Access 8m Mesh ID", "A8M", "Access 8m mesh asset ID [Malha de Acessibilidade 8m]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("Acc8Ref", "A8R", "Access 8m reference value", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Access 8m Reference", "A8R", "Access 8m reference value [Referência de Acessibilidade 8m]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Acc8Rate", "A8%", "Access 8m rate", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Access 8m Rate", "A8%", "Access 8m rate [Taxa de Acessibilidade 8m]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

@@ -15,14 +15,14 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
-            pManager.AddTextParameter("DepthMeshID", "DepM", "Depth mesh asset ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Depth Mesh ID", "DepM", "Depth mesh asset ID [Malha de Profundidade]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("DepthRef", "DepR", "Depth reference value", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Depth Reference", "DepR", "Depth reference value [Referência de Profundidade]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("DepthUsRate", "DepUR", "Depth usability rate", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Depth Usability Rate", "DepUR", "Depth usability rate [Taxa de Aproveitamento]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)
