@@ -68,5 +68,43 @@ namespace Selvagen.Core.Converters
 
             return new CurveSet { Curves = curveDataList.ToArray() };
         }
+
+        /// <summary>
+        /// Convert a CurveSet model back to Rhino polyline curves.
+        /// Handles Y-up → Z-up coordinate swap.
+        /// </summary>
+        public static void FromCurveSet(CurveSet cs,
+            out List<PolylineCurve> curves,
+            out List<Color> colors,
+            out List<double> linewidths)
+        {
+            if (cs == null)
+                throw new ArgumentNullException(nameof(cs));
+
+            curves = new List<PolylineCurve>();
+            colors = new List<Color>();
+            linewidths = new List<double>();
+
+            foreach (var cd in cs.Curves)
+            {
+                if (cd?.Points == null || cd.Points.Length < 6) continue;
+
+                var pts = new List<Point3d>();
+                for (int i = 0; i + 2 < cd.Points.Length; i += 3)
+                    pts.Add(CoordinateHelper.FromYUp(cd.Points, i));
+
+                if (cd.Closed && pts.Count > 1 && pts[0].DistanceTo(pts[pts.Count - 1]) > 1e-10)
+                    pts.Add(pts[0]);
+
+                curves.Add(new PolylineCurve(pts));
+
+                if (!string.IsNullOrEmpty(cd.Color) && cd.Color.StartsWith("#"))
+                    colors.Add(ColorTranslator.FromHtml(cd.Color));
+                else
+                    colors.Add(Color.Black);
+
+                linewidths.Add(cd.Linewidth ?? 1.0);
+            }
+        }
     }
 }
