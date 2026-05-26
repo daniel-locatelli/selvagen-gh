@@ -19,12 +19,11 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Target project ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID", GH_ParamAccess.item);
             pManager.AddCurveParameter("Curves", "Crv", "Rhino curves to upload", GH_ParamAccess.list);
             pManager.AddTextParameter("Name", "N", "Display name for the curve set", GH_ParamAccess.item);
             pManager.AddColourParameter("Color", "C", "Per-curve colour (one per curve, or a single colour for all)", GH_ParamAccess.list);
             pManager.AddNumberParameter("Thickness", "T", "Per-curve line thickness in pixels (one per curve, or a single value for all)", GH_ParamAccess.list);
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
 
             Params.Input[3].Optional = true;
             Params.Input[4].Optional = true;
@@ -32,7 +31,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("CurveSetID", "ID", "ID of the created curve set", GH_ParamAccess.item);
+            pManager.AddTextParameter("Curve Set ID", "CrvID", "ID of the created curve set", GH_ParamAccess.item);
             pManager.AddTextParameter("Status", "S", "Upload status", GH_ParamAccess.item);
         }
 
@@ -42,27 +41,35 @@ namespace Selvagen.GH.Components
             var curves = new List<Curve>();
             var colors = new List<Color>();
             var thicknesses = new List<double>();
-            bool upload = false;
 
             DA.GetData(0, ref projectId);
             DA.GetDataList(1, curves);
             DA.GetData(2, ref name);
             DA.GetDataList(3, colors);
             DA.GetDataList(4, thicknesses);
-            DA.GetData(5, ref upload);
 
             var client = SessionManager.Current;
 
-            if (!upload || client == null || curves.Count == 0)
+            if (!UploadRequested)
             {
-                if (client == null && upload)
+                if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
-                SetWaiting(DA);
+                SetReady(DA, 1);
+                return;
+            }
+
+            if (client == null || curves.Count == 0 || string.IsNullOrEmpty(projectId) || string.IsNullOrEmpty(name))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Provide Project ID, Curves, and Name before uploading.");
+                SetReady(DA, 1);
                 return;
             }
 
             try
             {
+                IsUploading = true;
+                ForceCanvasRefresh();
+
                 var curveSet = CurveConverter.ToCurveSet(
                     curves,
                     colors: colors.Count > 0 ? colors : null,
@@ -74,7 +81,11 @@ namespace Selvagen.GH.Components
             }
             catch (Exception ex)
             {
-                SetUploadError(DA, ex);
+                SetUploadError(DA, 1, ex);
+            }
+            finally
+            {
+                IsUploading = false;
             }
         }
 

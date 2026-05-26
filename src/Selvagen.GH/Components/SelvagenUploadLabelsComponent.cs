@@ -19,19 +19,18 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Target project ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Target project ID", GH_ParamAccess.item);
             pManager.AddPlaneParameter("Planes", "Pl", "Label placement planes (origin = position, orientation drives text rotation)", GH_ParamAccess.list);
             pManager.AddTextParameter("Texts", "T", "Label text strings", GH_ParamAccess.list);
             pManager.AddTextParameter("Name", "N", "Display name for the label set", GH_ParamAccess.item);
             pManager.AddColourParameter("Color", "C", "Per-label text colour (one per label, or a single colour for all)", GH_ParamAccess.list);
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);
 
             Params.Input[4].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("TextSetID", "ID", "ID of the created text set", GH_ParamAccess.item);
+            pManager.AddTextParameter("Label Set ID", "LblID", "ID of the created label set", GH_ParamAccess.item);
             pManager.AddTextParameter("Status", "S", "Upload status", GH_ParamAccess.item);
         }
 
@@ -41,27 +40,35 @@ namespace Selvagen.GH.Components
             var planes = new List<Plane>();
             var texts = new List<string>();
             var colors = new List<Color>();
-            bool upload = false;
 
             DA.GetData(0, ref projectId);
             DA.GetDataList(1, planes);
             DA.GetDataList(2, texts);
             DA.GetData(3, ref name);
             DA.GetDataList(4, colors);
-            DA.GetData(5, ref upload);
 
             var client = SessionManager.Current;
 
-            if (!upload || client == null || planes.Count == 0)
+            if (!UploadRequested)
             {
-                if (client == null && upload)
+                if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
-                SetWaiting(DA);
+                SetReady(DA, 1);
+                return;
+            }
+
+            if (client == null || planes.Count == 0 || string.IsNullOrEmpty(projectId) || string.IsNullOrEmpty(name))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Provide Project ID, Planes, Texts, and Name before uploading.");
+                SetReady(DA, 1);
                 return;
             }
 
             try
             {
+                IsUploading = true;
+                ForceCanvasRefresh();
+
                 var textSet = TextConverter.FromPlanesAndTexts(
                     planes,
                     texts,
@@ -73,7 +80,11 @@ namespace Selvagen.GH.Components
             }
             catch (Exception ex)
             {
-                SetUploadError(DA, ex);
+                SetUploadError(DA, 1, ex);
+            }
+            finally
+            {
+                IsUploading = false;
             }
         }
 
