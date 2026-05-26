@@ -20,17 +20,17 @@ namespace Selvagen.GH.Components
             pManager[1].Optional = true;
             pManager.AddTextParameter("Massing Mesh ID", "EMM", "Massing mesh asset ID [Malha de Volumetria]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Earth Volume Fill", "EVF", "Earth volume fill [Volume de Aterro]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Fill", "VF", "Volume fill [Volume de Aterro]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Earth Volume Cut", "EVC", "Earth volume cut [Volume de Corte]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Cut", "VC", "Volume cut [Volume de Corte]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("Earth Volume Import", "EVI", "Earth volume import [Volume de Importação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Import", "VI", "Volume import [Volume de Importação]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddNumberParameter("Earth Volume Export", "EVE", "Earth volume export [Volume de Exportação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Export", "VE", "Volume export [Volume de Exportação]", GH_ParamAccess.item);
             pManager[6].Optional = true;
-            pManager.AddNumberParameter("Earth Cost Import", "ECI", "Earth import cost [Custo de Importação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Cost Import", "CI", "Import cost [Custo de Importação]", GH_ParamAccess.item);
             pManager[7].Optional = true;
-            pManager.AddNumberParameter("Earth Cost Export", "ECE", "Earth export cost [Custo de Exportação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Cost Export", "CE", "Export cost [Custo de Exportação]", GH_ParamAccess.item);
             pManager[8].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

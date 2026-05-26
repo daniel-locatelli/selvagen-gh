@@ -17,11 +17,11 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddTextParameter("Drainage Curves ID", "DC", "Drainage curve set asset ID [Curvas de Drenagem]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Curves ID", "C", "Curve set asset ID [Curvas]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddIntegerParameter("Drainage Flow Paths", "DFP", "Total drainage flow paths [Caminhos de Fluxo de Drenagem]", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Flow Paths", "FP", "Total flow paths [Caminhos de Fluxo]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Drainage Concentration Rate", "DCR", "Drainage concentration rate [Taxa de Concentração de Drenagem]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Concentration Rate", "CR", "Concentration rate [Taxa de Concentração]", GH_ParamAccess.item);
             pManager[3].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

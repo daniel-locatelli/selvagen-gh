@@ -16,11 +16,11 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddTextParameter("Soil Mesh ID", "SoilM", "Soil mesh asset ID [Malha de Solo]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Mesh ID", "M", "Mesh asset ID [Malha]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("Soil Height Minimum", "SHMin", "Soil minimum height [Altura Mínima do Solo]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height Minimum", "HMin", "Minimum height [Altura Mínima]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Soil Height Maximum", "SHMax", "Soil maximum height [Altura Máxima do Solo]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height Maximum", "HMax", "Maximum height [Altura Máxima]", GH_ParamAccess.item);
             pManager[3].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

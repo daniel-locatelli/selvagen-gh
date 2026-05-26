@@ -16,13 +16,13 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Retention Height Min", "RetMin", "Retention height min [Altura Mínima de Contenção]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height Min", "HMin", "Height min [Altura Mínima]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("Retention Height Max", "RetMax", "Retention height max [Altura Máxima de Contenção]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height Max", "HMax", "Height max [Altura Máxima]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Retention Area", "RetA", "Retention area [Área de Contenção]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Area", "A", "Area [Área]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Retention Cost", "RetC", "Retention cost [Custo de Contenção]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Cost", "$", "Cost [Custo]", GH_ParamAccess.item);
             pManager[4].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

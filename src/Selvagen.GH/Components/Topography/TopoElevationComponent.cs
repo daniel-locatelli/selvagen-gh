@@ -17,13 +17,13 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddTextParameter("Elevation Mesh ID", "EM", "Elevation mesh asset ID [Malha de Elevação]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Mesh ID", "M", "Mesh asset ID [Malha]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddTextParameter("Elevation Curves ID", "EC", "Elevation curve set asset ID [Curvas de Elevação]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Curves ID", "C", "Curve set asset ID [Curvas]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Elevation Minimum", "Emn", "Minimum elevation [Elevação Mínima]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Minimum", "Min", "Minimum [Mínima]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Elevation Maximum", "Emx", "Maximum elevation [Elevação Máxima]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Maximum", "Max", "Maximum [Máxima]", GH_ParamAccess.item);
             pManager[4].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

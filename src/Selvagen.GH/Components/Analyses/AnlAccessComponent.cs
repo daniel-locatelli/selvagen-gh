@@ -16,13 +16,13 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddTextParameter("Access Curves ID", "AC", "Access curves asset ID [Curvas de Acessibilidade]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Curves ID", "C", "Curves asset ID [Curvas]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddTextParameter("Access Labels ID", "AL", "Access labels asset ID [Rótulos de Acessibilidade]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Labels ID", "L", "Labels asset ID [Rótulos]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Access Reference", "AR", "Access reference value [Referência de Acessibilidade]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Reference", "R", "Reference value [Referência]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Access Rate", "ARt", "Access rate [Taxa de Acessibilidade]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Rate", "%", "Rate [Taxa]", GH_ParamAccess.item);
             pManager[4].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

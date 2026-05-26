@@ -19,11 +19,11 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
             pManager.AddTextParameter("Outline Curves ID", "OC", "Outline curve set asset ID [Curvas de Contorno]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddTextParameter("Contour Curves ID", "CC", "Contour curves asset ID [Curvas de Nível]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Curves ID", "C", "Curves asset ID [Curvas de Nível]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddTextParameter("Contour Labels ID", "CL", "Contour labels asset ID [Rótulos das Curvas de Nível]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Labels ID", "L", "Labels asset ID [Rótulos]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Contour Interval", "CI", "Contour interval [Intervalo das Curvas de Nível]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Interval", "I", "Interval [Intervalo]", GH_ParamAccess.item);
             pManager[4].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

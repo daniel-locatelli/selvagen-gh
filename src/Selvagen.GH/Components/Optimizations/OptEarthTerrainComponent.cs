@@ -16,17 +16,17 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddTextParameter("Terrain Mesh ID", "TerrM", "Terrain mesh asset ID [Malha do Terreno]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Mesh ID", "M", "Mesh asset ID [Malha]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("Terrain Volume Compact Fill", "TerrCF", "Terrain volume compact fill [Volume de Aterro Compactado]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Compact Fill", "VCF", "Volume compact fill [Volume de Aterro Compactado]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Terrain Volume Bulking Fill", "TerrBF", "Terrain volume bulking fill [Volume de Aterro Empolado]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Bulking Fill", "VBF", "Volume bulking fill [Volume de Aterro Empolado]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Terrain Volume Cut", "TerrCt", "Terrain volume cut [Volume de Corte]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Cut", "VC", "Volume cut [Volume de Corte]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("Terrain Volume Import", "TerrIm", "Terrain volume import [Volume de Importação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Import", "VI", "Volume import [Volume de Importação]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddNumberParameter("Terrain Volume Export", "TerrEx", "Terrain volume export [Volume de Exportação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Export", "VE", "Volume export [Volume de Exportação]", GH_ParamAccess.item);
             pManager[6].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

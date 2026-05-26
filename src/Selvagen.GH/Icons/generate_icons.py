@@ -11,7 +11,7 @@ Run: python generate_icons.py
 import os
 import urllib.request
 import cairosvg
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from io import BytesIO
 
 SCALE = 4
@@ -44,8 +44,6 @@ FAMILY_ICONS = {
     "TopoUrbanization": (TOPO_BASE, "mdi:home-city"),
     "TopoElevation":    (TOPO_BASE, "mdi:arrow-up-bold"),
     "TopoSlope":        (TOPO_BASE, "mdi:angle-acute"),
-    "TopoAccess8":      (TOPO_BASE, "mdi:road-variant"),
-    "TopoAccess5":      (TOPO_BASE, "mdi:road"),
     "TopoDrainage":     (TOPO_BASE, "mdi:water"),
 
     # 04 Geology — layers/strata base
@@ -101,6 +99,14 @@ STANDALONE_ICONS = {
 
     # 08 Assets
     "ListAssets":       "mdi:format-list-bulleted",
+}
+
+# ── Numbered family icons (base + badge + number overlay) ─────────────
+# Same base+badge as FAMILY_ICONS but with a bold number in the corner.
+
+NUMBERED_ICONS = {
+    "TopoAccess5": (TOPO_BASE, "mdi:road-variant", "5"),
+    "TopoAccess8": (TOPO_BASE, "mdi:road-variant", "8"),
 }
 
 _svg_cache = {}
@@ -173,9 +179,45 @@ def generate_composite(component_name: str, base_id: str, badge_id: str | None):
     print(f"  {component_name}.png  <-  {base_id}{badge_label}")
 
 
+def generate_numbered_composite(component_name: str, base_id: str, badge_id: str, number: str):
+    """Composite icon with a bold number drawn over the badge position."""
+    base_svg = download_svg(base_id)
+    base_img = svg_to_png(base_svg, BASE_SIZE)
+    badge_svg = download_svg(badge_id)
+    badge_img = svg_to_png(badge_svg, BADGE_SIZE)
+    badge_img = add_halo(badge_img, radius=3)
+
+    canvas = Image.new("RGBA", (HI, HI), (0, 0, 0, 0))
+    canvas.paste(base_img, BASE_POS, base_img)
+    canvas.paste(badge_img, BADGE_POS, badge_img)
+
+    draw = ImageDraw.Draw(canvas)
+    try:
+        font = ImageFont.truetype("arialbd.ttf", 36)
+    except OSError:
+        try:
+            font = ImageFont.truetype("Arial Bold.ttf", 36)
+        except OSError:
+            font = ImageFont.load_default()
+
+    num_bbox = draw.textbbox((0, 0), number, font=font)
+    num_w = num_bbox[2] - num_bbox[0]
+    num_h = num_bbox[3] - num_bbox[1]
+    num_x = HI - num_w - 4 - 8
+    num_y = 0
+
+    draw.text((num_x + 1, num_y + 1), number, fill=(255, 255, 255, 200), font=font)
+    draw.text((num_x, num_y), number, fill=(17, 17, 17, 255), font=font)
+
+    img_final = canvas.resize((FINAL, FINAL), Image.LANCZOS)
+    path = os.path.join(OUT, f"{component_name}.png")
+    img_final.save(path)
+    print(f"  {component_name}.png  <-  {base_id} + {badge_id} [{number}]")
+
+
 def main():
-    total = len(FAMILY_ICONS) + len(UPLOAD_DOWNLOAD_ICONS) + len(STANDALONE_ICONS)
-    print(f"Generating {total} icons ({len(FAMILY_ICONS)} family, {len(UPLOAD_DOWNLOAD_ICONS)} upload/download, {len(STANDALONE_ICONS)} standalone)...\n")
+    total = len(FAMILY_ICONS) + len(NUMBERED_ICONS) + len(UPLOAD_DOWNLOAD_ICONS) + len(STANDALONE_ICONS)
+    print(f"Generating {total} icons ({len(FAMILY_ICONS)} family, {len(NUMBERED_ICONS)} numbered, {len(UPLOAD_DOWNLOAD_ICONS)} upload/download, {len(STANDALONE_ICONS)} standalone)...\n")
 
     errors = []
 
@@ -183,6 +225,14 @@ def main():
     for comp, (base_id, badge_id) in FAMILY_ICONS.items():
         try:
             generate_composite(comp, base_id, badge_id)
+        except Exception as e:
+            errors.append((comp, str(e)))
+            print(f"  ERROR {comp}: {e}")
+
+    print("\n-- Numbered family icons (base + badge + number) --")
+    for comp, (base_id, badge_id, number) in NUMBERED_ICONS.items():
+        try:
+            generate_numbered_composite(comp, base_id, badge_id, number)
         except Exception as e:
             errors.append((comp, str(e)))
             print(f"  ERROR {comp}: {e}")

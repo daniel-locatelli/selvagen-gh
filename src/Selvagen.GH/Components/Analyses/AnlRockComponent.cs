@@ -16,17 +16,17 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddTextParameter("Rock Mesh ID", "RM", "Rock mesh asset ID [Malha de Rocha]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Mesh ID", "M", "Mesh asset ID [Malha]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddTextParameter("Rock Height Labels ID", "RLH", "Rock height labels asset ID [Rótulos de Altura de Rocha]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Height Labels ID", "LH", "Height labels asset ID [Rótulos de Altura]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddTextParameter("Rock Volume Labels ID", "RLV", "Rock volume labels asset ID [Rótulos de Volume de Rocha]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Volume Labels ID", "LV", "Volume labels asset ID [Rótulos de Volume]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Rock Height Minimum", "RkHn", "Rock minimum height (m) [Altura Mínima de Rocha]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height Minimum", "HMin", "Minimum height (m) [Altura Mínima]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("Rock Height Maximum", "RkHx", "Rock maximum height (m) [Altura Máxima de Rocha]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height Maximum", "HMax", "Maximum height (m) [Altura Máxima]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddNumberParameter("Rock Total Volume Cut", "RTV", "Rock total volume cut [Volume Total de Corte de Rocha]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Total Volume Cut", "TVC", "Total volume cut [Volume Total de Corte]", GH_ParamAccess.item);
             pManager[6].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

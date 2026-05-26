@@ -16,13 +16,13 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddTextParameter("Coverage Mesh ID", "CovM", "Coverage mesh asset ID [Malha de Cobertura]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Mesh ID", "M", "Mesh asset ID [Malha]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddIntegerParameter("Coverage Point Count", "CovNP", "Number of coverage points [Número de Pontos de Sondagem]", GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Point Count", "NP", "Number of points [Número de Pontos]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Coverage Area", "CovA", "Coverage area [Área de Cobertura]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Area", "A", "Area [Área]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Coverage Rate", "CovR", "Coverage rate [Taxa de Cobertura]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Rate", "%", "Rate [Taxa]", GH_ParamAccess.item);
             pManager[4].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

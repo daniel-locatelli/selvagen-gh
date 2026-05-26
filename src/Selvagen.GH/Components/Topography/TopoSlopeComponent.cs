@@ -17,15 +17,15 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddTextParameter("Slope Mesh ID", "SM", "Slope mesh asset ID [Malha de Declividade]", GH_ParamAccess.item);
+            pManager.AddTextParameter("Mesh ID", "M", "Mesh asset ID [Malha]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("Slope Reference", "SR", "Slope reference value [Referência de Declividade]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Reference", "R", "Reference value [Referência]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Slope Restricted Rate", "SRR", "Slope restricted area rate [Taxa de Área Restrita]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Restricted Rate", "RR", "Restricted area rate [Taxa de Área Restrita]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Slope Minimum", "Smn", "Minimum slope [Declividade Mínima]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Minimum", "Min", "Minimum [Mínima]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("Slope Maximum", "Smx", "Maximum slope [Declividade Máxima]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Maximum", "Max", "Maximum [Máxima]", GH_ParamAccess.item);
             pManager[5].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

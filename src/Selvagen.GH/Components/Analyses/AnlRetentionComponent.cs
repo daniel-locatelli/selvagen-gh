@@ -16,13 +16,13 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Retention Height Min", "RHn", "Retention wall minimum height (m) [Altura Mínima do Muro]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height Min", "HMin", "Minimum height (m) [Altura Mínima]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("Retention Height Max", "RHx", "Retention wall maximum height (m) [Altura Máxima do Muro]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height Max", "HMax", "Maximum height (m) [Altura Máxima]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Retention Wall Area", "RA", "Retention wall area [Área do Muro de Contenção]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Wall Area", "WA", "Wall area [Área do Muro]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Retention Wall Cost", "RC", "Retention wall cost [Custo do Muro de Contenção]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Wall Cost", "WC", "Wall cost [Custo do Muro]", GH_ParamAccess.item);
             pManager[4].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }

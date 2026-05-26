@@ -16,19 +16,19 @@ namespace Selvagen.GH.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Total Volume Compact Fill", "TotCF", "Total volume compact fill [Volume Total de Aterro Compactado]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Compact Fill", "VCF", "Volume compact fill [Volume de Aterro Compactado]", GH_ParamAccess.item);
             pManager[1].Optional = true;
-            pManager.AddNumberParameter("Total Volume Bulking Fill", "TotBF", "Total volume bulking fill [Volume Total de Aterro Empolado]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Bulking Fill", "VBF", "Volume bulking fill [Volume de Aterro Empolado]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddNumberParameter("Total Volume Cut", "TotCt", "Total volume cut [Volume Total de Corte]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Cut", "VC", "Volume cut [Volume de Corte]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddNumberParameter("Total Volume Import", "TotIm", "Total volume import [Volume Total de Importação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Import", "VI", "Volume import [Volume de Importação]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddNumberParameter("Total Volume Export", "TotEx", "Total volume export [Volume Total de Exportação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Volume Export", "VE", "Volume export [Volume de Exportação]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddNumberParameter("Total Cost Import", "TotCIm", "Total cost import [Custo Total de Importação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Cost Import", "CI", "Cost import [Custo de Importação]", GH_ParamAccess.item);
             pManager[6].Optional = true;
-            pManager.AddNumberParameter("Total Cost Export", "TotCEx", "Total cost export [Custo Total de Exportação]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Cost Export", "CE", "Cost export [Custo de Exportação]", GH_ParamAccess.item);
             pManager[7].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
