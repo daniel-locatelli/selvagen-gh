@@ -17,9 +17,8 @@ namespace Selvagen.GH.Components
     {
         private const int ButtonHeight = 22;
         private const int DropdownHeight = 22;
-        private const int TopPadding = 4;
-        private const int ElementGap = 3;
-        private const int InnerSidePadding = 6;
+        private const int Padding = 2;
+        private const int ElementGap = 2;
 
         private RectangleF _buttonRect;
         private RectangleF _filterRect;
@@ -50,17 +49,17 @@ namespace Selvagen.GH.Components
             }
 
             int filterExtra = HasFilter ? ElementGap + DropdownHeight : 0;
-            int extra = TopPadding + ButtonHeight + filterExtra + ElementGap + DropdownHeight + TopPadding / 2;
+            int extra = Padding + ButtonHeight + filterExtra + ElementGap + DropdownHeight + Padding;
             var bounds = Bounds;
             bounds.Height = _naturalHeight.Value + extra;
             Bounds = bounds;
 
-            float left = Bounds.Left + InnerSidePadding;
-            float width = Bounds.Width - 2 * InnerSidePadding;
+            float left = Bounds.Left + Padding;
+            float width = Bounds.Width - 2 * Padding;
 
             _buttonRect = new RectangleF(
                 left,
-                Bounds.Top + _naturalHeight.Value + TopPadding / 2f,
+                Bounds.Top + _naturalHeight.Value + Padding,
                 width,
                 ButtonHeight);
 
@@ -120,6 +119,19 @@ namespace Selvagen.GH.Components
             }
         }
 
+        private static void DrawDropdownGlyph(Graphics g, RectangleF rect)
+        {
+            float cx = rect.X + 8f;
+            float cy = rect.Y + rect.Height / 2f;
+            var tri = new PointF[]
+            {
+                new PointF(cx - 3f, cy - 2f),
+                new PointF(cx + 3f, cy - 2f),
+                new PointF(cx, cy + 2f),
+            };
+            g.FillPolygon(Brushes.White, tri);
+        }
+
         private static GraphicsPath CreateRoundedRect(RectangleF rect, float radius)
         {
             float d = radius * 2;
@@ -155,9 +167,9 @@ namespace Selvagen.GH.Components
                 }
             }
 
-            using (var glyphFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Bold))
+            DrawDropdownGlyph(graphics, _filterRect);
+
             using (var textBrush = new SolidBrush(Color.White))
-            using (var glyphFmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center })
             using (var textFmt = new StringFormat
             {
                 LineAlignment = StringAlignment.Center,
@@ -165,15 +177,12 @@ namespace Selvagen.GH.Components
                 Trimming = StringTrimming.EllipsisCharacter,
                 FormatFlags = StringFormatFlags.NoWrap,
             })
-            using (var labelFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Regular))
+            using (var labelFont = new Font("Verdana", 6f, FontStyle.Regular))
             {
-                var glyphRect = new RectangleF(_filterRect.X + 4, _filterRect.Y, 12, _filterRect.Height);
-                graphics.DrawString("▼", glyphFont, textBrush, glyphRect, glyphFmt);
-
                 var textRect = new RectangleF(
-                    _filterRect.X + 18,
+                    _filterRect.X + 14,
                     _filterRect.Y,
-                    _filterRect.Width - 22,
+                    _filterRect.Width - 18,
                     _filterRect.Height);
                 graphics.DrawString(displayText, labelFont, textBrush, textRect, textFmt);
             }
@@ -198,9 +207,9 @@ namespace Selvagen.GH.Components
                 }
             }
 
-            using (var glyphFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Bold))
+            DrawDropdownGlyph(graphics, _dropdownRect);
+
             using (var textBrush = new SolidBrush(Color.White))
-            using (var glyphFmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center })
             using (var textFmt = new StringFormat
             {
                 LineAlignment = StringAlignment.Center,
@@ -208,15 +217,12 @@ namespace Selvagen.GH.Components
                 Trimming = StringTrimming.EllipsisCharacter,
                 FormatFlags = StringFormatFlags.NoWrap,
             })
-            using (var labelFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Regular))
+            using (var labelFont = new Font("Verdana", 6f, FontStyle.Regular))
             {
-                var glyphRect = new RectangleF(_dropdownRect.X + 4, _dropdownRect.Y, 12, _dropdownRect.Height);
-                graphics.DrawString("▼", glyphFont, textBrush, glyphRect, glyphFmt);
-
                 var textRect = new RectangleF(
-                    _dropdownRect.X + 18,
+                    _dropdownRect.X + 14,
                     _dropdownRect.Y,
-                    _dropdownRect.Width - 22,
+                    _dropdownRect.Width - 18,
                     _dropdownRect.Height);
                 graphics.DrawString(Selector.CurrentDisplayText, labelFont, textBrush, textRect, textFmt);
             }

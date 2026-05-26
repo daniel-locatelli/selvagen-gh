@@ -11,8 +11,7 @@ namespace Selvagen.GH.Components
     public class SelvagenUploadAttributes : GH_ComponentAttributes
     {
         private const int ButtonHeight = 22;
-        private const int TopPadding = 4;
-        private const int InnerSidePadding = 6;
+        private const int Padding = 2;
 
         private RectangleF _buttonRect;
         private bool _buttonPressed;
@@ -29,15 +28,15 @@ namespace Selvagen.GH.Components
             if (!_naturalHeight.HasValue)
                 _naturalHeight = Bounds.Height;
 
-            var extra = TopPadding + ButtonHeight;
+            var extra = Padding + ButtonHeight + Padding;
             var bounds = Bounds;
             bounds.Height = _naturalHeight.Value + extra;
             Bounds = bounds;
 
             _buttonRect = new RectangleF(
-                Bounds.Left + InnerSidePadding,
-                Bounds.Top + _naturalHeight.Value + TopPadding / 2f,
-                Bounds.Width - 2 * InnerSidePadding,
+                Bounds.Left + Padding,
+                Bounds.Top + _naturalHeight.Value + Padding,
+                Bounds.Width - 2 * Padding,
                 ButtonHeight);
         }
 
