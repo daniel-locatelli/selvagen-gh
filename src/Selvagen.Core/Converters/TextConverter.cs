@@ -104,5 +104,48 @@ namespace Selvagen.Core.Converters
 
             return new Text3DSet { Labels = labels };
         }
+
+        /// <summary>
+        /// Convert a Text3DSet model back to Rhino planes, texts, colors, and font sizes.
+        /// Planes carry both position and orientation (mirrors the Upload Labels input).
+        /// </summary>
+        public static void FromText3DSet(Text3DSet ts,
+            out List<Plane> planes,
+            out List<string> texts,
+            out List<Color> colors,
+            out List<double> fontSizes)
+        {
+            if (ts == null)
+                throw new ArgumentNullException(nameof(ts));
+
+            planes = new List<Plane>();
+            texts = new List<string>();
+            colors = new List<Color>();
+            fontSizes = new List<double>();
+
+            foreach (var label in ts.Labels)
+            {
+                if (label == null) continue;
+
+                var origin = CoordinateHelper.FromYUp(
+                    label.Position[0], label.Position[1], label.Position[2]);
+
+                Plane plane;
+                if (label.Rotation != null && label.Rotation.Length == 3)
+                    plane = CoordinateHelper.FromYUpEuler(label.Rotation, origin);
+                else
+                    plane = new Plane(origin, Vector3d.XAxis, Vector3d.YAxis);
+
+                planes.Add(plane);
+                texts.Add(label.Text ?? "");
+
+                if (!string.IsNullOrEmpty(label.Color) && label.Color.StartsWith("#"))
+                    colors.Add(ColorTranslator.FromHtml(label.Color));
+                else
+                    colors.Add(Color.Black);
+
+                fontSizes.Add(label.FontSize ?? 0.0);
+            }
+        }
     }
 }
