@@ -1,0 +1,135 @@
+<h2>Design Summary — Module Components Redesign</h2>
+<p class="subtitle">What we've agreed on so far. Review and confirm before we write the spec.</p>
+
+<!-- COMPONENT INVENTORY -->
+<div class="section">
+  <h3>Component Inventory</h3>
+  <p class="subtitle">4 mega-components become ~27 small focused components + 1 shared Properties</p>
+
+  <div style="display:flex; gap:20px; flex-wrap:wrap;">
+
+    <!-- Topography -->
+    <div class="mockup" style="flex:1; min-width:220px;">
+      <div class="mockup-header" style="background:#2c5f3d; color:white;">Topography (8 groups → 8 components)</div>
+      <div class="mockup-body" style="padding:12px;">
+        <table style="width:100%; font-size:10px; color:#ccc; border-collapse:collapse;">
+          <tr style="color:#888; font-size:9px;"><th style="text-align:left; padding:2px 4px;">Component</th><th style="text-align:center; padding:2px 4px;">Inputs</th></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Topo Base</td><td style="text-align:center; border-top:1px solid #333;">4 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Topo Contours</td><td style="text-align:center; border-top:1px solid #333;">4 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Topo Urbanization</td><td style="text-align:center; border-top:1px solid #333;">1 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Topo Elevation</td><td style="text-align:center; border-top:1px solid #333;">4 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Topo Slope</td><td style="text-align:center; border-top:1px solid #333;">5 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Topo Access 8</td><td style="text-align:center; border-top:1px solid #333;">3 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Topo Access 5</td><td style="text-align:center; border-top:1px solid #333;">3 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Topo Drainage</td><td style="text-align:center; border-top:1px solid #333;">3 + PID + Go</td></tr>
+          <tr style="font-weight:bold; color:#7bed9f;"><td style="padding:4px 4px; border-top:2px solid #555;">Total</td><td style="text-align:center; border-top:2px solid #555;">27 fields across 8 components</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Geology -->
+    <div class="mockup" style="flex:1; min-width:220px;">
+      <div class="mockup-header" style="background:#2c5f3d; color:white;">Geology (5 groups → 5 components)</div>
+      <div class="mockup-body" style="padding:12px;">
+        <table style="width:100%; font-size:10px; color:#ccc; border-collapse:collapse;">
+          <tr style="color:#888; font-size:9px;"><th style="text-align:left; padding:2px 4px;">Component</th><th style="text-align:center; padding:2px 4px;">Inputs</th></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Geo Coverage</td><td style="text-align:center; border-top:1px solid #333;">4 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Geo Rock</td><td style="text-align:center; border-top:1px solid #333;">3 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Geo Rippability</td><td style="text-align:center; border-top:1px solid #333;">1 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Geo Soil</td><td style="text-align:center; border-top:1px solid #333;">3 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Geo Depth</td><td style="text-align:center; border-top:1px solid #333;">3 + PID + Go</td></tr>
+          <tr style="font-weight:bold; color:#7bed9f;"><td style="padding:4px 4px; border-top:2px solid #555;">Total</td><td style="text-align:center; border-top:2px solid #555;">14 fields across 5 components</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Analyses -->
+    <div class="mockup" style="flex:1; min-width:220px;">
+      <div class="mockup-header" style="background:#2c5f3d; color:white;">Analyses (4 groups → 4 components)</div>
+      <div class="mockup-body" style="padding:12px;">
+        <table style="width:100%; font-size:10px; color:#ccc; border-collapse:collapse;">
+          <tr style="color:#888; font-size:9px;"><th style="text-align:left; padding:2px 4px;">Component</th><th style="text-align:center; padding:2px 4px;">Inputs</th></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Anl Earthworks</td><td style="text-align:center; border-top:1px solid #333;">8 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Anl Retention</td><td style="text-align:center; border-top:1px solid #333;">4 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Anl Rock</td><td style="text-align:center; border-top:1px solid #333;">6 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Anl Access</td><td style="text-align:center; border-top:1px solid #333;">4 + PID + Go</td></tr>
+          <tr style="font-weight:bold; color:#7bed9f;"><td style="padding:4px 4px; border-top:2px solid #555;">Total</td><td style="text-align:center; border-top:2px solid #555;">22 fields across 4 components</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Optimizations -->
+    <div class="mockup" style="flex:1; min-width:220px;">
+      <div class="mockup-header" style="background:#2c5f3d; color:white;">Optimizations (5 groups → 5 components)</div>
+      <div class="mockup-body" style="padding:12px;">
+        <table style="width:100%; font-size:10px; color:#ccc; border-collapse:collapse;">
+          <tr style="color:#888; font-size:9px;"><th style="text-align:left; padding:2px 4px;">Component</th><th style="text-align:center; padding:2px 4px;">Inputs</th></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Opt Access</td><td style="text-align:center; border-top:1px solid #333;">4 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Opt Earth Terrain</td><td style="text-align:center; border-top:1px solid #333;">6 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Opt Earth Lots</td><td style="text-align:center; border-top:1px solid #333;">6 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Opt Earth Total</td><td style="text-align:center; border-top:1px solid #333;">7 + PID + Go</td></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Opt Retention</td><td style="text-align:center; border-top:1px solid #333;">4 + PID + Go</td></tr>
+          <tr style="font-weight:bold; color:#7bed9f;"><td style="padding:4px 4px; border-top:2px solid #555;">Total</td><td style="text-align:center; border-top:2px solid #555;">27 fields across 5 components</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Properties -->
+    <div class="mockup" style="flex:1; min-width:220px;">
+      <div class="mockup-header" style="background:#5b3a7c; color:white;">Shared (1 component)</div>
+      <div class="mockup-body" style="padding:12px;">
+        <table style="width:100%; font-size:10px; color:#ccc; border-collapse:collapse;">
+          <tr style="color:#888; font-size:9px;"><th style="text-align:left; padding:2px 4px;">Component</th><th style="text-align:center; padding:2px 4px;">Inputs</th></tr>
+          <tr><td style="padding:2px 4px; border-top:1px solid #333;">Properties</td><td style="text-align:center; border-top:1px solid #333;">Module dropdown + JSON + PID + Go</td></tr>
+        </table>
+        <div style="font-size:9px; color:#c39bd3; margin-top:8px;">Works with any module via dropdown selector</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KEY DECISIONS -->
+<div class="section" style="margin-top:24px;">
+  <h3>Key Decisions Locked In</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:4px;">Self-contained components</div>
+      <div style="font-size:10px; color:#aaa;">Each component has its own ProjectID + Upload. No "Send" sink. Each independently PATCHes the module row.</div>
+    </div>
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:4px;">Base class reused</div>
+      <div style="font-size:10px; color:#aaa;">SelvagenModuleComponentBase stays. Each component overrides ModuleTable and CollectValues with its group's fields.</div>
+    </div>
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:4px;">Properties = standalone</div>
+      <div style="font-size:10px; color:#aaa;">One Properties component with a module dropdown (Topography / Geology / Analyses / Optimizations). PATCHes the jsonb column.</div>
+    </div>
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:4px;">Ribbon reorganized</div>
+      <div style="font-size:10px; color:#aaa;">Each module gets its own ribbon group. Groups named: Topography, Geology, Analyses, Optimizations, plus a Shared group for Properties.</div>
+    </div>
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:4px;">Data dictionary = later</div>
+      <div style="font-size:10px; color:#aaa;">Field names stay hardcoded in C# for now. Data dictionary is a follow-up refactor.</div>
+    </div>
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:4px;">Old components removed</div>
+      <div style="font-size:10px; color:#aaa;">The 4 mega-components are deleted. Breaking change — but the sample .gh doesn't use them, so impact is limited.</div>
+    </div>
+  </div>
+</div>
+
+<!-- OPEN QUESTIONS -->
+<div class="section" style="margin-top:24px;">
+  <h3>Remaining Open Questions</h3>
+  <div style="background:#2a2a1a; border:1px solid #7c6a2c; border-radius:6px; padding:16px;">
+    <ol style="font-size:11px; color:#ccc; margin:0; padding-left:20px; line-height:1.8;">
+      <li><strong>Cross-module duplication:</strong> Analyses and Optimizations both have identical <code>access_*</code> and <code>retention_*</code> groups. Should "Anl Access" and "Opt Access" share a component class, or be separate classes that happen to have the same fields? (Separate is simpler now; shared class prepares for the data dictionary.)</li>
+      <li><strong>Naming convention:</strong> "Topo Base" vs "Topography Base" vs "SvTopoBase"? Short names keep the canvas compact; long names are more readable in the ribbon search.</li>
+      <li><strong>Icons:</strong> Do all Topo components share the Topography icon, or does each group get its own? (~23 new icons is a lot of design work.)</li>
+      <li><strong>GH_Exposure:</strong> Should sub-components use <code>GH_Exposure.secondary</code> or <code>tertiary</code> to avoid cluttering the default component palette?</li>
+    </ol>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:20px; text-align:center; color:#888;">Review the summary and open questions, then let me know if this looks right — or if anything needs adjusting before we write the spec.</p>

@@ -15,7 +15,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Project UUID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
             pManager.AddNumberParameter("RetHMin", "RetMin", "Retention height min", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddNumberParameter("RetHMax", "RetMax", "Retention height max", GH_ParamAccess.item);

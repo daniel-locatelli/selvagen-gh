@@ -14,6 +14,11 @@ namespace Selvagen.GH.Components
                 "02 Admin")
         { }
 
+        protected override string SelectedIdLabel => "Client ID";
+        protected override string SelectedIdNick => "CltID";
+        protected override string SelectedNameLabel => "Client Name";
+        protected override string SelectedNameNick => "CltName";
+
         public override Guid ComponentGuid => new Guid("F23D9E81-A7C2-4B1D-8F9E-3D4C5B6A7E8F");
 
         protected override object[] CaptureInputs(IGH_DataAccess da) => new object[0];

@@ -15,7 +15,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Project UUID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
             pManager.AddTextParameter("CovMeshID", "CovM", "Coverage mesh asset ID", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddIntegerParameter("CovNumPoints", "CovNP", "Number of coverage points", GH_ParamAccess.item);

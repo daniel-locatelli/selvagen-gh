@@ -199,22 +199,19 @@ namespace Selvagen.Core.Api
             return await PostUploadAsync("/functions/v1/plugin-upload-curves", payload).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Upload a text label set to a project.
-        /// </summary>
-        public async Task<UploadResult> UploadText3DAsync(string projectId, string name, Text3DSet textSet)
+        public async Task<UploadResult> UploadLabelSetAsync(string projectId, string name, LabelSet labelSet)
         {
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
-            if (textSet == null) throw new ArgumentNullException(nameof(textSet));
+            if (labelSet == null) throw new ArgumentNullException(nameof(labelSet));
 
             var payload = new
             {
                 name,
                 project_id = projectId,
-                text_data = textSet,
+                text_data = labelSet,
             };
-            return await PostUploadAsync("/functions/v1/plugin-upload-text3d", payload).ConfigureAwait(false);
+            return await PostUploadAsync("/functions/v1/plugin-upload-labels", payload).ConfigureAwait(false);
         }
 
         // ── Asset Queries ─────────────────────────────────────────────
@@ -239,14 +236,11 @@ namespace Selvagen.Core.Api
             return await QueryAssetsAsync(path, "curve_sets").ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// List text 3D sets belonging to a project.
-        /// </summary>
-        public async Task<AssetInfo[]> ListText3DSetsAsync(string projectId)
+        public async Task<AssetInfo[]> ListLabelSetsAsync(string projectId)
         {
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
-            var path = $"/rest/v1/text_3d_sets?project_id=eq.{projectId}&select=id,name,created_at&order=created_at.desc";
-            return await QueryAssetsAsync(path, "text_3d_sets").ConfigureAwait(false);
+            var path = $"/rest/v1/label_sets?project_id=eq.{projectId}&select=id,name,created_at&order=created_at.desc";
+            return await QueryAssetsAsync(path, "label_sets").ConfigureAwait(false);
         }
 
         /// <summary>
@@ -336,23 +330,20 @@ namespace Selvagen.Core.Api
             return results[0];
         }
 
-        /// <summary>
-        /// Fetch a single text 3D set including its text data.
-        /// </summary>
-        public async Task<Text3DSetAssetFull> GetText3DSetAsync(string id)
+        public async Task<LabelSetAssetFull> GetLabelSetAsync(string id)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
-            var path = $"/rest/v1/text_3d_sets?id=eq.{id}&select=id,name,text_data,geometry_url";
+            var path = $"/rest/v1/label_sets?id=eq.{id}&select=id,name,text_data,geometry_url";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"Get text 3D set failed: {json}", (int)response.StatusCode);
+                throw new SelvagenApiException($"Get label set failed: {json}", (int)response.StatusCode);
 
-            var results = JsonSerializer.Deserialize<Text3DSetAssetFull[]>(json);
+            var results = JsonSerializer.Deserialize<LabelSetAssetFull[]>(json);
             if (results == null || results.Length == 0)
-                throw new SelvagenApiException($"Text 3D set not found: {id}", 404);
+                throw new SelvagenApiException($"Label set not found: {id}", 404);
 
             return results[0];
         }

@@ -69,11 +69,11 @@ namespace Selvagen.GH.Components
                 IsUploading = true;
                 ForceCanvasRefresh();
 
-                var textSet = TextConverter.FromPlanesAndTexts(
+                var labelSet = LabelConverter.ToLabelSet(
                     planes,
                     texts,
                     colors: colors.Count > 0 ? colors : null);
-                var result = Task.Run(() => client.UploadText3DAsync(projectId, name, textSet)).GetAwaiter().GetResult();
+                var result = Task.Run(() => client.UploadLabelSetAsync(projectId, name, labelSet)).GetAwaiter().GetResult();
 
                 DA.SetData(0, result.Id);
                 DA.SetData(1, $"Uploaded: {result.Name} ({planes.Count} labels)");

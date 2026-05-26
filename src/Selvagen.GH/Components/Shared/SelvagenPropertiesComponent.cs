@@ -43,7 +43,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Project UUID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
             pManager.AddTextParameter("JSON", "J", "Custom properties as JSON string", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload", GH_ParamAccess.item, false);

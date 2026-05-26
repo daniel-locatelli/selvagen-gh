@@ -1,0 +1,259 @@
+<h2>Approach C — Detailed Structure</h2>
+<p class="subtitle">Composable components per group, with ribbon reorganization</p>
+
+<!-- RIBBON SECTION -->
+<div class="section">
+  <h3>Grasshopper Ribbon (Toolbar)</h3>
+  <p class="subtitle">Current vs. proposed tab organization</p>
+
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">Current Ribbon — "Selvagen" tab</div>
+      <div class="mockup-body" style="padding:16px;">
+        <div style="display:flex; gap:24px;">
+          <!-- Auth group -->
+          <div style="text-align:center;">
+            <div style="display:flex; gap:6px; justify-content:center;">
+              <div style="background:#4a6a7c; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:8px; color:white;">Login</div>
+            </div>
+            <div style="font-size:9px; color:#888; margin-top:4px; border-top:1px solid #444; padding-top:2px;">Auth</div>
+          </div>
+          <!-- Data group -->
+          <div style="text-align:center;">
+            <div style="display:flex; gap:6px; justify-content:center;">
+              <div style="background:#4a6a7c; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Clients</div>
+              <div style="background:#4a6a7c; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Projs</div>
+            </div>
+            <div style="font-size:9px; color:#888; margin-top:4px; border-top:1px solid #444; padding-top:2px;">Data</div>
+          </div>
+          <!-- Upload group -->
+          <div style="text-align:center;">
+            <div style="display:flex; gap:6px; justify-content:center;">
+              <div style="background:#7c5a4a; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Mesh</div>
+              <div style="background:#7c5a4a; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Crvs</div>
+              <div style="background:#7c5a4a; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Lbls</div>
+              <div style="background:#7c5a4a; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Anim</div>
+            </div>
+            <div style="font-size:9px; color:#888; margin-top:4px; border-top:1px solid #444; padding-top:2px;">Upload</div>
+          </div>
+          <!-- Modules group -->
+          <div style="text-align:center; border:2px dashed #e74c3c; border-radius:6px; padding:4px 8px;">
+            <div style="display:flex; gap:6px; justify-content:center;">
+              <div style="background:#4a7c59; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Topo</div>
+              <div style="background:#4a7c59; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Geo</div>
+              <div style="background:#4a7c59; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Analy</div>
+              <div style="background:#4a7c59; width:36px; height:36px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Optim</div>
+            </div>
+            <div style="font-size:9px; color:#e74c3c; margin-top:4px; border-top:1px solid #444; padding-top:2px;">Modules (4 mega-components)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup">
+      <div class="mockup-header">Proposed Ribbon — "Selvagen" tab</div>
+      <div class="mockup-body" style="padding:16px;">
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <!-- Auth (unchanged) -->
+          <div style="text-align:center;">
+            <div style="display:flex; gap:4px; justify-content:center;">
+              <div style="background:#4a6a7c; width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; color:white;">Login</div>
+            </div>
+            <div style="font-size:8px; color:#888; margin-top:3px; border-top:1px solid #444; padding-top:2px;">Auth</div>
+          </div>
+          <!-- Data (unchanged) -->
+          <div style="text-align:center;">
+            <div style="display:flex; gap:4px; justify-content:center;">
+              <div style="background:#4a6a7c; width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:6px; color:white;">Cli</div>
+              <div style="background:#4a6a7c; width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:6px; color:white;">Proj</div>
+            </div>
+            <div style="font-size:8px; color:#888; margin-top:3px; border-top:1px solid #444; padding-top:2px;">Data</div>
+          </div>
+          <!-- Upload (unchanged) -->
+          <div style="text-align:center;">
+            <div style="display:flex; gap:4px; justify-content:center;">
+              <div style="background:#7c5a4a; width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:6px; color:white;">Mesh</div>
+              <div style="background:#7c5a4a; width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:6px; color:white;">Crv</div>
+              <div style="background:#7c5a4a; width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:6px; color:white;">Lbl</div>
+              <div style="background:#7c5a4a; width:32px; height:32px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:6px; color:white;">Anim</div>
+            </div>
+            <div style="font-size:8px; color:#888; margin-top:3px; border-top:1px solid #444; padding-top:2px;">Upload</div>
+          </div>
+          <!-- Topography group -->
+          <div style="text-align:center; border:2px solid #2ecc71; border-radius:6px; padding:4px 6px;">
+            <div style="display:flex; gap:3px; justify-content:center; flex-wrap:wrap; max-width:200px;">
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Base</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Cntr</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Urbn</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Elev</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Slop</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Ac8</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Ac5</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Drn</div>
+              <div style="background:#e67e22; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white; font-weight:bold;">Send</div>
+            </div>
+            <div style="font-size:8px; color:#2ecc71; margin-top:3px; border-top:1px solid #444; padding-top:2px;">Topography</div>
+          </div>
+          <!-- Geology group -->
+          <div style="text-align:center; border:2px solid #2ecc71; border-radius:6px; padding:4px 6px;">
+            <div style="display:flex; gap:3px; justify-content:center; flex-wrap:wrap; max-width:120px;">
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Cov</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Rock</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Rip</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Soil</div>
+              <div style="background:#2c5f3d; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Dep</div>
+              <div style="background:#e67e22; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white; font-weight:bold;">Send</div>
+            </div>
+            <div style="font-size:8px; color:#2ecc71; margin-top:3px; border-top:1px solid #444; padding-top:2px;">Geology</div>
+          </div>
+          <!-- Shared group -->
+          <div style="text-align:center; border:2px solid #9b59b6; border-radius:6px; padding:4px 6px;">
+            <div style="display:flex; gap:3px; justify-content:center;">
+              <div style="background:#5b3a7c; width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:5px; color:white;">Props</div>
+            </div>
+            <div style="font-size:8px; color:#9b59b6; margin-top:3px; border-top:1px solid #444; padding-top:2px;">Shared</div>
+          </div>
+        </div>
+        <div style="font-size:8px; color:#666; margin-top:8px; font-style:italic;">(Analyses &amp; Optimizations groups follow same pattern — omitted for space)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CANVAS EXAMPLE -->
+<div class="section" style="margin-top:32px;">
+  <h3>Example Canvas — Topography with Slope + Base only</h3>
+  <p class="subtitle">User only places the groups they need. Each component is small and self-documenting.</p>
+
+  <div class="mockup">
+    <div class="mockup-header">Grasshopper Canvas</div>
+    <div class="mockup-body" style="padding:24px; min-height:280px; background:#2a2a3a; position:relative;">
+
+      <!-- Upload Mesh component (upstream) -->
+      <div style="position:absolute; left:30px; top:30px;">
+        <div style="background:#3a3a4a; border-radius:6px; width:110px; overflow:hidden; border:1px solid #555;">
+          <div style="background:#7c5a4a; padding:4px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Upload Mesh</div>
+          <div style="padding:3px 6px;">
+            <div style="font-size:7px; color:#888; padding:1px 0;">&#9679; ProjectID</div>
+            <div style="font-size:7px; color:#888; padding:1px 0;">&#9679; Mesh</div>
+            <div style="font-size:7px; color:#888; padding:1px 0;">&#9679; Upload</div>
+          </div>
+          <div style="padding:3px 6px; border-top:1px solid #444;">
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">AssetID &#9679;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topo Base component -->
+      <div style="position:absolute; left:220px; top:15px;">
+        <div style="background:#3a3a4a; border-radius:6px; width:120px; overflow:hidden; border:1px solid #2c5f3d;">
+          <div style="background:#2c5f3d; padding:4px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Topo Base</div>
+          <div style="padding:3px 6px;">
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; BaseMeshID</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; BaseArea2D</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; BaseArea3D</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; BaseTDR</div>
+          </div>
+          <div style="padding:3px 6px; border-top:1px solid #444;">
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">GroupData &#9679;</div>
+          </div>
+        </div>
+        <!-- Wire from Upload Mesh AssetID to BaseMeshID -->
+        <div style="position:absolute; left:-82px; top:26px; width:82px; height:0; border-top:2px solid #7bed9f;"></div>
+      </div>
+
+      <!-- Topo Slope component -->
+      <div style="position:absolute; left:220px; top:140px;">
+        <div style="background:#3a3a4a; border-radius:6px; width:120px; overflow:hidden; border:1px solid #2c5f3d;">
+          <div style="background:#2c5f3d; padding:4px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Topo Slope</div>
+          <div style="padding:3px 6px;">
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeMeshID</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeRef</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeRestRate</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeMin</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeMax</div>
+          </div>
+          <div style="padding:3px 6px; border-top:1px solid #444;">
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">GroupData &#9679;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Properties component -->
+      <div style="position:absolute; left:220px; top:280px;">
+        <div style="background:#3a3a4a; border-radius:6px; width:120px; overflow:hidden; border:1px solid #5b3a7c;">
+          <div style="background:#5b3a7c; padding:4px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Properties</div>
+          <div style="padding:3px 6px;">
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; JSON</div>
+          </div>
+          <div style="padding:3px 6px; border-top:1px solid #444;">
+            <div style="font-size:7px; color:#c39bd3; padding:1px 0;">PropData &#9679;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Topo (sink) -->
+      <div style="position:absolute; left:430px; top:80px;">
+        <div style="background:#3a3a4a; border-radius:6px; width:130px; overflow:hidden; border:2px solid #e67e22;">
+          <div style="background:#7c4a2c; padding:4px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Send Topography</div>
+          <div style="padding:3px 6px;">
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; ProjectID</div>
+            <div style="font-size:7px; color:#e6a97b; padding:1px 0;">&#9679; Base &#8592;</div>
+            <div style="font-size:7px; color:#e6a97b; padding:1px 0;">&#9679; Slope &#8592;</div>
+            <div style="font-size:7px; color:#c39bd3; padding:1px 0;">&#9679; Properties &#8592;</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Upload</div>
+          </div>
+          <div style="padding:3px 6px; border-top:1px solid #444;">
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">RecordID &#9679;</div>
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">Status &#9679;</div>
+          </div>
+        </div>
+        <!-- Wires -->
+        <div style="position:absolute; left:-90px; top:28px; width:90px; height:0; border-top:2px solid #e6a97b;"></div>
+        <div style="position:absolute; left:-90px; top:42px; width:90px; height:0; border-top:2px solid #e6a97b;"></div>
+        <div style="position:absolute; left:-90px; top:56px; width:90px; height:0; border-top:2px dashed #c39bd3;"></div>
+      </div>
+
+      <!-- Legend -->
+      <div style="position:absolute; right:20px; bottom:15px; background:#222; border:1px solid #444; border-radius:4px; padding:8px 12px;">
+        <div style="font-size:8px; color:#666; margin-bottom:4px;">LEGEND</div>
+        <div style="font-size:7px; color:#2c5f3d; padding:1px 0;">&#9632; Group components (data producers)</div>
+        <div style="font-size:7px; color:#e67e22; padding:1px 0;">&#9632; Send component (upload sink)</div>
+        <div style="font-size:7px; color:#5b3a7c; padding:1px 0;">&#9632; Properties (shared, any module)</div>
+        <div style="font-size:7px; color:#7c5a4a; padding:1px 0;">&#9632; Asset upload (existing)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KEY DESIGN QUESTION -->
+<div class="section" style="margin-top:32px;">
+  <h3>Key Design Question: How does data flow from group to sink?</h3>
+  <p class="subtitle">What type does the GroupData output carry?</p>
+
+  <div class="options">
+    <div class="option" data-choice="dictionary" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>Dictionary&lt;string, object&gt;</h3>
+        <p>Each group component outputs a dictionary of column-name/value pairs. The Send component merges them. Simplest — matches the existing CollectValues pattern directly.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="custom-goo" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Custom GH_Goo&lt;T&gt; type</h3>
+        <p>A "FieldGroup" Goo type that carries typed fields + group metadata. Stronger typing, better canvas display (shows group name in tooltips), but more SDK boilerplate.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="json-string" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>JSON string</h3>
+        <p>Each group serializes to JSON. Send component parses and merges. Simplest wire type (just text), but loses type safety and makes debugging harder.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px; text-align:center; color:#888;">Check the browser at http://localhost:61936 — click to select, then respond in the terminal</p>

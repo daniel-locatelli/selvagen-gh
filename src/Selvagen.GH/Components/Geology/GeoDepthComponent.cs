@@ -15,7 +15,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Project UUID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
             pManager.AddTextParameter("DepthMeshID", "DepM", "Depth mesh asset ID", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddNumberParameter("DepthRef", "DepR", "Depth reference value", GH_ParamAccess.item);

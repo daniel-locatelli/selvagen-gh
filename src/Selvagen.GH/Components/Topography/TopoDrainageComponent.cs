@@ -16,7 +16,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Project UUID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
             pManager.AddTextParameter("DrainCurvesID", "DC", "Drainage curve set asset ID", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddIntegerParameter("DrainFlowPaths", "DFP", "Total drainage flow paths", GH_ParamAccess.item);

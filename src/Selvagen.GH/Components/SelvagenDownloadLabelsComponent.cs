@@ -74,7 +74,7 @@ namespace Selvagen.GH.Components
 
             try
             {
-                var asset = Task.Run(() => client.GetText3DSetAsync(assetId)).GetAwaiter().GetResult();
+                var asset = Task.Run(() => client.GetLabelSetAsync(assetId)).GetAwaiter().GetResult();
 
                 if (asset.TextData == null)
                 {
@@ -83,8 +83,8 @@ namespace Selvagen.GH.Components
                     return;
                 }
 
-                TextConverter.FromText3DSet(asset.TextData,
-                    out var planes, out var texts, out var colors, out var fontSizes);
+                LabelConverter.FromLabelSet(asset.TextData,
+                    out var planes, out var texts, out var colors, out var fontSizes, out var justifications);
 
                 _cachedId = assetId;
                 _cachedPlanes = planes;

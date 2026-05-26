@@ -15,7 +15,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Project UUID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
             pManager.AddTextParameter("AccCurvesID", "AC", "Access curves asset ID", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddTextParameter("AccLabelsID", "AL", "Access labels asset ID", GH_ParamAccess.item);
@@ -31,7 +31,7 @@ namespace Selvagen.GH.Components
         {
             var values = new Dictionary<string, object>();
             if (TryGetText(DA, 1, out var accCurves)) values["access_curve_set_id"] = accCurves;
-            if (TryGetText(DA, 2, out var accLabels)) values["access_text_3d_set_id"] = accLabels;
+            if (TryGetText(DA, 2, out var accLabels)) values["access_label_set_id"] = accLabels;
             if (TryGetNumber(DA, 3, out var accRef)) values["access_ref"] = accRef;
             if (TryGetNumber(DA, 4, out var accRate)) values["access_rate"] = accRate;
             return values;

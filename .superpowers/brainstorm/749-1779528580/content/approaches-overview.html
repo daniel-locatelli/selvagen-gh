@@ -1,0 +1,232 @@
+<h2>Module Components Redesign — Three Approaches</h2>
+<p class="subtitle">How should users choose which inputs to surface on the canvas?</p>
+
+<div class="cards">
+
+  <!-- APPROACH A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1a1a2e; padding:20px; min-height:340px;">
+      <!-- Current vs Proposed side by side -->
+      <div style="display:flex; gap:16px; justify-content:center;">
+
+        <!-- Current State -->
+        <div style="text-align:center;">
+          <div style="font-size:10px; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Current</div>
+          <div style="background:#3a3a4a; border-radius:8px; padding:0; width:140px; overflow:hidden; border:1px solid #555;">
+            <div style="background:#4a7c59; padding:5px 8px; font-size:11px; font-weight:bold; color:white; text-align:center;">Topography</div>
+            <div style="padding:4px 8px;">
+              <div style="font-size:8px; color:#aaa; padding:2px 0; border-bottom:1px solid #444;">&#9679; ProjectID</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; BaseMeshID</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; BaseArea2D</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; BaseArea3D</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; BaseTDR</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; OutlineCrvs</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; ContourCrvs</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; ContourLbls</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; ContourInt</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; UrbanCrvs</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; ElevMeshID</div>
+              <div style="font-size:8px; color:#555; padding:2px 0; text-align:center;">... 17 more ...</div>
+              <div style="font-size:8px; color:#666; padding:2px 0; border-bottom:1px solid #333;">&#9675; Properties</div>
+              <div style="font-size:8px; color:#aaa; padding:2px 0;">&#9679; Upload</div>
+            </div>
+          </div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:6px;">30 input pegs!</div>
+        </div>
+
+        <!-- Proposed: Right-click menu -->
+        <div style="text-align:center;">
+          <div style="font-size:10px; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Approach A</div>
+          <div style="background:#3a3a4a; border-radius:8px; padding:0; width:130px; overflow:hidden; border:1px solid #555;">
+            <div style="background:#4a7c59; padding:5px 8px; font-size:11px; font-weight:bold; color:white; text-align:center;">Topography</div>
+            <div style="padding:4px 8px;">
+              <div style="font-size:8px; color:#aaa; padding:2px 0; border-bottom:1px solid #444;">&#9679; ProjectID</div>
+              <div style="font-size:8px; color:#7bed9f; padding:2px 0; border-bottom:1px solid #444;">&#9679; SlopeMeshID</div>
+              <div style="font-size:8px; color:#7bed9f; padding:2px 0; border-bottom:1px solid #444;">&#9679; SlopeRef</div>
+              <div style="font-size:8px; color:#7bed9f; padding:2px 0; border-bottom:1px solid #444;">&#9679; SlopeMin</div>
+              <div style="font-size:8px; color:#7bed9f; padding:2px 0; border-bottom:1px solid #444;">&#9679; SlopeMax</div>
+              <div style="font-size:8px; color:#aaa; padding:2px 0;">&#9679; Upload</div>
+            </div>
+          </div>
+          <!-- Fake context menu -->
+          <div style="background:#2a2a3a; border:1px solid #555; border-radius:4px; margin-top:6px; width:150px; text-align:left; padding:4px 0; font-size:9px;">
+            <div style="padding:3px 12px; color:#888;">&#9744; Base (4 fields)</div>
+            <div style="padding:3px 12px; color:#888;">&#9744; Contours (4)</div>
+            <div style="padding:3px 12px; color:#888;">&#9744; Elevation (4)</div>
+            <div style="padding:3px 12px; color:#7bed9f; background:#333;">&#9745; Slope (5) &nbsp;&#9658;</div>
+            <div style="padding:3px 12px; color:#888;">&#9744; Drainage (3)</div>
+            <div style="padding:3px 12px; color:#666; font-size:8px; border-top:1px solid #444; margin-top:2px;">right-click menu</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A: Right-Click Group Toggles</h3>
+      <p>Right-click the component to show a menu with checkable groups. Toggle a group to add/remove its input pegs. Starts empty — user enables what they need.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Most GH-idiomatic</li><li>Low implementation effort</li><li>No new UI framework</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Bulk toggling is tedious</li><li>Hidden behind right-click</li><li>No visual grouping on canvas</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPROACH B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1a1a2e; padding:20px; min-height:340px;">
+      <div style="display:flex; gap:16px; justify-content:center;">
+        <!-- Component on canvas -->
+        <div style="text-align:center;">
+          <div style="font-size:10px; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">On Canvas</div>
+          <div style="background:#3a3a4a; border-radius:8px; padding:0; width:130px; overflow:hidden; border:1px solid #555;">
+            <div style="background:#4a7c59; padding:5px 8px; font-size:11px; font-weight:bold; color:white; text-align:center;">Topography</div>
+            <div style="padding:4px 8px;">
+              <div style="font-size:8px; color:#aaa; padding:2px 0; border-bottom:1px solid #444;">&#9679; ProjectID</div>
+              <div style="font-size:8px; color:#7bed9f; padding:2px 0; border-bottom:1px solid #444;">&#9679; BaseMeshID</div>
+              <div style="font-size:8px; color:#7bed9f; padding:2px 0; border-bottom:1px solid #444;">&#9679; BaseArea2D</div>
+              <div style="font-size:8px; color:#7bed9f; padding:2px 0; border-bottom:1px solid #444;">&#9679; ContourCrvs</div>
+              <div style="font-size:8px; color:#7bed9f; padding:2px 0; border-bottom:1px solid #444;">&#9679; SlopeMeshID</div>
+              <div style="font-size:8px; color:#7bed9f; padding:2px 0; border-bottom:1px solid #444;">&#9679; SlopeRef</div>
+              <div style="font-size:8px; color:#aaa; padding:2px 0;">&#9679; Upload</div>
+            </div>
+          </div>
+          <div style="font-size:9px; color:#7bed9f; margin-top:6px;">Only 8 pegs shown</div>
+        </div>
+
+        <!-- Eto Dialog -->
+        <div style="text-align:center;">
+          <div style="font-size:10px; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Config Dialog</div>
+          <div style="background:#2a2a3a; border:1px solid #666; border-radius:6px; width:180px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+            <div style="background:#3a3a4a; padding:5px 10px; font-size:10px; font-weight:bold; color:#ddd; border-bottom:1px solid #555;">Configure Fields</div>
+            <!-- Search -->
+            <div style="padding:4px 8px; border-bottom:1px solid #444;">
+              <div style="background:#222; border:1px solid #555; border-radius:3px; padding:3px 6px; font-size:8px; color:#666;">&#128269; Search fields...</div>
+            </div>
+            <!-- Groups -->
+            <div style="padding:4px 8px; text-align:left;">
+              <div style="font-size:9px; font-weight:bold; color:#7bed9f; padding:3px 0;">&#9660; Base</div>
+              <div style="font-size:8px; color:#aaa; padding:1px 0 1px 12px;">&#9745; BaseMeshID</div>
+              <div style="font-size:8px; color:#aaa; padding:1px 0 1px 12px;">&#9745; BaseArea2D</div>
+              <div style="font-size:8px; color:#666; padding:1px 0 1px 12px;">&#9744; BaseArea3D</div>
+              <div style="font-size:8px; color:#666; padding:1px 0 1px 12px;">&#9744; BaseTDR</div>
+              <div style="font-size:9px; font-weight:bold; color:#7bed9f; padding:3px 0; margin-top:4px;">&#9660; Contours</div>
+              <div style="font-size:8px; color:#aaa; padding:1px 0 1px 12px;">&#9745; ContourCrvs</div>
+              <div style="font-size:8px; color:#666; padding:1px 0 1px 12px;">&#9744; ContourLbls</div>
+              <div style="font-size:8px; color:#666; padding:1px 0 1px 12px;">&#9744; ContourInt</div>
+              <div style="font-size:9px; font-weight:bold; color:#7bed9f; padding:3px 0; margin-top:4px;">&#9660; Slope</div>
+              <div style="font-size:8px; color:#aaa; padding:1px 0 1px 12px;">&#9745; SlopeMeshID</div>
+              <div style="font-size:8px; color:#aaa; padding:1px 0 1px 12px;">&#9745; SlopeRef</div>
+              <div style="font-size:8px; color:#666; padding:1px 0 1px 12px;">&#9744; SlopeRestRate</div>
+              <div style="font-size:8px; color:#666; padding:1px 0 1px 12px;">&#9744; SlopeMin</div>
+              <div style="font-size:8px; color:#666; padding:1px 0 1px 12px;">&#9744; SlopeMax</div>
+              <div style="font-size:9px; color:#555; padding:3px 0; margin-top:4px;">&#9654; Elevation (collapsed)</div>
+              <div style="font-size:9px; color:#555; padding:3px 0;">&#9654; Drainage (collapsed)</div>
+            </div>
+            <!-- Buttons -->
+            <div style="padding:6px 8px; border-top:1px solid #444; display:flex; gap:6px; justify-content:flex-end;">
+              <div style="background:#555; padding:3px 10px; border-radius:3px; font-size:8px; color:#ccc;">Cancel</div>
+              <div style="background:#4a7c59; padding:3px 10px; border-radius:3px; font-size:8px; color:white; font-weight:bold;">Apply</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B: "Configure Fields" Dialog (Recommended)</h3>
+      <p>Right-click → "Configure Fields..." opens a dialog with grouped checkboxes, search, and "Select All" per group. Apply rebuilds the input pegs. Cross-platform via Eto.Forms.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Best discoverability</li><li>Bulk operations easy</li><li>Scales to 30+ fields</li><li>Can include presets</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Medium implementation effort</li><li>Modal dialog breaks reactive flow slightly</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPROACH C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1a1a2e; padding:20px; min-height:340px;">
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <!-- Small components -->
+        <div style="text-align:center;">
+          <div style="font-size:10px; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Many Small Components</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:340px;">
+
+            <div style="background:#3a3a4a; border-radius:6px; width:100px; overflow:hidden; border:1px solid #555;">
+              <div style="background:#2c5f3d; padding:3px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Topo Base</div>
+              <div style="padding:3px 6px;">
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; MeshID</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Area2D</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Area3D</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; TDR</div>
+              </div>
+            </div>
+
+            <div style="background:#3a3a4a; border-radius:6px; width:100px; overflow:hidden; border:1px solid #555;">
+              <div style="background:#2c5f3d; padding:3px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Topo Contours</div>
+              <div style="padding:3px 6px;">
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; OutlineCrvs</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; ContourCrvs</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Labels</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Interval</div>
+              </div>
+            </div>
+
+            <div style="background:#3a3a4a; border-radius:6px; width:100px; overflow:hidden; border:1px solid #555;">
+              <div style="background:#2c5f3d; padding:3px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Topo Slope</div>
+              <div style="padding:3px 6px;">
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; MeshID</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Ref</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; RestRate</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Min</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Max</div>
+              </div>
+            </div>
+
+            <div style="background:#3a3a4a; border-radius:6px; width:100px; overflow:hidden; border:1px solid #555;">
+              <div style="background:#2c5f3d; padding:3px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Topo Elevation</div>
+              <div style="padding:3px 6px;">
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; MeshID</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; CurvesID</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Min</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Max</div>
+              </div>
+            </div>
+
+            <div style="background:#3a3a4a; border-radius:6px; width:100px; overflow:hidden; border:1px solid #555;">
+              <div style="background:#2c5f3d; padding:3px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Topo Drainage</div>
+              <div style="padding:3px 6px;">
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; CurvesID</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; FlowPaths</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; ConcRate</div>
+              </div>
+            </div>
+
+            <!-- Aggregator -->
+            <div style="background:#3a3a4a; border-radius:6px; width:100px; overflow:hidden; border:2px solid #e67e22;">
+              <div style="background:#7c4a2c; padding:3px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Upload Topo</div>
+              <div style="padding:3px 6px;">
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; ProjectID</div>
+                <div style="font-size:7px; color:#e6a97b; padding:1px 0;">&#9679; Base &#8592;</div>
+                <div style="font-size:7px; color:#e6a97b; padding:1px 0;">&#9679; Contours &#8592;</div>
+                <div style="font-size:7px; color:#e6a97b; padding:1px 0;">&#9679; Slope &#8592;</div>
+                <div style="font-size:7px; color:#666; padding:1px 0;">&#9675; Elevation</div>
+                <div style="font-size:7px; color:#666; padding:1px 0;">&#9675; Drainage</div>
+                <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Upload</div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:9px; color:#e6a97b; margin-top:8px;">Only place what you need on canvas</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C: Small Composable Components</h3>
+      <p>Break each module into group-level components (Topo Base, Topo Slope, etc.) with 3-6 inputs each. Wire only the groups you need into a final "Upload" sink component.</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Each component tiny & clear</li><li>Canvas reads like a data flow</li><li>Eliminates cross-component duplication</li><li>Most extensible</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>High effort (~25 new classes)</li><li>Canvas can balloon</li><li>Breaks existing definitions</li><li>New aggregation logic needed</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:24px; text-align:center; color:#888;">Click an approach to select it, then respond in the terminal with your thoughts</p>

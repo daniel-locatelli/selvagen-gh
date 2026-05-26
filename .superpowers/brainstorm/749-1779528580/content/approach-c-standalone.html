@@ -1,0 +1,198 @@
+<h2>Approach C — Self-Contained Group Components</h2>
+<p class="subtitle">Each group component has its own ProjectID + Upload and patches the DB row independently. No "Send" sink needed.</p>
+
+<!-- CANVAS EXAMPLE -->
+<div class="section">
+  <h3>Canvas — Topography with Base + Slope + Properties</h3>
+  <p class="subtitle">Each component is independent. All three PATCH the same topography row with their own fields.</p>
+
+  <div class="mockup">
+    <div class="mockup-header">Grasshopper Canvas</div>
+    <div class="mockup-body" style="padding:24px; min-height:320px; background:#2a2a3a; position:relative;">
+
+      <!-- ProjectID panel (shared source) -->
+      <div style="position:absolute; left:20px; top:100px;">
+        <div style="background:#333; border:1px solid #555; border-radius:4px; padding:6px 10px;">
+          <div style="font-size:7px; color:#666; margin-bottom:2px;">Panel</div>
+          <div style="font-size:9px; color:#7bed9f; font-family:monospace;">abc-123-def</div>
+          <div style="font-size:7px; color:#666; margin-top:2px;">ProjectID</div>
+        </div>
+      </div>
+
+      <!-- Boolean Toggle -->
+      <div style="position:absolute; left:20px; top:210px;">
+        <div style="background:#333; border:1px solid #555; border-radius:4px; padding:6px 10px;">
+          <div style="font-size:7px; color:#666; margin-bottom:2px;">Toggle</div>
+          <div style="font-size:9px; color:#e74c3c;">False</div>
+          <div style="font-size:7px; color:#666; margin-top:2px;">Upload</div>
+        </div>
+      </div>
+
+      <!-- Upload Mesh (upstream asset) -->
+      <div style="position:absolute; left:20px; top:10px;">
+        <div style="background:#3a3a4a; border-radius:6px; width:100px; overflow:hidden; border:1px solid #555;">
+          <div style="background:#7c5a4a; padding:3px 6px; font-size:8px; font-weight:bold; color:white; text-align:center;">Upload Mesh</div>
+          <div style="padding:2px 6px; border-top:1px solid #444;">
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">AssetID &#9679;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topo Base -->
+      <div style="position:absolute; left:200px; top:10px;">
+        <div style="background:#3a3a4a; border-radius:6px; width:130px; overflow:hidden; border:1px solid #2c5f3d;">
+          <div style="background:#2c5f3d; padding:4px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Topo Base</div>
+          <div style="padding:3px 6px;">
+            <div style="font-size:7px; color:#fff; padding:1px 0; font-weight:bold;">&#9679; ProjectID</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; BaseMeshID</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; BaseArea2D</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; BaseArea3D</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; BaseTDR</div>
+            <div style="font-size:7px; color:#fff; padding:1px 0; font-weight:bold;">&#9679; Upload</div>
+          </div>
+          <div style="padding:3px 6px; border-top:1px solid #444;">
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">RecordID &#9679;</div>
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">Status &#9679;</div>
+          </div>
+        </div>
+        <!-- Wire from Upload Mesh -->
+        <div style="position:absolute; left:-70px; top:28px; width:70px; height:0; border-top:2px solid #7bed9f;"></div>
+      </div>
+
+      <!-- Topo Slope -->
+      <div style="position:absolute; left:200px; top:170px;">
+        <div style="background:#3a3a4a; border-radius:6px; width:130px; overflow:hidden; border:1px solid #2c5f3d;">
+          <div style="background:#2c5f3d; padding:4px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Topo Slope</div>
+          <div style="padding:3px 6px;">
+            <div style="font-size:7px; color:#fff; padding:1px 0; font-weight:bold;">&#9679; ProjectID</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeMeshID</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeRef</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeRestRate</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeMin</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; SlopeMax</div>
+            <div style="font-size:7px; color:#fff; padding:1px 0; font-weight:bold;">&#9679; Upload</div>
+          </div>
+          <div style="padding:3px 6px; border-top:1px solid #444;">
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">RecordID &#9679;</div>
+            <div style="font-size:7px; color:#7bed9f; padding:1px 0;">Status &#9679;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Properties -->
+      <div style="position:absolute; left:420px; top:90px;">
+        <div style="background:#3a3a4a; border-radius:6px; width:130px; overflow:hidden; border:1px solid #5b3a7c;">
+          <div style="background:#5b3a7c; padding:4px 6px; font-size:9px; font-weight:bold; color:white; text-align:center;">Properties</div>
+          <div style="padding:3px 6px;">
+            <div style="font-size:7px; color:#fff; padding:1px 0; font-weight:bold;">&#9679; ProjectID</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; Module</div>
+            <div style="font-size:7px; color:#aaa; padding:1px 0;">&#9679; JSON</div>
+            <div style="font-size:7px; color:#fff; padding:1px 0; font-weight:bold;">&#9679; Upload</div>
+          </div>
+          <div style="padding:3px 6px; border-top:1px solid #444;">
+            <div style="font-size:7px; color:#c39bd3; padding:1px 0;">RecordID &#9679;</div>
+            <div style="font-size:7px; color:#c39bd3; padding:1px 0;">Status &#9679;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wires from ProjectID panel -->
+      <svg style="position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none;">
+        <path d="M 120,125 C 160,125 160,27 200,27" stroke="#7bed9f" stroke-width="1.5" fill="none" stroke-dasharray="4,3" opacity="0.5"/>
+        <path d="M 120,125 C 160,125 160,187 200,187" stroke="#7bed9f" stroke-width="1.5" fill="none" stroke-dasharray="4,3" opacity="0.5"/>
+        <path d="M 120,125 C 270,125 270,107 420,107" stroke="#c39bd3" stroke-width="1.5" fill="none" stroke-dasharray="4,3" opacity="0.5"/>
+      </svg>
+
+      <!-- Wires from Upload toggle -->
+      <svg style="position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none;">
+        <path d="M 120,230 C 160,230 160,92 200,92" stroke="#e74c3c" stroke-width="1" fill="none" stroke-dasharray="3,3" opacity="0.4"/>
+        <path d="M 120,230 C 160,230 160,278 200,278" stroke="#e74c3c" stroke-width="1" fill="none" stroke-dasharray="3,3" opacity="0.4"/>
+        <path d="M 120,230 C 270,230 270,158 420,158" stroke="#e74c3c" stroke-width="1" fill="none" stroke-dasharray="3,3" opacity="0.4"/>
+      </svg>
+
+      <!-- Annotation -->
+      <div style="position:absolute; right:16px; bottom:12px; background:#222; border:1px solid #444; border-radius:4px; padding:6px 10px; max-width:180px;">
+        <div style="font-size:8px; color:#7bed9f; margin-bottom:3px;">&#10003; Each component patches the same <code style="color:#e6a97b;">topography</code> row independently</div>
+        <div style="font-size:8px; color:#7bed9f; margin-bottom:3px;">&#10003; Base patches base_* columns</div>
+        <div style="font-size:8px; color:#7bed9f; margin-bottom:3px;">&#10003; Slope patches slope_* columns</div>
+        <div style="font-size:8px; color:#c39bd3;">&#10003; Properties patches the jsonb column</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="section" style="margin-top:24px;">
+  <h3>How it works under the hood</h3>
+
+  <div style="display:flex; gap:16px; flex-wrap:wrap;">
+    <div class="mockup" style="flex:1; min-width:280px;">
+      <div class="mockup-header">Base class (barely changes)</div>
+      <div class="mockup-body" style="padding:12px; font-family:monospace; font-size:10px; line-height:1.6; color:#aaa;">
+        <span style="color:#569cd6;">abstract class</span> <span style="color:#4ec9b0;">SelvagenModuleComponentBase</span><br>
+        {<br>
+        &nbsp;&nbsp;<span style="color:#569cd6;">abstract string</span> ModuleTable; <span style="color:#666;">// "topography"</span><br>
+        &nbsp;&nbsp;<span style="color:#569cd6;">abstract</span> Dictionary CollectValues();<br>
+        <br>
+        &nbsp;&nbsp;<span style="color:#666;">// SolveInstance unchanged:</span><br>
+        &nbsp;&nbsp;<span style="color:#666;">// 1. Find or create row for (table, projectId)</span><br>
+        &nbsp;&nbsp;<span style="color:#666;">// 2. PATCH with CollectValues()</span><br>
+        &nbsp;&nbsp;<span style="color:#666;">// 3. Output RecordID + Status</span><br>
+        }
+      </div>
+    </div>
+
+    <div class="mockup" style="flex:1; min-width:280px;">
+      <div class="mockup-header">Example: TopoSlopeComponent</div>
+      <div class="mockup-body" style="padding:12px; font-family:monospace; font-size:10px; line-height:1.6; color:#aaa;">
+        <span style="color:#569cd6;">class</span> <span style="color:#4ec9b0;">TopoSlopeComponent</span> : ModuleComponentBase<br>
+        {<br>
+        &nbsp;&nbsp;ModuleTable => <span style="color:#ce9178;">"topography"</span>;<br>
+        <br>
+        &nbsp;&nbsp;RegisterInputParams() {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#666;">// ProjectID + 5 slope fields + Upload</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#666;">// = 7 inputs total</span><br>
+        &nbsp;&nbsp;}<br>
+        <br>
+        &nbsp;&nbsp;CollectValues() => {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#ce9178;">"slope_mesh_id"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#ce9178;">"slope_ref"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#ce9178;">"slope_min"</span>, ...<br>
+        &nbsp;&nbsp;}<br>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROPERTIES COMPONENT QUESTION -->
+<div class="section" style="margin-top:24px;">
+  <h3>Properties component — which module does it target?</h3>
+  <p class="subtitle">Since Properties is standalone, it needs to know which module table to PATCH</p>
+
+  <div class="options">
+    <div class="option" data-choice="dropdown" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>Dropdown selector input</h3>
+        <p>A dropdown input with choices: Topography, Geology, Analyses, Optimizations. Same pattern as the existing Client/Project selectors you already have.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="text-input" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Text input for module name</h3>
+        <p>Simple text input where user types "topography", "geology", etc. Least code but no guardrails against typos.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="four-components" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Four separate Properties components</h3>
+        <p>Topo Properties, Geo Properties, etc. — each hardcodes its module table. More components but zero ambiguity, consistent with the "explicit on canvas" philosophy.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px; text-align:center; color:#888;">Take a look and let me know your thoughts in the terminal</p>

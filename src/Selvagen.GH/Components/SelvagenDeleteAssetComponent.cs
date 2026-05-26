@@ -7,11 +7,11 @@ namespace Selvagen.GH.Components
 {
     public class SelvagenDeleteAssetComponent : GH_Component
     {
-        private static readonly string[] ValidTables = { "meshes", "curve_sets", "text_3d_sets" };
+        private static readonly string[] ValidTables = { "meshes", "curve_sets", "label_sets", "animation_sequences" };
 
         public SelvagenDeleteAssetComponent()
             : base("Delete Asset", "SvDelete",
-                "Delete a mesh, curve set, or text 3D set by ID. [Excluir Asset]",
+                "Delete a mesh, curve set, or label set by ID. [Excluir Asset]",
                 "Selvagen", "08 Assets")
         { }
 
@@ -19,8 +19,8 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("AssetTable", "T", "Table name: meshes, curve_sets, or text_3d_sets", GH_ParamAccess.item);
-            pManager.AddTextParameter("AssetID", "ID", "ID of the asset to delete", GH_ParamAccess.item);
+            pManager.AddTextParameter("Asset Table", "Table", "Table name: meshes, curve_sets, label_sets, or animation_sequences", GH_ParamAccess.item);
+            pManager.AddTextParameter("Asset ID", "AstID", "ID of the asset to delete", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Delete", "Go", "Set to true to delete", GH_ParamAccess.item, false);
         }
 
@@ -53,7 +53,7 @@ namespace Selvagen.GH.Components
 
             if (string.IsNullOrEmpty(tableName) || string.IsNullOrEmpty(assetId))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "AssetTable and AssetID are required.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Asset Table and Asset ID are required.");
                 DA.SetData(0, false);
                 DA.SetData(1, "Missing inputs");
                 return;
@@ -63,7 +63,7 @@ namespace Selvagen.GH.Components
             if (Array.IndexOf(ValidTables, tableNorm) < 0)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
-                    $"Invalid table: {tableName}. Use: meshes, curve_sets, or text_3d_sets.");
+                    $"Invalid table: {tableName}. Use: meshes, curve_sets, label_sets, or animation_sequences.");
                 DA.SetData(0, false);
                 DA.SetData(1, "Invalid table name");
                 return;

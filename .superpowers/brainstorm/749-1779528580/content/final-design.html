@@ -1,0 +1,139 @@
+<h2>Final Design — Ready for Spec?</h2>
+<p class="subtitle">All decisions locked in. Review before we write the specification document.</p>
+
+<!-- ARCHITECTURE -->
+<div class="section">
+  <h3>Architecture</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:6px;">Self-contained group components</div>
+      <div style="font-size:10px; color:#aaa; line-height:1.5;">Each component has ProjectID + group fields + Upload. Each independently PATCHes its module's DB row. No aggregator/sink component.</div>
+    </div>
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:6px;">Base class reused as-is</div>
+      <div style="font-size:10px; color:#aaa; line-height:1.5;">SelvagenModuleComponentBase unchanged. Each new component overrides ModuleTable + CollectValues with its group's subset of fields.</div>
+    </div>
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:6px;">Properties = standalone + dropdown</div>
+      <div style="font-size:10px; color:#aaa; line-height:1.5;">One Properties component with a module dropdown selector (Topography/Geology/Analyses/Optimizations) + JSON input. PATCHes the jsonb column.</div>
+    </div>
+    <div style="background:#1a2a1a; border:1px solid #2c5f3d; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#7bed9f; margin-bottom:6px;">Duplicated groups stay separate</div>
+      <div style="font-size:10px; color:#aaa; line-height:1.5;">Anl Access &ne; Opt Access (separate classes, same fields). Noted for future merge when Data Dictionary is built.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPONENT COUNT -->
+<div class="section" style="margin-top:20px;">
+  <h3>Component Count: 4 &rarr; 23</h3>
+  <div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <div style="background:#2c5f3d; border-radius:6px; padding:10px 16px; text-align:center;">
+      <div style="font-size:20px; font-weight:bold; color:white;">8</div>
+      <div style="font-size:9px; color:#aaa;">Topography</div>
+    </div>
+    <div style="background:#2c5f3d; border-radius:6px; padding:10px 16px; text-align:center;">
+      <div style="font-size:20px; font-weight:bold; color:white;">5</div>
+      <div style="font-size:9px; color:#aaa;">Geology</div>
+    </div>
+    <div style="background:#2c5f3d; border-radius:6px; padding:10px 16px; text-align:center;">
+      <div style="font-size:20px; font-weight:bold; color:white;">4</div>
+      <div style="font-size:9px; color:#aaa;">Analyses</div>
+    </div>
+    <div style="background:#2c5f3d; border-radius:6px; padding:10px 16px; text-align:center;">
+      <div style="font-size:20px; font-weight:bold; color:white;">5</div>
+      <div style="font-size:9px; color:#aaa;">Optimizations</div>
+    </div>
+    <div style="font-size:24px; color:#555; display:flex; align-items:center;">+</div>
+    <div style="background:#5b3a7c; border-radius:6px; padding:10px 16px; text-align:center;">
+      <div style="font-size:20px; font-weight:bold; color:white;">1</div>
+      <div style="font-size:9px; color:#aaa;">Properties</div>
+    </div>
+  </div>
+</div>
+
+<!-- NAMING & RIBBON -->
+<div class="section" style="margin-top:20px;">
+  <h3>Naming &amp; Ribbon</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#ddd; margin-bottom:6px;">Full names (default)</div>
+      <div style="font-family:monospace; font-size:10px; color:#aaa; line-height:1.8;">
+        Topography Base<br>
+        Topography Contours<br>
+        Topography Urbanization<br>
+        Topography Elevation<br>
+        Topography Slope<br>
+        Topography Access 8<br>
+        Topography Access 5<br>
+        Topography Drainage
+      </div>
+      <div style="font-size:9px; color:#666; margin-top:6px;">Users can toggle to short names or icon-only via GH display settings</div>
+    </div>
+    <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:12px;">
+      <div style="font-size:11px; font-weight:bold; color:#ddd; margin-bottom:6px;">Ribbon groups (5 new)</div>
+      <div style="font-size:10px; color:#aaa; line-height:1.8;">
+        <span style="color:#2c5f3d;">&#9632;</span> <strong>Topography</strong> — 8 components<br>
+        <span style="color:#2c5f3d;">&#9632;</span> <strong>Geology</strong> — 5 components<br>
+        <span style="color:#2c5f3d;">&#9632;</span> <strong>Analyses</strong> — 4 components<br>
+        <span style="color:#2c5f3d;">&#9632;</span> <strong>Optimizations</strong> — 5 components<br>
+        <span style="color:#5b3a7c;">&#9632;</span> <strong>Shared</strong> — Properties (1)<br>
+      </div>
+      <div style="font-size:9px; color:#666; margin-top:6px;">Replaces the single "Modules" group. Existing Auth/Data/Upload groups unchanged.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ICONS -->
+<div class="section" style="margin-top:20px;">
+  <h3>Icon Design Guidelines</h3>
+  <p class="subtitle">Per David Rutten's recommendations (ieatbugsforbreakfast.com/2012/07/12/on-icons/)</p>
+  <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:16px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:10px; color:#aaa;">
+      <div>
+        <div style="color:#7bed9f; font-weight:bold; margin-bottom:4px;">Module family cohesion</div>
+        <ul style="margin:0; padding-left:16px; line-height:1.6;">
+          <li>All Topography icons share a visual theme (e.g., terrain silhouette base)</li>
+          <li>Small meaningful difference per group (contour lines, slope angle, water drop...)</li>
+          <li>Same approach for Geology, Analyses, Optimizations families</li>
+        </ul>
+      </div>
+      <div>
+        <div style="color:#7bed9f; font-weight:bold; margin-bottom:4px;">Rutten's rules</div>
+        <ul style="margin:0; padding-left:16px; line-height:1.6;">
+          <li>2 colors max per icon</li>
+          <li>Dark grey outlines, not black</li>
+          <li>Distinguishable in peripheral vision</li>
+          <li>Functional cues, not feature descriptions</li>
+          <li>Pixel-grid aligned, no near-vertical/horizontal lines</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GH_EXPOSURE -->
+<div class="section" style="margin-top:20px;">
+  <h3>GH_Exposure</h3>
+  <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:12px; font-size:10px; color:#aaa;">
+    Sub-components use <code style="color:#e6a97b;">GH_Exposure.secondary</code> to avoid cluttering the default component palette. Users find them via the ribbon group or search.
+  </div>
+</div>
+
+<!-- BREAKING CHANGES -->
+<div class="section" style="margin-top:20px;">
+  <h3>Breaking Changes &amp; Migration</h3>
+  <div style="background:#2a1a1a; border:1px solid #7c2c2c; border-radius:6px; padding:12px; font-size:10px; color:#ccc; line-height:1.6;">
+    <strong style="color:#e74c3c;">The 4 old mega-components are deleted.</strong> This is a breaking change — any .gh file using them will show "missing component" errors. Mitigation: the sample .gh doesn't use them, and the PLUGIN_GUIDE.md will be updated with the new component names and migration notes.
+  </div>
+</div>
+
+<!-- FUTURE: DATA DICTIONARY -->
+<div class="section" style="margin-top:20px;">
+  <h3>Noted for Future</h3>
+  <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:12px; font-size:10px; color:#888; line-height:1.6;">
+    <strong style="color:#ddd;">Data Dictionary</strong> — a single source of truth for field names, types, and grouping. When built, it would: (1) eliminate hardcoded string literals across all components, (2) enable merging duplicated groups (Anl Access = Opt Access), (3) potentially allow runtime schema discovery from Supabase. Deferred to a follow-up initiative.
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:24px; text-align:center; color:#888;">If this looks right, say the word and I'll write the formal spec document.</p>

@@ -16,7 +16,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Project UUID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
             pManager.AddTextParameter("OutlineCurvesID", "OC", "Outline curve set asset ID", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddTextParameter("ContoursCurvesID", "CC", "Contours curve set asset ID", GH_ParamAccess.item);
@@ -36,7 +36,7 @@ namespace Selvagen.GH.Components
             if (TryGetText(DA, 2, out var contoursCurvesId))
                 values["contours_curve_set_id"] = contoursCurvesId;
             if (TryGetText(DA, 3, out var contoursLabelsId))
-                values["contours_text_3d_set_id"] = contoursLabelsId;
+                values["contours_label_set_id"] = contoursLabelsId;
             if (TryGetNumber(DA, 4, out var contourInterval))
                 values["contour_interval"] = contourInterval;
             return values;

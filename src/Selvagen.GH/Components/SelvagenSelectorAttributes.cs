@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using Grasshopper.GUI;
 using Grasshopper.GUI.Canvas;
@@ -21,12 +22,16 @@ namespace Selvagen.GH.Components
         private const int InnerSidePadding = 6;
 
         private RectangleF _buttonRect;
+        private RectangleF _filterRect;
         private RectangleF _dropdownRect;
         private float? _naturalHeight;
+        private bool _buttonPressed;
 
         public SelvagenSelectorAttributes(GH_Component owner) : base(owner) { }
 
         private ISelectorComponent Selector => (ISelectorComponent)Owner;
+
+        private bool HasFilter => Owner is IFilterDropdownComponent;
 
         protected override void Layout()
         {
@@ -44,7 +49,8 @@ namespace Selvagen.GH.Components
                 _naturalHeight = Bounds.Height;
             }
 
-            int extra = TopPadding + ButtonHeight + ElementGap + DropdownHeight + TopPadding / 2;
+            int filterExtra = HasFilter ? ElementGap + DropdownHeight : 0;
+            int extra = TopPadding + ButtonHeight + filterExtra + ElementGap + DropdownHeight + TopPadding / 2;
             var bounds = Bounds;
             bounds.Height = _naturalHeight.Value + extra;
             Bounds = bounds;
@@ -58,11 +64,15 @@ namespace Selvagen.GH.Components
                 width,
                 ButtonHeight);
 
-            _dropdownRect = new RectangleF(
-                left,
-                _buttonRect.Bottom + ElementGap,
-                width,
-                DropdownHeight);
+            float nextY = _buttonRect.Bottom + ElementGap;
+
+            if (HasFilter)
+            {
+                _filterRect = new RectangleF(left, nextY, width, DropdownHeight);
+                nextY = _filterRect.Bottom + ElementGap;
+            }
+
+            _dropdownRect = new RectangleF(left, nextY, width, DropdownHeight);
         }
 
         protected override void Render(GH_Canvas canvas, Graphics graphics, GH_CanvasChannel channel)
@@ -71,30 +81,81 @@ namespace Selvagen.GH.Components
             if (channel != GH_CanvasChannel.Objects) return;
 
             RenderButton(graphics);
+            if (HasFilter) RenderFilterDropdown(graphics);
             RenderDropdown(graphics);
         }
 
         private void RenderButton(Graphics graphics)
         {
-            var capsule = GH_Capsule.CreateCapsule(_buttonRect, GH_Palette.Grey);
-            capsule.Render(graphics, Selected, Owner.Locked, false);
-            capsule.Dispose();
+            Color topColor, bottomColor;
+            if (_buttonPressed)
+            {
+                topColor = Color.FromArgb(170, 170, 170);
+                bottomColor = Color.FromArgb(110, 110, 110);
+            }
+            else
+            {
+                topColor = Color.FromArgb(130, 130, 130);
+                bottomColor = Color.FromArgb(50, 50, 50);
+            }
 
-            using (var font = GH_FontServer.NewFont("Verdana", 7f, FontStyle.Bold))
-            using (var brush = new SolidBrush(Color.Black))
+            float radius = 3f;
+            using (var path = CreateRoundedRect(_buttonRect, radius))
+            {
+                using (var fill = new LinearGradientBrush(_buttonRect, topColor, bottomColor, 90f))
+                {
+                    graphics.FillPath(fill, path);
+                }
+                using (var border = new Pen(Color.FromArgb(30, 30, 30), 1f))
+                {
+                    graphics.DrawPath(border, path);
+                }
+            }
+
+            using (var font = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Regular))
+            using (var brush = new SolidBrush(Color.White))
             using (var fmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center })
             {
                 graphics.DrawString("Update", font, brush, _buttonRect, fmt);
             }
         }
 
-        private void RenderDropdown(Graphics graphics)
+        private static GraphicsPath CreateRoundedRect(RectangleF rect, float radius)
         {
-            var capsule = GH_Capsule.CreateCapsule(_dropdownRect, GH_Palette.Black);
-            capsule.Render(graphics, Selected, Owner.Locked, false);
-            capsule.Dispose();
+            float d = radius * 2;
+            var path = new GraphicsPath();
+            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
 
-            using (var glyphFont = GH_FontServer.NewFont("Verdana", 7f, FontStyle.Bold))
+        private void RenderFilterDropdown(Graphics graphics)
+        {
+            var filter = (IFilterDropdownComponent)Owner;
+            int idx = Array.IndexOf(filter.FilterOptions, filter.SelectedFilter);
+            string displayText = idx >= 0 ? filter.FilterDisplayNames[idx] : filter.SelectedFilter;
+
+            float radius = 3f;
+            using (var path = CreateRoundedRect(_filterRect, radius))
+            {
+                using (var fill = new LinearGradientBrush(
+                    _filterRect,
+                    Color.FromArgb(130, 130, 130),
+                    Color.FromArgb(50, 50, 50),
+                    90f))
+                {
+                    graphics.FillPath(fill, path);
+                }
+                using (var border = new Pen(Color.FromArgb(30, 30, 30), 1f))
+                {
+                    graphics.DrawPath(border, path);
+                }
+            }
+
+            using (var glyphFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Bold))
             using (var textBrush = new SolidBrush(Color.White))
             using (var glyphFmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center })
             using (var textFmt = new StringFormat
@@ -104,7 +165,50 @@ namespace Selvagen.GH.Components
                 Trimming = StringTrimming.EllipsisCharacter,
                 FormatFlags = StringFormatFlags.NoWrap,
             })
-            using (var labelFont = GH_FontServer.NewFont("Verdana", 7.0f, FontStyle.Regular))
+            using (var labelFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Regular))
+            {
+                var glyphRect = new RectangleF(_filterRect.X + 4, _filterRect.Y, 12, _filterRect.Height);
+                graphics.DrawString("▼", glyphFont, textBrush, glyphRect, glyphFmt);
+
+                var textRect = new RectangleF(
+                    _filterRect.X + 18,
+                    _filterRect.Y,
+                    _filterRect.Width - 22,
+                    _filterRect.Height);
+                graphics.DrawString(displayText, labelFont, textBrush, textRect, textFmt);
+            }
+        }
+
+        private void RenderDropdown(Graphics graphics)
+        {
+            float radius = 3f;
+            using (var path = CreateRoundedRect(_dropdownRect, radius))
+            {
+                using (var fill = new LinearGradientBrush(
+                    _dropdownRect,
+                    Color.FromArgb(130, 130, 130),
+                    Color.FromArgb(50, 50, 50),
+                    90f))
+                {
+                    graphics.FillPath(fill, path);
+                }
+                using (var border = new Pen(Color.FromArgb(30, 30, 30), 1f))
+                {
+                    graphics.DrawPath(border, path);
+                }
+            }
+
+            using (var glyphFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Bold))
+            using (var textBrush = new SolidBrush(Color.White))
+            using (var glyphFmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center })
+            using (var textFmt = new StringFormat
+            {
+                LineAlignment = StringAlignment.Center,
+                Alignment = StringAlignment.Near,
+                Trimming = StringTrimming.EllipsisCharacter,
+                FormatFlags = StringFormatFlags.NoWrap,
+            })
+            using (var labelFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Regular))
             {
                 var glyphRect = new RectangleF(_dropdownRect.X + 4, _dropdownRect.Y, 12, _dropdownRect.Height);
                 graphics.DrawString("▼", glyphFont, textBrush, glyphRect, glyphFmt);
@@ -124,7 +228,26 @@ namespace Selvagen.GH.Components
             {
                 if (_buttonRect.Contains(e.CanvasLocation))
                 {
+                    _buttonPressed = true;
+                    sender.Refresh();
+
+                    var timer = new Timer { Interval = 100 };
+                    timer.Tick += (s, ev) =>
+                    {
+                        timer.Stop();
+                        timer.Dispose();
+                        _buttonPressed = false;
+                        sender.Refresh();
+                    };
+                    timer.Start();
+
                     Selector.RequestUpdate();
+                    return GH_ObjectResponse.Handled;
+                }
+
+                if (HasFilter && _filterRect.Contains(e.CanvasLocation))
+                {
+                    ShowFilterMenu(sender);
                     return GH_ObjectResponse.Handled;
                 }
 
@@ -137,14 +260,77 @@ namespace Selvagen.GH.Components
             return base.RespondToMouseDown(sender, e);
         }
 
+        private void ShowFilterMenu(GH_Canvas canvas)
+        {
+            var filter = (IFilterDropdownComponent)Owner;
+            var menu = new ToolStripDropDownMenu
+            {
+                AutoClose = true,
+                Renderer = new SelvagenDropdownRenderer(),
+                ShowImageMargin = false,
+                ShowCheckMargin = false,
+                Padding = new Padding(0, 4, 0, 4),
+            };
+            Font boldFont = null;
+
+            for (int i = 0; i < filter.FilterOptions.Length; i++)
+            {
+                string option = filter.FilterOptions[i];
+                string display = filter.FilterDisplayNames[i];
+                bool isSelected = filter.SelectedFilter == option;
+
+                Font itemFont;
+                if (isSelected)
+                {
+                    if (boldFont == null) boldFont = new Font(menu.Font, FontStyle.Bold);
+                    itemFont = boldFont;
+                }
+                else
+                {
+                    itemFont = menu.Font;
+                }
+
+                var item = new ToolStripMenuItem(display)
+                {
+                    Tag = option,
+                    Font = itemFont,
+                    Padding = SelvagenDropdownRenderer.ItemPadding,
+                };
+                item.Click += (s, ev) =>
+                {
+                    filter.SelectedFilter = ((ToolStripMenuItem)s).Tag.ToString();
+                    canvas.Refresh();
+                };
+                menu.Items.Add(item);
+            }
+
+            menu.Closed += (s, ev) => boldFont?.Dispose();
+
+            var canvasPt = new PointF(_filterRect.Left, _filterRect.Bottom);
+            var screenPt = canvas.Viewport.ProjectPoint(canvasPt);
+            menu.Show(canvas, new Point((int)screenPt.X, (int)screenPt.Y));
+        }
+
         private void ShowDropdownMenu(GH_Canvas canvas)
         {
-            var menu = new ToolStripDropDown { AutoClose = true };
+            var menu = new ToolStripDropDownMenu
+            {
+                AutoClose = true,
+                Renderer = new SelvagenDropdownRenderer(),
+                ShowImageMargin = false,
+                ShowCheckMargin = false,
+                Padding = new Padding(0, 4, 0, 4),
+            };
             Font boldFont = null;
 
             if (!Selector.HasItems)
             {
-                menu.Items.Add(new ToolStripMenuItem("(no items)") { Enabled = false });
+                var empty = new ToolStripMenuItem("(no items)")
+                {
+                    Enabled = false,
+                    Padding = SelvagenDropdownRenderer.ItemPadding,
+                };
+                menu.Items.Add(empty);
             }
             else
             {
@@ -161,16 +347,17 @@ namespace Selvagen.GH.Components
                     {
                         itemFont = menu.Font;
                     }
-                    var item = new ToolStripMenuItem(name) { Font = itemFont };
+                    var item = new ToolStripMenuItem(name)
+                    {
+                        Font = itemFont,
+                        Padding = SelvagenDropdownRenderer.ItemPadding,
+                    };
                     item.Click += (s, ev) => Selector.SetSelectedId(capturedId);
                     menu.Items.Add(item);
                 }
             }
 
-            if (boldFont != null)
-            {
-                menu.Closed += (s, ev) => boldFont.Dispose();
-            }
+            menu.Closed += (s, ev) => boldFont?.Dispose();
 
             var canvasPt = new PointF(_dropdownRect.Left, _dropdownRect.Bottom);
             var screenPt = canvas.Viewport.ProjectPoint(canvasPt);

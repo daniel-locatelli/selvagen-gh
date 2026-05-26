@@ -2,11 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Selvagen.Core.Models
 {
-    /// <summary>
-    /// Text3DSet JSON format matching Text3DSetLoader.tsx in the web app.
-    /// Positions are [x,y,z] tuples in Y-up coordinates.
-    /// </summary>
-    public class Text3DSet
+    public class LabelSet
     {
         [JsonPropertyName("labels")]
         public LabelData[] Labels { get; set; } = System.Array.Empty<LabelData>();

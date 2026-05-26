@@ -79,7 +79,7 @@ namespace Selvagen.Core.Models
     }
 
     /// <summary>
-    /// Lightweight asset info returned when listing meshes, curve_sets, or text_3d_sets.
+    /// Lightweight asset info returned when listing meshes, curve_sets, or label_sets.
     /// </summary>
     public class AssetInfo
     {
@@ -196,10 +196,7 @@ namespace Selvagen.Core.Models
         public string GeometryUrl { get; set; }
     }
 
-    /// <summary>
-    /// Full text 3D set row from PostgREST, including text data.
-    /// </summary>
-    public class Text3DSetAssetFull
+    public class LabelSetAssetFull
     {
         [JsonPropertyName("id")]
         public string Id { get; set; } = "";
@@ -208,7 +205,7 @@ namespace Selvagen.Core.Models
         public string Name { get; set; } = "";
 
         [JsonPropertyName("text_data")]
-        public Text3DSet TextData { get; set; }
+        public LabelSet TextData { get; set; }
 
         [JsonPropertyName("geometry_url")]
         public string GeometryUrl { get; set; }

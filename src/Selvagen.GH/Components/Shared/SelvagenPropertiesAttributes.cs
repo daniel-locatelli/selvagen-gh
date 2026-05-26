@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using Grasshopper.GUI;
 using Grasshopper.GUI.Canvas;
@@ -58,11 +59,24 @@ namespace Selvagen.GH.Components
                 ? SelvagenPropertiesComponent.ModuleDisplayNames[selectedIndex]
                 : PropertiesOwner.SelectedModule;
 
-            var capsule = GH_Capsule.CreateCapsule(_dropdownBounds, GH_Palette.Black);
-            capsule.Render(graphics, Selected, Owner.Locked, false);
-            capsule.Dispose();
+            float radius = 3f;
+            using (var path = CreateRoundedRect(_dropdownBounds, radius))
+            {
+                using (var fill = new LinearGradientBrush(
+                    _dropdownBounds,
+                    Color.FromArgb(130, 130, 130),
+                    Color.FromArgb(50, 50, 50),
+                    90f))
+                {
+                    graphics.FillPath(fill, path);
+                }
+                using (var border = new Pen(Color.FromArgb(30, 30, 30), 1f))
+                {
+                    graphics.DrawPath(border, path);
+                }
+            }
 
-            using (var glyphFont = GH_FontServer.NewFont("Verdana", 7f, FontStyle.Bold))
+            using (var glyphFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Bold))
             using (var textBrush = new SolidBrush(Color.White))
             using (var glyphFmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center })
             using (var textFmt = new StringFormat
@@ -72,7 +86,7 @@ namespace Selvagen.GH.Components
                 Trimming = StringTrimming.EllipsisCharacter,
                 FormatFlags = StringFormatFlags.NoWrap,
             })
-            using (var labelFont = GH_FontServer.NewFont("Verdana", 7.0f, FontStyle.Regular))
+            using (var labelFont = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Regular))
             {
                 var glyphRect = new RectangleF(_dropdownBounds.X + 4, _dropdownBounds.Y, 12, _dropdownBounds.Height);
                 graphics.DrawString("▼", glyphFont, textBrush, glyphRect, glyphFmt);
@@ -86,17 +100,40 @@ namespace Selvagen.GH.Components
             }
         }
 
+        private static GraphicsPath CreateRoundedRect(RectangleF rect, float radius)
+        {
+            float d = radius * 2;
+            var path = new GraphicsPath();
+            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
         {
             if (e.Button == MouseButtons.Left && _dropdownBounds.Contains(e.CanvasLocation))
             {
-                var menu = new ToolStripDropDown();
+                var menu = new ToolStripDropDownMenu
+                {
+                    Renderer = new SelvagenDropdownRenderer(),
+                    ShowImageMargin = false,
+                    ShowCheckMargin = false,
+                    Padding = new Padding(0, 4, 0, 4),
+                };
                 for (int i = 0; i < SelvagenPropertiesComponent.ModuleOptions.Length; i++)
                 {
                     var option = SelvagenPropertiesComponent.ModuleOptions[i];
                     var display = SelvagenPropertiesComponent.ModuleDisplayNames[i];
                     var isSelected = PropertiesOwner.SelectedModule == option;
-                    var item = new ToolStripMenuItem(display) { Checked = isSelected, Tag = option };
+                    var item = new ToolStripMenuItem(display)
+                    {
+                        Tag = option,
+                        Padding = SelvagenDropdownRenderer.ItemPadding,
+                        Font = isSelected ? new Font(menu.Font, FontStyle.Bold) : menu.Font,
+                    };
                     item.Click += (s, args) =>
                     {
                         PropertiesOwner.SelectedModule = ((ToolStripMenuItem)s).Tag.ToString();

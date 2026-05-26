@@ -16,7 +16,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Project UUID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
             pManager.AddTextParameter("Acc5MeshID", "A5M", "Access 5m mesh asset ID", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddNumberParameter("Acc5Ref", "A5R", "Access 5m reference value", GH_ParamAccess.item);

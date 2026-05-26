@@ -6,16 +6,33 @@ using Selvagen.Core.Models;
 
 namespace Selvagen.Core.Converters
 {
-    /// <summary>
-    /// Converts Rhino TextDots (or point+text pairs) to Text3DSet JSON format.
-    /// Applies Z-up → Y-up coordinate swap.
-    /// </summary>
-    public static class TextConverter
+    public static class LabelConverter
     {
-        /// <summary>
-        /// Convert Rhino TextDots to a Text3DSet model.
-        /// </summary>
-        public static Text3DSet FromTextDots(IEnumerable<TextDot> dots)
+        private static readonly string[] AnchorXValues = { "left", "center", "right" };
+        private static readonly string[] AnchorYValues = { "bottom", "middle", "top" };
+
+        public static (string anchorX, string anchorY) JustificationToAnchors(int justification)
+        {
+            justification = Math.Max(0, Math.Min(8, justification));
+            int col = justification % 3;
+            int row = justification / 3;
+            return (AnchorXValues[col], AnchorYValues[row]);
+        }
+
+        public static int AnchorsToJustification(string anchorX, string anchorY)
+        {
+            int col = 1;
+            if (anchorX == "left") col = 0;
+            else if (anchorX == "right") col = 2;
+
+            int row = 1;
+            if (anchorY == "bottom") row = 0;
+            else if (anchorY == "top") row = 2;
+
+            return row * 3 + col;
+        }
+
+        public static LabelSet ToLabelSetFromDots(IEnumerable<TextDot> dots)
         {
             if (dots == null)
                 throw new ArgumentNullException(nameof(dots));
@@ -37,14 +54,10 @@ namespace Selvagen.Core.Converters
                 index++;
             }
 
-            return new Text3DSet { Labels = labels.ToArray() };
+            return new LabelSet { Labels = labels.ToArray() };
         }
 
-        /// <summary>
-        /// Convert parallel arrays of points and text strings to a Text3DSet model.
-        /// Useful for custom Grasshopper component inputs.
-        /// </summary>
-        public static Text3DSet FromPointsAndTexts(IList<Point3d> points, IList<string> texts)
+        public static LabelSet ToLabelSetFromPoints(IList<Point3d> points, IList<string> texts)
         {
             if (points == null) throw new ArgumentNullException(nameof(points));
             if (texts == null) throw new ArgumentNullException(nameof(texts));
@@ -62,20 +75,14 @@ namespace Selvagen.Core.Converters
                 };
             }
 
-            return new Text3DSet { Labels = labels };
+            return new LabelSet { Labels = labels };
         }
 
-        /// <summary>
-        /// Convert parallel arrays of planes, text strings, and optional per-label colors to a Text3DSet model.
-        /// Each plane provides both position (origin) and orientation (basis → Y-up Euler XYZ).
-        /// </summary>
-        /// <param name="planes">Rhino planes (Z-up). Origin → position, basis → rotation.</param>
-        /// <param name="texts">Label text strings. Must match planes in count.</param>
-        /// <param name="colors">Optional per-label colors. If shorter than planes, the last color repeats.</param>
-        public static Text3DSet FromPlanesAndTexts(
+        public static LabelSet ToLabelSet(
             IList<Plane> planes,
             IList<string> texts,
-            IList<Color> colors = null)
+            IList<Color> colors = null,
+            IList<int> justifications = null)
         {
             if (planes == null) throw new ArgumentNullException(nameof(planes));
             if (texts == null) throw new ArgumentNullException(nameof(texts));
@@ -99,31 +106,37 @@ namespace Selvagen.Core.Converters
                     label.Color = $"#{c.R:x2}{c.G:x2}{c.B:x2}";
                 }
 
+                if (justifications != null && justifications.Count > 0)
+                {
+                    int j = justifications[Math.Min(i, justifications.Count - 1)];
+                    var (ax, ay) = JustificationToAnchors(j);
+                    label.AnchorX = ax;
+                    label.AnchorY = ay;
+                }
+
                 labels[i] = label;
             }
 
-            return new Text3DSet { Labels = labels };
+            return new LabelSet { Labels = labels };
         }
 
-        /// <summary>
-        /// Convert a Text3DSet model back to Rhino planes, texts, colors, and font sizes.
-        /// Planes carry both position and orientation (mirrors the Upload Labels input).
-        /// </summary>
-        public static void FromText3DSet(Text3DSet ts,
+        public static void FromLabelSet(LabelSet ls,
             out List<Plane> planes,
             out List<string> texts,
             out List<Color> colors,
-            out List<double> fontSizes)
+            out List<double> fontSizes,
+            out List<int> justifications)
         {
-            if (ts == null)
-                throw new ArgumentNullException(nameof(ts));
+            if (ls == null)
+                throw new ArgumentNullException(nameof(ls));
 
             planes = new List<Plane>();
             texts = new List<string>();
             colors = new List<Color>();
             fontSizes = new List<double>();
+            justifications = new List<int>();
 
-            foreach (var label in ts.Labels)
+            foreach (var label in ls.Labels)
             {
                 if (label == null) continue;
 
@@ -145,6 +158,7 @@ namespace Selvagen.Core.Converters
                     colors.Add(Color.Black);
 
                 fontSizes.Add(label.FontSize ?? 0.0);
+                justifications.Add(AnchorsToJustification(label.AnchorX, label.AnchorY));
             }
         }
     }

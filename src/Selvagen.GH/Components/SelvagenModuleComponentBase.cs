@@ -20,7 +20,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("RecordID", "ID", "Module record ID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Record ID", "RecID", "Module record ID", GH_ParamAccess.item);
             pManager.AddTextParameter("Status", "S", "Operation status", GH_ParamAccess.item);
         }
 
@@ -57,9 +57,9 @@ namespace Selvagen.GH.Components
 
             if (string.IsNullOrEmpty(projectId))
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "ProjectID is required.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Project ID is required.");
                 DA.SetData(0, null);
-                DA.SetData(1, "Missing ProjectID");
+                DA.SetData(1, "Missing Project ID");
                 return;
             }
 

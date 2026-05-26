@@ -15,7 +15,7 @@ namespace Selvagen.GH.Components
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("ProjectID", "PID", "Project UUID", GH_ParamAccess.item);
+            pManager.AddTextParameter("Project ID", "PrjID", "Project UUID", GH_ParamAccess.item);
             pManager.AddTextParameter("RockMeshID", "RM", "Rock mesh asset ID", GH_ParamAccess.item);
             pManager[1].Optional = true;
             pManager.AddTextParameter("RockLabelsHID", "RLH", "Rock height labels asset ID", GH_ParamAccess.item);
@@ -35,8 +35,8 @@ namespace Selvagen.GH.Components
         {
             var values = new Dictionary<string, object>();
             if (TryGetText(DA, 1, out var rockMesh)) values["rock_mesh_id"] = rockMesh;
-            if (TryGetText(DA, 2, out var rockLabelsH)) values["rock_text_3d_set_height_id"] = rockLabelsH;
-            if (TryGetText(DA, 3, out var rockLabelsV)) values["rock_text_3d_set_vol_id"] = rockLabelsV;
+            if (TryGetText(DA, 2, out var rockLabelsH)) values["rock_label_set_height_id"] = rockLabelsH;
+            if (TryGetText(DA, 3, out var rockLabelsV)) values["rock_label_set_vol_id"] = rockLabelsV;
             if (TryGetNumber(DA, 4, out var rockHMin)) values["rock_height_min"] = rockHMin;
             if (TryGetNumber(DA, 5, out var rockHMax)) values["rock_height_max"] = rockHMax;
             if (TryGetNumber(DA, 6, out var rockTotalVol)) values["rock_total_vol_cut"] = rockTotalVol;

@@ -13,9 +13,11 @@ namespace Selvagen.GH.Components
     /// <summary>
     /// Shared base for the three Selvagen "Data" components that fetch a list of items
     /// and let the user pick one via an inline dropdown.
+    /// Uses manual async instead of GH_TaskCapableComponent because the latter
+    /// silently skips the Solve phase for zero-input components.
     /// </summary>
     public abstract class SelvagenSelectableComponentBase<TItem>
-        : GH_TaskCapableComponent<TItem[]>, ISelectorComponent
+        : GH_Component, ISelectorComponent
     {
         protected SelvagenSelectableComponentBase(string name, string nickname, string description, string subcategory)
             : base(name, nickname, description, "Selvagen", subcategory)
@@ -27,6 +29,7 @@ namespace Selvagen.GH.Components
         protected object[] _cachedKey;
         protected string _selectedId;
         private bool _forceRefresh;
+        private volatile bool _isFetching;
         private volatile string _lastFetchError;
 
         // ── Hooks subclasses implement ───────────────────────────────────────
@@ -46,6 +49,11 @@ namespace Selvagen.GH.Components
         /// <summary>Subclasses register their filter inputs here.</summary>
         protected virtual void RegisterFilterInputs(GH_InputParamManager pManager) { }
 
+        protected virtual string SelectedIdLabel => "Selected ID";
+        protected virtual string SelectedIdNick => "ID";
+        protected virtual string SelectedNameLabel => "Selected Name";
+        protected virtual string SelectedNameNick => "Name";
+
         // ── Input/output registration ────────────────────────────────────────
 
         protected sealed override void RegisterInputParams(GH_InputParamManager pManager)
@@ -55,25 +63,13 @@ namespace Selvagen.GH.Components
 
         protected sealed override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddTextParameter("SelectedID", "ID", "The picked item's UUID. Empty if nothing picked.", GH_ParamAccess.item);
-            pManager.AddTextParameter("SelectedName", "Name", "The picked item's display name. Empty if nothing picked.", GH_ParamAccess.item);
-            pManager.AddTextParameter("IDs", "IDs", "All item UUIDs.", GH_ParamAccess.list);
-            pManager.AddTextParameter("Names", "Names", "All item display names.", GH_ParamAccess.list);
+            pManager.AddTextParameter(SelectedIdLabel, SelectedIdNick, "The picked item's UUID. Empty if nothing picked.", GH_ParamAccess.item);
+            pManager.AddTextParameter(SelectedNameLabel, SelectedNameNick, "The picked item's display name. Empty if nothing picked.", GH_ParamAccess.item);
+            pManager.AddTextParameter("All IDs", "IDs", "All item UUIDs.", GH_ParamAccess.list);
+            pManager.AddTextParameter("All Names", "Names", "All item display names.", GH_ParamAccess.list);
         }
 
-        // ── SolveInstance — two-phase via GH_TaskCapableComponent ────────────
-
-        // Per-solve scratch state, set in InPreSolve, consumed in Solve. Cleared in BeforeSolveInstance.
-        private bool _pendingFetch;
-        private object[] _pendingKey;
-
-        protected override void BeforeSolveInstance()
-        {
-            base.BeforeSolveInstance();
-            _pendingFetch = false;
-            _pendingKey = null;
-            // _lastFetchError survives across solves until cleared by a successful fetch attempt
-        }
+        // ── SolveInstance — single-phase with manual async ──────────────────
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
@@ -85,54 +81,56 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            if (InPreSolve)
+            object[] inputs = CaptureInputs(DA);
+            object[] currentKey = GetCacheKey(inputs);
+
+            bool needsFetch = CacheDecision.NeedsFetch(
+                hasCachedItems: _cachedItems != null,
+                cachedKey: _cachedKey,
+                currentKey: currentKey,
+                forceRefresh: _forceRefresh);
+
+            _forceRefresh = false;
+
+            if (needsFetch && !_isFetching)
             {
-                object[] inputs = CaptureInputs(DA);
-                object[] currentKey = GetCacheKey(inputs);
+                _isFetching = true;
+                _lastFetchError = null;
+                var capturedKey = currentKey;
 
-                bool needsFetch = CacheDecision.NeedsFetch(
-                    hasCachedItems: _cachedItems != null,
-                    cachedKey: _cachedKey,
-                    currentKey: currentKey,
-                    forceRefresh: _forceRefresh);
-
-                _forceRefresh = false;
-                _pendingFetch = needsFetch;
-                _pendingKey = currentKey;
-
-                if (needsFetch)
+                Task.Run(async () =>
                 {
-                    _lastFetchError = null;
-                    TaskList.Add(Task.Run(async () =>
+                    try
                     {
-                        try
+                        var items = await FetchAsync(client, inputs).ConfigureAwait(false);
+                        if (items != null)
                         {
-                            return await FetchAsync(client, inputs).ConfigureAwait(false);
+                            _cachedItems = items;
+                            _cachedKey = capturedKey;
+
+                            string reconciled = Reconcile.SelectId(_cachedItems, _selectedId, GetId);
+                            _selectedId = reconciled;
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            _lastFetchError = ex.InnerException?.Message ?? ex.Message;
-                            PluginLogger.Log($"{GetType().Name} fetch error: {_lastFetchError}");
-                            return null;
+                            _lastFetchError ??= "Fetch returned no data.";
                         }
-                    }));
-                }
-                return;
-            }
-
-            // Solve phase: pull fetch result if one was enlisted, then emit outputs.
-            if (_pendingFetch && GetSolveResults(DA, out TItem[] items) && items != null)
-            {
-                _cachedItems = items;
-                _cachedKey = _pendingKey;
-
-                string reconciled = Reconcile.SelectId(_cachedItems, _selectedId, GetId);
-                if (_selectedId != null && reconciled == null)
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                        "Previously-selected item no longer exists.");
-                }
-                _selectedId = reconciled;
+                    }
+                    catch (Exception ex)
+                    {
+                        _lastFetchError = ex.InnerException?.Message ?? ex.Message;
+                        PluginLogger.Log($"{GetType().Name} fetch error: {_lastFetchError}");
+                    }
+                    finally
+                    {
+                        _isFetching = false;
+                        Rhino.RhinoApp.InvokeOnUiThread(new Action(() =>
+                        {
+                            if (OnPingDocument() != null)
+                                ExpireSolution(true);
+                        }));
+                    }
+                });
             }
 
             if (_lastFetchError != null)
