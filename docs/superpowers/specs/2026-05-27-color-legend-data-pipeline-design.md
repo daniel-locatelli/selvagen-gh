@@ -146,9 +146,9 @@ All columns nullable (backward-compatible). `ON DELETE SET NULL` — if a legend
 | Legend ID | Guid | UUID of the created/updated legend |
 | Status | String | "Created", "Updated", or error message |
 
-**Upsert logic:** Query `color_legends` by `(project_id, name)`. If found → PATCH. If not → POST. Uses PostgREST directly (no Edge Function needed — payload is small JSON).
+**Upsert logic:** Single atomic POST to PostgREST with `Prefer: resolution=merge-duplicates` header, leveraging the `UNIQUE (project_id, name)` constraint. No client-side check-then-write — one request handles both create and update.
 
-**Color conversion:** `System.Drawing.Color` → `#RRGGBB` hex string via `$"#{c.R:X2}{c.G:X2}{c.B:X2}"`.
+**Color conversion:** `System.Drawing.Color` → `#RRGGBB` hex string via `$"#{c.R:X2}{c.G:X2}{c.B:X2}"`. Alpha channel is explicitly stripped — only R, G, B components are used. If a Rhino color has transparency, it is silently discarded.
 
 ### 2.2 SelvagenClient API Additions
 
@@ -158,6 +158,7 @@ New methods on `SelvagenClient`:
 Task<ColorLegendInfo[]> ListColorLegendsAsync(Guid projectId)
 Task<ColorLegendInfo> GetColorLegendAsync(Guid legendId)
 Task<ColorLegendInfo> UpsertColorLegendAsync(Guid projectId, string name, ColorLegendPayload payload)
+// ^ Uses POST with Prefer: resolution=merge-duplicates header (atomic upsert on UNIQUE constraint)
 Task DeleteColorLegendAsync(Guid legendId)
 ```
 
@@ -257,20 +258,22 @@ bindingFields: ['title', 'startLabel', 'endLabel', 'legend_id']
 
 When the user picks a legend from the dropdown:
 
-1. Scan the `DataContext` (topography, geology, analyses, optimizations) for any `_legend_id` column whose value matches the selected legend's ID.
-2. **Match found** → store as expression binding `${namespace.field}`, show chain link icon, display "Bound to {module} → {analysis}".
-3. **No match** → store as static `config.legend_id`, no chain link, display "Static reference — not bound to a module".
+1. Scan the `DataContext` (topography, geology, analyses, optimizations) for ALL `_legend_id` columns whose value matches the selected legend's ID.
+2. **Exactly one match** → auto-bind as expression `${namespace.field}`, show chain link icon, display "Bound to {module} → {analysis}".
+3. **Multiple matches** → show disambiguation UI listing all matching module fields (e.g., "topography → slope", "analyses → rock"). User picks which binding to use.
+4. **No match** → store as static `config.legend_id`, no chain link, display "Static reference — not bound to a module".
 
 ```typescript
-function findModuleBinding(legendId: string, ctx: DataContext) {
+function findModuleBindings(legendId: string, ctx: DataContext) {
+  const matches: Array<{ namespace: string; field: string }> = [];
   for (const [namespace, moduleData] of Object.entries(ctx)) {
     if (!moduleData) continue;
     for (const [field, value] of Object.entries(moduleData)) {
       if (field.endsWith('_legend_id') && value === legendId)
-        return { namespace, field };
+        matches.push({ namespace, field });
     }
   }
-  return null;
+  return matches;
 }
 ```
 
@@ -286,7 +289,11 @@ The Legend Inspector gains a "Data Source" section above existing manual config 
 
 ---
 
-## 4. Out of Scope
+## 4. Known Limitations
+
+- **Orphaned legends on rename:** If a legend is renamed in Grasshopper, the upsert creates a new record (new name), leaving the old one unreferenced. These orphans are ~200 bytes each and accumulate slowly. A cleanup mechanism will be addressed when the legend management UI is built. Not a blocker — no performance or correctness impact.
+
+## 5. Out of Scope
 
 - Chart data pipeline (no real-world GH use case yet)
 - Table data pipeline (no real-world GH use case yet)
@@ -297,7 +304,7 @@ The Legend Inspector gains a "Data Source" section above existing manual config 
 
 ---
 
-## 5. Migration Checklist
+## 6. Migration Checklist
 
 Single Supabase migration file containing:
 1. `CREATE TABLE color_legends` with all columns and constraints
