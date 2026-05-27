@@ -253,6 +253,85 @@ namespace Selvagen.Core.Api
             return await QueryAssetsAsync(path, "animation_sequences").ConfigureAwait(false);
         }
 
+        // ── Color Legends ────────────────────────────────────────────────────
+
+        /// <summary>
+        /// List all color legends belonging to a project.
+        /// </summary>
+        public async Task<ColorLegendInfo[]> ListColorLegendsAsync(string projectId)
+        {
+            if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
+
+            var path = $"/rest/v1/color_legends?project_id=eq.{projectId}&select=id,name,variant,colors,labels,domain_min,domain_max,unit&order=name";
+            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"List color legends failed: {json}", (int)response.StatusCode);
+
+            return JsonSerializer.Deserialize<ColorLegendInfo[]>(json);
+        }
+
+        /// <summary>
+        /// Upsert a color legend for a project using PostgREST native upsert
+        /// (atomic POST with Prefer: resolution=merge-duplicates — no client-side check-then-write).
+        /// </summary>
+        public async Task<ColorLegendInfo> UpsertColorLegendAsync(string projectId, string name, ColorLegendPayload payload)
+        {
+            if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
+            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
+            if (payload == null) throw new ArgumentNullException(nameof(payload));
+
+            payload.ProjectId = projectId;
+            payload.Name = name;
+
+            var url = $"{_supabaseUrl}/rest/v1/color_legends?on_conflict=project_id,name";
+            var body = JsonSerializer.Serialize(payload);
+            var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+            await EnsureValidTokenAsync().ConfigureAwait(false);
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = content
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+            request.Headers.Add("apikey", _anonKey);
+            request.Headers.Add("Prefer", "resolution=merge-duplicates,return=representation");
+
+            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"Upsert color legend failed: {json}", (int)response.StatusCode);
+
+            var results = JsonSerializer.Deserialize<ColorLegendInfo[]>(json);
+            if (results == null || results.Length == 0)
+                throw new SelvagenApiException("Upsert color legend returned no data", 0);
+
+            return results[0];
+        }
+
+        /// <summary>
+        /// Delete a color legend by its ID.
+        /// </summary>
+        public async Task DeleteColorLegendAsync(string legendId)
+        {
+            if (string.IsNullOrEmpty(legendId)) throw new ArgumentNullException(nameof(legendId));
+
+            var path = $"/rest/v1/color_legends?id=eq.{legendId}";
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}{path}");
+            await EnsureValidTokenAsync().ConfigureAwait(false);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+            request.Headers.Add("apikey", _anonKey);
+
+            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new SelvagenApiException($"Delete color legend failed: {json}", (int)response.StatusCode);
+            }
+        }
+
         /// <summary>
         /// Delete an asset by table name and ID.
         /// </summary>
