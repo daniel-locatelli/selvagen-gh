@@ -14,7 +14,7 @@ namespace Selvagen.GH.Components
                 "Upload a color legend to the platform. [Upload de Legenda de Cores]")
         { }
 
-        public override Guid ComponentGuid => new Guid("A6B7C8D9-E0F1-4234-8567-890ABCDEF456");
+        public override Guid ComponentGuid => new Guid("f3a12ee1-3b46-4389-94a6-7564edf5b07c");
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
