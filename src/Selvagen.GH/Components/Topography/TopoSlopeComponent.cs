@@ -27,6 +27,9 @@ namespace Selvagen.GH.Components
             pManager[4].Optional = true;
             pManager.AddNumberParameter("Maximum", "Max", "Maximum [Máxima]", GH_ParamAccess.item);
             pManager[5].Optional = true;
+            pManager.AddTextParameter("Legend ID", "LgdID",
+                "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
+            pManager[6].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
@@ -43,6 +46,8 @@ namespace Selvagen.GH.Components
                 values["slope_min"] = slopeMin;
             if (TryGetNumber(DA, 5, out var slopeMax))
                 values["slope_max"] = slopeMax;
+            if (TryGetText(DA, Params.Input.Count - 2, out var legendId))
+                values["slope_legend_id"] = legendId;
             return values;
         }
 

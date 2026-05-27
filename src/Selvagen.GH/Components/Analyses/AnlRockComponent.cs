@@ -28,6 +28,9 @@ namespace Selvagen.GH.Components
             pManager[5].Optional = true;
             pManager.AddNumberParameter("Total Volume Cut", "TVC", "Total volume cut [Volume Total de Corte]", GH_ParamAccess.item);
             pManager[6].Optional = true;
+            pManager.AddTextParameter("Legend ID", "LgdID",
+                "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
+            pManager[7].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
@@ -40,6 +43,7 @@ namespace Selvagen.GH.Components
             if (TryGetNumber(DA, 4, out var rockHMin)) values["rock_height_min"] = rockHMin;
             if (TryGetNumber(DA, 5, out var rockHMax)) values["rock_height_max"] = rockHMax;
             if (TryGetNumber(DA, 6, out var rockTotalVol)) values["rock_total_vol_cut"] = rockTotalVol;
+            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["rock_legend_id"] = legendId;
             return values;
         }
 

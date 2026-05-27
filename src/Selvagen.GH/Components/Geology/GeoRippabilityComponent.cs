@@ -18,6 +18,9 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("Project ID", "PrjID", "Project UUID [ID do Projeto]", GH_ParamAccess.item);
             pManager.AddTextParameter("Mesh ID", "M", "Mesh asset ID [Malha]", GH_ParamAccess.item);
             pManager[1].Optional = true;
+            pManager.AddTextParameter("Legend ID", "LgdID",
+                "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
+            pManager[2].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
@@ -25,6 +28,7 @@ namespace Selvagen.GH.Components
         {
             var values = new Dictionary<string, object>();
             if (TryGetText(DA, 1, out var ripMeshId)) values["rippability_mesh_id"] = ripMeshId;
+            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["rippability_legend_id"] = legendId;
             return values;
         }
 

@@ -28,6 +28,9 @@ namespace Selvagen.GH.Components
             pManager[5].Optional = true;
             pManager.AddNumberParameter("Volume Export", "VE", "Volume export [Volume de Exportação]", GH_ParamAccess.item);
             pManager[6].Optional = true;
+            pManager.AddTextParameter("Legend ID", "LgdID",
+                "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
+            pManager[7].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
@@ -40,6 +43,7 @@ namespace Selvagen.GH.Components
             if (TryGetNumber(DA, 4, out var lotsVolCut)) values["earth_lots_vol_cut"] = lotsVolCut;
             if (TryGetNumber(DA, 5, out var lotsVolImport)) values["earth_lots_vol_import"] = lotsVolImport;
             if (TryGetNumber(DA, 6, out var lotsVolExport)) values["earth_lots_vol_export"] = lotsVolExport;
+            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["earth_lots_legend_id"] = legendId;
             return values;
         }
 

@@ -24,6 +24,9 @@ namespace Selvagen.GH.Components
             pManager[3].Optional = true;
             pManager.AddNumberParameter("Rate", "%", "Rate [Taxa]", GH_ParamAccess.item);
             pManager[4].Optional = true;
+            pManager.AddTextParameter("Legend ID", "LgdID",
+                "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
+            pManager[5].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
@@ -34,6 +37,7 @@ namespace Selvagen.GH.Components
             if (TryGetInt(DA, 2, out var covNumPoints)) values["coverage_number_points"] = covNumPoints;
             if (TryGetNumber(DA, 3, out var covArea)) values["coverage_area"] = covArea;
             if (TryGetNumber(DA, 4, out var covRate)) values["coverage_rate"] = covRate;
+            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["coverage_legend_id"] = legendId;
             return values;
         }
 

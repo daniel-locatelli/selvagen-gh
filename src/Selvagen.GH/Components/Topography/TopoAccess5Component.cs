@@ -23,6 +23,9 @@ namespace Selvagen.GH.Components
             pManager[2].Optional = true;
             pManager.AddNumberParameter("Rate", "%", "Rate [Taxa]", GH_ParamAccess.item);
             pManager[3].Optional = true;
+            pManager.AddTextParameter("Legend ID", "LgdID",
+                "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
+            pManager[4].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
@@ -35,6 +38,8 @@ namespace Selvagen.GH.Components
                 values["access5_ref"] = acc5Ref;
             if (TryGetNumber(DA, 3, out var acc5Rate))
                 values["access5_rate"] = acc5Rate;
+            if (TryGetText(DA, Params.Input.Count - 2, out var legendId))
+                values["access5_legend_id"] = legendId;
             return values;
         }
 

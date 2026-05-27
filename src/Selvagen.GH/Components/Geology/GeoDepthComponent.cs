@@ -22,6 +22,9 @@ namespace Selvagen.GH.Components
             pManager[2].Optional = true;
             pManager.AddNumberParameter("Usability Rate", "UR", "Usability rate [Taxa de Aproveitamento]", GH_ParamAccess.item);
             pManager[3].Optional = true;
+            pManager.AddTextParameter("Legend ID", "LgdID",
+                "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
+            pManager[4].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
@@ -31,6 +34,7 @@ namespace Selvagen.GH.Components
             if (TryGetText(DA, 1, out var depthMeshId)) values["depth_mesh_id"] = depthMeshId;
             if (TryGetNumber(DA, 2, out var depthRef)) values["depth_ref"] = depthRef;
             if (TryGetNumber(DA, 3, out var depthUsRate)) values["depth_usability_rate"] = depthUsRate;
+            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["depth_legend_id"] = legendId;
             return values;
         }
 

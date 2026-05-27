@@ -24,6 +24,9 @@ namespace Selvagen.GH.Components
             pManager[3].Optional = true;
             pManager.AddNumberParameter("Cost", "$", "Cost [Custo]", GH_ParamAccess.item);
             pManager[4].Optional = true;
+            pManager.AddTextParameter("Legend ID", "LgdID",
+                "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
+            pManager[5].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
@@ -34,6 +37,7 @@ namespace Selvagen.GH.Components
             if (TryGetNumber(DA, 2, out var retHMax)) values["retention_height_max"] = retHMax;
             if (TryGetNumber(DA, 3, out var retArea)) values["retention_area"] = retArea;
             if (TryGetNumber(DA, 4, out var retCost)) values["retention_cost"] = retCost;
+            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["retention_legend_id"] = legendId;
             return values;
         }
 

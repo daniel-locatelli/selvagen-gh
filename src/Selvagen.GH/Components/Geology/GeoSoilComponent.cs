@@ -22,6 +22,9 @@ namespace Selvagen.GH.Components
             pManager[2].Optional = true;
             pManager.AddNumberParameter("Height Maximum", "HMax", "Maximum height [Altura Máxima]", GH_ParamAccess.item);
             pManager[3].Optional = true;
+            pManager.AddTextParameter("Legend ID", "LgdID",
+                "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
+            pManager[4].Optional = true;
             pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
@@ -31,6 +34,7 @@ namespace Selvagen.GH.Components
             if (TryGetText(DA, 1, out var soilMeshId)) values["soil_mesh_id"] = soilMeshId;
             if (TryGetNumber(DA, 2, out var soilHMin)) values["soil_height_min"] = soilHMin;
             if (TryGetNumber(DA, 3, out var soilHMax)) values["soil_height_max"] = soilHMax;
+            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["soil_legend_id"] = legendId;
             return values;
         }
 
