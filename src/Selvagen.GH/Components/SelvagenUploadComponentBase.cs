@@ -1,38 +1,39 @@
 using System;
+using System.Drawing;
 using Grasshopper.Kernel;
 
 namespace Selvagen.GH.Components
 {
-    public abstract class SelvagenUploadComponentBase : GH_Component
+    /// <summary>
+    /// Upload-flavored action component. Provides a grayscale gradient button
+    /// labeled "Upload"/"Uploading...". Existing upload components should not
+    /// need any change beyond the inheritance chain — the public surface
+    /// (UploadRequested, IsUploading, RequestUpload) is preserved as aliases
+    /// for the new generalized properties.
+    /// </summary>
+    public abstract class SelvagenUploadComponentBase : SelvagenActionComponentBase
     {
-        private bool _uploadRequested;
-
         protected SelvagenUploadComponentBase(string name, string nickname, string description, string subcategory = "08 Assets")
-            : base(name, nickname, description, "Selvagen", subcategory) { }
+            : base(name, nickname, description, subcategory) { }
 
-        public bool IsUploading { get; protected set; }
-
-        public bool UploadRequested
+        // ── Aliases preserving the prior API ───────────────────────────────
+        public bool IsUploading
         {
-            get
-            {
-                if (!_uploadRequested) return false;
-                _uploadRequested = false;
-                return true;
-            }
+            get => IsRunning;
+            protected set => IsRunning = value;
         }
 
-        public void RequestUpload()
-        {
-            _uploadRequested = true;
-            ExpireSolution(true);
-        }
+        public bool UploadRequested => ActionRequested;
 
-        public override void CreateAttributes()
-        {
-            m_attributes = new SelvagenUploadAttributes(this);
-        }
+        public void RequestUpload() => RequestAction();
 
+        // ── ISelvagenActionButton ──────────────────────────────────────────
+        public override string ActionLabel        => "Upload";
+        public override string ActionLabelRunning => "Uploading...";
+        public override Color  ButtonGradientTop    => Color.FromArgb(130, 130, 130);
+        public override Color  ButtonGradientBottom => Color.FromArgb(50, 50, 50);
+
+        // ── Existing helpers kept here for backward compat ─────────────────
         protected void SetReady(IGH_DataAccess DA, int statusIndex)
         {
             DA.SetData(statusIndex, "Ready to upload.");
@@ -40,18 +41,7 @@ namespace Selvagen.GH.Components
 
         protected void SetUploadError(IGH_DataAccess DA, int statusIndex, Exception ex)
         {
-            var msg = ex.InnerException?.Message ?? ex.Message;
-            AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
-            DA.SetData(statusIndex, $"Error: {msg}");
+            SetActionError(DA, statusIndex, ex);
         }
-
-        protected void ForceCanvasRefresh()
-        {
-            try { Grasshopper.Instances.ActiveCanvas?.Refresh(); }
-            catch { }
-        }
-
-        public override GH_Exposure Exposure => GH_Exposure.primary;
-        protected override System.Drawing.Bitmap Icon => null;
     }
 }

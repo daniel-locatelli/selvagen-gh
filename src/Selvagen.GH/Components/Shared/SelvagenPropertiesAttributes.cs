@@ -8,7 +8,7 @@ using Grasshopper.Kernel;
 
 namespace Selvagen.GH.Components
 {
-    public class SelvagenPropertiesAttributes : SelvagenUploadAttributes
+    public class SelvagenPropertiesAttributes : SelvagenActionAttributes
     {
         private const int DropdownHeight = 22;
         private const int DropdownPadding = 2;
