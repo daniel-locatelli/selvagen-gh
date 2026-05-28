@@ -36,6 +36,7 @@ TOPO_BASE = "mdi:image-filter-hdr"
 GEO_BASE = "mdi:layers"
 ANL_BASE = "mdi:chart-box"
 OPT_BASE = "mdi:creation"
+CUSTOM_PROPERTY_BASE = "mdi:tune"
 
 FAMILY_ICONS = {
     # 03 Topography — mountain base
@@ -65,6 +66,11 @@ FAMILY_ICONS = {
     "OptEarthLots":     (OPT_BASE, "mdi:grid"),
     "OptEarthTotal":    (OPT_BASE, "mdi:sigma"),
     "OptRetention":     (OPT_BASE, "mdi:wall"),
+
+    # 07 Shared — Custom Property family (tune base + per-op badge)
+    "UploadCustomProperty": (CUSTOM_PROPERTY_BASE, "mdi:arrow-up-bold"),
+    "ListCustomProperties": (CUSTOM_PROPERTY_BASE, "mdi:format-list-bulleted"),
+    "DeleteCustomProperty": (CUSTOM_PROPERTY_BASE, "mdi:trash-can-outline"),
 }
 
 # ── Standalone icons (no family compositing) ──────────────────────────
@@ -95,9 +101,6 @@ STANDALONE_ICONS = {
     "Clients":          "mdi:office-building",
     "Projects":         "mdi:folder-open",
     "Delete":           "mdi:delete",
-
-    # 07 Shared
-    "Properties":       "mdi:tune",
 
     # 08 Assets
     "ListAssets":       "mdi:format-list-bulleted",
