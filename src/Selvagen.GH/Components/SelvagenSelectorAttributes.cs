@@ -1,6 +1,5 @@
 using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using Grasshopper.GUI;
 using Grasshopper.GUI.Canvas;
@@ -86,62 +85,13 @@ namespace Selvagen.GH.Components
 
         private void RenderButton(Graphics graphics)
         {
-            Color topColor, bottomColor;
-            if (_buttonPressed)
-            {
-                topColor = Color.FromArgb(170, 170, 170);
-                bottomColor = Color.FromArgb(110, 110, 110);
-            }
-            else
-            {
-                topColor = Color.FromArgb(130, 130, 130);
-                bottomColor = Color.FromArgb(50, 50, 50);
-            }
-
-            float radius = 3f;
-            using (var path = CreateRoundedRect(_buttonRect, radius))
-            {
-                using (var fill = new LinearGradientBrush(_buttonRect, topColor, bottomColor, 90f))
-                {
-                    graphics.FillPath(fill, path);
-                }
-                using (var border = new Pen(Color.FromArgb(30, 30, 30), 1f))
-                {
-                    graphics.DrawPath(border, path);
-                }
-            }
-
-            using (var font = GH_FontServer.NewFont("Verdana", 6f, FontStyle.Regular))
-            using (var brush = new SolidBrush(Color.White))
-            using (var fmt = new StringFormat { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center })
-            {
-                graphics.DrawString("Update", font, brush, _buttonRect, fmt);
-            }
-        }
-
-        private static void DrawDropdownGlyph(Graphics g, RectangleF rect)
-        {
-            float cx = rect.X + 8f;
-            float cy = rect.Y + rect.Height / 2f;
-            var tri = new PointF[]
-            {
-                new PointF(cx - 3f, cy - 2f),
-                new PointF(cx + 3f, cy - 2f),
-                new PointF(cx, cy + 2f),
-            };
-            g.FillPolygon(Brushes.White, tri);
-        }
-
-        private static GraphicsPath CreateRoundedRect(RectangleF rect, float radius)
-        {
-            float d = radius * 2;
-            var path = new GraphicsPath();
-            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
-            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
-            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
-            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
+            SelvagenChrome.DrawButton(
+                graphics,
+                _buttonRect,
+                "Update",
+                SelvagenChrome.ButtonGradientTop,
+                SelvagenChrome.ButtonGradientBottom,
+                _buttonPressed);
         }
 
         private void RenderFilterDropdown(Graphics graphics)
@@ -149,83 +99,12 @@ namespace Selvagen.GH.Components
             var filter = (IFilterDropdownComponent)Owner;
             int idx = Array.IndexOf(filter.FilterOptions, filter.SelectedFilter);
             string displayText = idx >= 0 ? filter.FilterDisplayNames[idx] : filter.SelectedFilter;
-
-            float radius = 3f;
-            using (var path = CreateRoundedRect(_filterRect, radius))
-            {
-                using (var fill = new LinearGradientBrush(
-                    _filterRect,
-                    Color.FromArgb(130, 130, 130),
-                    Color.FromArgb(50, 50, 50),
-                    90f))
-                {
-                    graphics.FillPath(fill, path);
-                }
-                using (var border = new Pen(Color.FromArgb(30, 30, 30), 1f))
-                {
-                    graphics.DrawPath(border, path);
-                }
-            }
-
-            DrawDropdownGlyph(graphics, _filterRect);
-
-            using (var textBrush = new SolidBrush(Color.White))
-            using (var textFmt = new StringFormat
-            {
-                LineAlignment = StringAlignment.Center,
-                Alignment = StringAlignment.Near,
-                Trimming = StringTrimming.EllipsisCharacter,
-                FormatFlags = StringFormatFlags.NoWrap,
-            })
-            using (var labelFont = new Font("Verdana", 6f, FontStyle.Regular))
-            {
-                var textRect = new RectangleF(
-                    _filterRect.X + 14,
-                    _filterRect.Y,
-                    _filterRect.Width - 18,
-                    _filterRect.Height);
-                graphics.DrawString(displayText, labelFont, textBrush, textRect, textFmt);
-            }
+            SelvagenChrome.DrawDropdown(graphics, _filterRect, displayText);
         }
 
         private void RenderDropdown(Graphics graphics)
         {
-            float radius = 3f;
-            using (var path = CreateRoundedRect(_dropdownRect, radius))
-            {
-                using (var fill = new LinearGradientBrush(
-                    _dropdownRect,
-                    Color.FromArgb(130, 130, 130),
-                    Color.FromArgb(50, 50, 50),
-                    90f))
-                {
-                    graphics.FillPath(fill, path);
-                }
-                using (var border = new Pen(Color.FromArgb(30, 30, 30), 1f))
-                {
-                    graphics.DrawPath(border, path);
-                }
-            }
-
-            DrawDropdownGlyph(graphics, _dropdownRect);
-
-            using (var textBrush = new SolidBrush(Color.White))
-            using (var textFmt = new StringFormat
-            {
-                LineAlignment = StringAlignment.Center,
-                Alignment = StringAlignment.Near,
-                Trimming = StringTrimming.EllipsisCharacter,
-                FormatFlags = StringFormatFlags.NoWrap,
-            })
-            using (var labelFont = new Font("Verdana", 6f, FontStyle.Regular))
-            {
-                var textRect = new RectangleF(
-                    _dropdownRect.X + 14,
-                    _dropdownRect.Y,
-                    _dropdownRect.Width - 18,
-                    _dropdownRect.Height);
-                graphics.DrawString(Selector.CurrentDisplayText, labelFont, textBrush, textRect, textFmt);
-            }
+            SelvagenChrome.DrawDropdown(graphics, _dropdownRect, Selector.CurrentDisplayText);
         }
 
         public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
