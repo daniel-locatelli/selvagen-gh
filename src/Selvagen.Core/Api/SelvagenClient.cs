@@ -406,6 +406,48 @@ namespace Selvagen.Core.Api
         }
 
         /// <summary>
+        /// Batch-delete custom properties by key, scoped to the given project.
+        /// Returns the count of rows actually removed (read from Content-Range).
+        /// Idempotent: deleting a non-existent key succeeds with count = 0.
+        /// </summary>
+        public async Task<int> DeleteCustomPropertiesAsync(string projectId, string[] keys)
+        {
+            if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
+            if (keys == null) throw new ArgumentNullException(nameof(keys));
+            if (keys.Length == 0) return 0;
+
+            // PostgREST `in.(...)` requires comma-separated literals. Keys are already
+            // validated snake_case so URL-escaping is a no-op, but we use Uri.EscapeDataString
+            // anyway as a safety belt — the DB CHECK will catch anything that slipped through.
+            var encoded = string.Join(",", Array.ConvertAll(keys, Uri.EscapeDataString));
+            var path = $"/rest/v1/custom_properties?project_id=eq.{projectId}&key=in.({encoded})";
+
+            await EnsureValidTokenAsync().ConfigureAwait(false);
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}{path}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+            request.Headers.Add("apikey", _anonKey);
+            request.Headers.Add("Prefer", "count=exact,return=minimal");
+
+            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new SelvagenApiException($"Delete custom properties failed: {json}", (int)response.StatusCode);
+            }
+
+            // Content-Range comes back as e.g. "0-2/3" or "*/0". Last segment after '/' is the count.
+            if (response.Content.Headers.TryGetValues("Content-Range", out var values))
+            {
+                foreach (var v in values)
+                {
+                    var slash = v.LastIndexOf('/');
+                    if (slash >= 0 && int.TryParse(v.Substring(slash + 1), out var n)) return n;
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
         /// Delete an asset by table name and ID.
         /// </summary>
         public async Task DeleteAssetAsync(string tableName, string assetId)
