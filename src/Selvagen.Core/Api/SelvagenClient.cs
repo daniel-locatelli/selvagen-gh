@@ -273,6 +273,27 @@ namespace Selvagen.Core.Api
         }
 
         /// <summary>
+        /// Get a single color legend by its ID.
+        /// </summary>
+        public async Task<ColorLegendInfo> GetColorLegendAsync(string legendId)
+        {
+            if (string.IsNullOrEmpty(legendId)) throw new ArgumentNullException(nameof(legendId));
+
+            var path = $"/rest/v1/color_legends?id=eq.{legendId}&select=id,project_id,name,variant,colors,labels,domain_min,domain_max,unit,created_at,updated_at";
+            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"Get color legend failed: {json}", (int)response.StatusCode);
+
+            var results = JsonSerializer.Deserialize<ColorLegendInfo[]>(json);
+            if (results == null || results.Length == 0)
+                throw new SelvagenApiException($"Color legend {legendId} not found", 404);
+
+            return results[0];
+        }
+
+        /// <summary>
         /// Upsert a color legend for a project using PostgREST native upsert
         /// (atomic POST with Prefer: resolution=merge-duplicates — no client-side check-then-write).
         /// </summary>
