@@ -32,7 +32,7 @@ namespace Selvagen.GH.Components
         public SelvagenListCustomPropertiesComponent()
             : base("List Custom Properties", "SvListProps",
                    "List all custom properties for a project. Pick one in the dropdown to get the Selected outputs. [Listar Propriedades Personalizadas]",
-                   "Selvagen", "07 Shared") { }
+                   "Selvagen", "07 Custom") { }
 
         public override Guid ComponentGuid => new Guid("A1000006-0001-4000-8000-000000000002");
         protected override Bitmap Icon => IconLoader.Load("ListCustomProperties");

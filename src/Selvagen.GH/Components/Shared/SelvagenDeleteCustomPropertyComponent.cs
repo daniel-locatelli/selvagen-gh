@@ -12,7 +12,7 @@ namespace Selvagen.GH.Components
         public SelvagenDeleteCustomPropertyComponent()
             : base("Delete Custom Property", "SvDelProp",
                    "Delete one or more custom properties from a project by key. [Excluir Propriedade Personalizada]",
-                   "07 Shared") { }
+                   "07 Custom") { }
 
         public override Guid ComponentGuid => new Guid("A1000006-0001-4000-8000-000000000003");
         protected override Bitmap Icon => IconLoader.Load("DeleteCustomProperty");

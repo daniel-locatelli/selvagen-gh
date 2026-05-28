@@ -20,7 +20,7 @@ namespace Selvagen.GH.Components
                    "Upload typed key/value pairs to a project's custom properties. " +
                    "Pick a type (text/number/boolean), wire matching-length Key and Value lists. " +
                    "[Subir Propriedade Personalizada]",
-                   "07 Shared") { }
+                   "07 Custom") { }
 
         public override Guid ComponentGuid => new Guid("A1000006-0001-4000-8000-000000000001");
         protected override Bitmap Icon => IconLoader.Load("UploadCustomProperty");

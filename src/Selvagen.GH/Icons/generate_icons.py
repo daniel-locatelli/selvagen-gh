@@ -67,10 +67,10 @@ FAMILY_ICONS = {
     "OptEarthTotal":    (OPT_BASE, "mdi:sigma"),
     "OptRetention":     (OPT_BASE, "mdi:wall"),
 
-    # 07 Shared — Custom Property family (tune base + per-op badge)
+    # 07 Custom — Custom Property family (tune base + per-op badge)
     "UploadCustomProperty": (CUSTOM_PROPERTY_BASE, "mdi:arrow-up-bold"),
     "ListCustomProperties": (CUSTOM_PROPERTY_BASE, "mdi:format-list-bulleted"),
-    "DeleteCustomProperty": (CUSTOM_PROPERTY_BASE, "mdi:trash-can-outline"),
+    "DeleteCustomProperty": (CUSTOM_PROPERTY_BASE, "mdi:delete"),
 }
 
 # ── Standalone icons (no family compositing) ──────────────────────────
