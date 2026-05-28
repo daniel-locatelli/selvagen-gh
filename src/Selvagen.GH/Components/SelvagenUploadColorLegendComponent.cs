@@ -23,8 +23,8 @@ namespace Selvagen.GH.Components
             pManager.AddIntegerParameter("Variant", "V", "0 = gradient, 1 = discrete [Variante]", GH_ParamAccess.item, 0);
             pManager.AddColourParameter("Colors", "C", "List of colors [Cores]", GH_ParamAccess.list);
             pManager.AddTextParameter("Labels", "Lb", "Per-color labels (discrete) [Rótulos]", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Domain Min", "DMin", "Start of value range [Domínio Mín]", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Domain Max", "DMax", "End of value range [Domínio Máx]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Domain Min", "DMin", "Start of value range. Defaults to 0 when not connected. [Domínio Mín]", GH_ParamAccess.item, 0.0);
+            pManager.AddNumberParameter("Domain Max", "DMax", "End of value range. Defaults to 1 when not connected. [Domínio Máx]", GH_ParamAccess.item, 1.0);
             pManager.AddTextParameter("Unit", "U", "Display unit, e.g. %, °, m [Unidade]", GH_ParamAccess.item);
 
             pManager[4].Optional = true;
@@ -47,8 +47,9 @@ namespace Selvagen.GH.Components
         {
             string projectId = "", name = "", unit = "";
             int variant = 0;
-            double domainMin = 0, domainMax = 0;
-            bool hasDomainMin = false, hasDomainMax = false;
+            // Domain Min/Max have parameter-level defaults (0 and 1), so DA.GetData
+            // is guaranteed to populate them whether or not a wire is connected.
+            double domainMin = 0, domainMax = 1;
 
             var colors = new List<Color>();
             var labels = new List<string>();
@@ -58,8 +59,8 @@ namespace Selvagen.GH.Components
             DA.GetData(2, ref variant);
             DA.GetDataList(3, colors);
             DA.GetDataList(4, labels);
-            hasDomainMin = DA.GetData(5, ref domainMin);
-            hasDomainMax = DA.GetData(6, ref domainMax);
+            DA.GetData(5, ref domainMin);
+            DA.GetData(6, ref domainMax);
             DA.GetData(7, ref unit);
 
             var client = SessionManager.Current;
@@ -96,8 +97,8 @@ namespace Selvagen.GH.Components
                     Variant = variant == 1 ? "discrete" : "gradient",
                     Colors = hexColors,
                     Labels = labels.Count > 0 ? labels.ToArray() : null,
-                    DomainMin = hasDomainMin ? (float?)domainMin : null,
-                    DomainMax = hasDomainMax ? (float?)domainMax : null,
+                    DomainMin = (float)domainMin,
+                    DomainMax = (float)domainMax,
                     Unit = !string.IsNullOrEmpty(unit) ? unit : null,
                 };
 
