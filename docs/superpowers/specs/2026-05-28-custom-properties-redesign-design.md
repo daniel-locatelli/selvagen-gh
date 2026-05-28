@@ -5,7 +5,7 @@
 
 ## Summary
 
-Replace the existing module-scoped `Custom Properties` component (which PATCHes a free-form JSON column on one of four module tables) with a project-scoped key/value system backed by its own Supabase table. Ship three new GH components — `Upload Custom Property`, `List Custom Properties`, `Exclude Custom Property` — designed for non-expert users: typed key/value pairs, snake_case keys, in-canvas dropdowns and buttons, no JSON authoring.
+Replace the existing module-scoped `Custom Properties` component (which PATCHes a free-form JSON column on one of four module tables) with a project-scoped key/value system backed by its own Supabase table. Ship three new GH components — `Upload Custom Property`, `List Custom Properties`, `Delete Custom Property` — designed for non-expert users: typed key/value pairs, snake_case keys, in-canvas dropdowns and buttons, no JSON authoring.
 
 ## Motivation
 
@@ -49,6 +49,11 @@ CREATE TABLE custom_properties (
     CHECK (length(key) BETWEEN 1 AND 200),
   CONSTRAINT custom_properties_value_type_allowed
     CHECK (value_type IN ('text', 'number', 'boolean')),
+  CONSTRAINT custom_properties_value_matches_type CHECK (
+    (value_type = 'text') OR
+    (value_type = 'boolean' AND value IN ('true', 'false')) OR
+    (value_type = 'number'  AND value ~ '^-?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$')
+  ),
 
   UNIQUE (project_id, key)
 );
@@ -131,14 +136,25 @@ All three follow the precedent set by `UpsertColorLegendAsync` / `DeleteColorLeg
 
 ### Layer 3: Shared action-button base (`Selvagen.GH/Components/`)
 
-Refactor the existing in-canvas button mechanism so both Upload and Delete can use it.
+Refactor the in-canvas button mechanism so both Upload and Delete components share one painter and one trigger plumbing.
 
-**New file:** `SelvagenActionComponentBase.cs`
-
-Generalizes `SelvagenUploadComponentBase`'s flag → recompute → consume-once pattern:
+**New file:** `ISelvagenActionButton.cs` — the painter's contract:
 
 ```csharp
-public abstract class SelvagenActionComponentBase : GH_Component
+public interface ISelvagenActionButton
+{
+    string ActionLabel { get; }            // "Upload" / "Delete" / "Uploading..." / "Deleting..."
+    bool IsRunning { get; }                // drives the busy label variant
+    System.Drawing.Color GradientTop { get; }
+    System.Drawing.Color GradientBottom { get; }
+    void RequestAction();                  // called on click
+}
+```
+
+**New file:** `SelvagenActionComponentBase.cs` — generalizes `SelvagenUploadComponentBase`'s flag → recompute → consume-once pattern. Implements `ISelvagenActionButton`:
+
+```csharp
+public abstract class SelvagenActionComponentBase : GH_Component, ISelvagenActionButton
 {
     private bool _actionRequested;
 
@@ -160,18 +176,18 @@ public abstract class SelvagenActionComponentBase : GH_Component
         ExpireSolution(true);
     }
 
-    // Subclasses tell the attributes class what to paint
-    public abstract string ActionLabel { get; }   // "Upload" or "Delete"
-    public abstract System.Drawing.Color ActionColor { get; }
-    // ... protected helpers, CreateAttributes, etc.
+    public abstract string ActionLabel { get; }
+    public abstract System.Drawing.Color GradientTop { get; }
+    public abstract System.Drawing.Color GradientBottom { get; }
+    // ... CreateAttributes() returns SelvagenActionAttributes(this), etc.
 }
 ```
 
-Existing `SelvagenUploadComponentBase` becomes a thin subclass that returns `"Upload"` + green. New `SelvagenDeleteActionComponentBase` (or just inlined into the Delete component if the surface is small enough) returns `"Delete"` + red.
+**Existing `SelvagenUploadComponentBase`** becomes a thin subclass that returns `"Upload"`/`"Uploading..."` and the current grayscale gradient (`(130,130,130)` → `(50,50,50)`). Backward compatible — visual unchanged.
 
-The `SelvagenUploadAttributes` painter is generalized to read the label/color from the host component.
+**New `SelvagenDeleteCustomPropertyComponent`** subclasses directly (or via a small `SelvagenDeleteActionComponentBase` if a second Delete-style component appears later — YAGNI for now). Returns `"Delete"`/`"Deleting..."` and a red gradient (e.g. `(180,90,90)` → `(120,40,40)`) to signal destructive action.
 
-**Fallback:** if the refactor proves more invasive than expected during implementation, the fallback is a parallel `SelvagenDeleteAttributes` class that copies `SelvagenUploadAttributes` and changes the paint colors. User-visible behavior identical either way.
+**`SelvagenUploadAttributes`** is renamed to `SelvagenActionAttributes` and the constructor takes `ISelvagenActionButton` instead of the concrete `SelvagenUploadComponentBase`. The painter reads label/colors via the interface — no more downcasts. All call sites already in this repo (just `SelvagenUploadComponentBase.CreateAttributes`) update to pass `this` (which satisfies the interface).
 
 ### Layer 4: New GH components (`Selvagen.GH/Components/Shared/`)
 
@@ -200,7 +216,7 @@ GUID: `A1000006-0001-4000-8000-000000000001`
 **SolveInstance flow:**
 1. If `!UploadRequested`, set Status = `"Ready to upload."`, populate Preview, return.
 2. Pull Project ID + Keys[] + Values[] from DA.
-3. If `Keys.Count ≠ Values.Count`, yellow Warning + truncate to `min`.
+3. If `Keys.Count ≠ Values.Count`, red Error + abort. Status = `"List length mismatch: Keys=N, Values=M. All lists must be the same length."` Never silently truncate — data loss on upload is the worst outcome.
 4. Validate each key against `^[a-z][a-z0-9_]*$` + length 1–200. On failure → red Error with suggestion, abort.
 5. Validate each value against active Type. On failure → red Error, abort.
 6. Build `CustomPropertyUpsert[]`. Call `UpsertCustomPropertiesAsync`. Populate outputs.
@@ -230,7 +246,8 @@ When no item is selected (e.g., empty project, list not yet refreshed), `Selecte
 #### `SelvagenDeleteCustomPropertyComponent` (`SvDelProp`)
 
 GUID: `A1000006-0001-4000-8000-000000000003`
-Base: `SelvagenActionComponentBase` (with `ActionLabel = "Delete"`, `ActionColor = red`).
+Display name: `Delete Custom Property`.
+Base: `SelvagenActionComponentBase` (with `ActionLabel = "Delete"`/`"Deleting..."`, red gradient).
 
 | # | Input | Nick | Type | Access |
 |---|---|---|---|---|
@@ -320,6 +337,8 @@ Examples:
 - `"1stFloor"` → `prop_1stfloor`
 - `"  --??  "` → `prop_`
 
+**Within-batch suggestion dedupe.** If a single Upload batch contains two invalid keys whose suggestions collide (e.g., `"!@#"` and `"$%^"` both → `prop_`), append `_2`, `_3`, … to subsequent occurrences in the *error message text only* (the data is never written — suggestions are informational). Keeps the error report distinguishable when multiple bad keys land at once.
+
 ### Value (applied per active inline Type)
 
 - `text` → no validation
@@ -334,7 +353,7 @@ Examples:
 | Missing Project ID | Warning | `Missing Project ID` |
 | Empty Keys list (Upload) | Warning | `Nothing to upload.` |
 | Empty Keys list (Delete) | Warning | `Nothing to delete.` |
-| `Keys.Count ≠ Values.Count` | Warning + truncate to `min` | `Truncated to N pairs (lists mismatched)` |
+| `Keys.Count ≠ Values.Count` | **Error** (abort, no truncate) | `List length mismatch: Keys=N, Values=M. All lists must be the same length.` |
 | Invalid key | **Error** | `Invalid key 'X'. Must be snake_case. Did you mean: y?` |
 | Value fails type parse | **Error** | `Value 'X' is not a valid <type> (key: y)` |
 | Network / Supabase error | **Error** | underlying API message |
@@ -344,16 +363,44 @@ All errors abort the operation (no partial state). The DB constraints are the sa
 
 ## Migration & Rollout
 
+### Prerequisites (blocking — must run before step 1)
+
+The migration drops the `properties` JSONB column from four module tables. Any data in those columns is **permanently lost**. Before merging the migration file, run this preflight query against production:
+
+```sql
+SELECT 'topography'    AS table_name, COUNT(*) AS rows_with_data
+  FROM topography    WHERE properties IS NOT NULL AND properties::text NOT IN ('{}', 'null')
+UNION ALL
+SELECT 'geology',       COUNT(*)
+  FROM geology       WHERE properties IS NOT NULL AND properties::text NOT IN ('{}', 'null')
+UNION ALL
+SELECT 'analyses',      COUNT(*)
+  FROM analyses      WHERE properties IS NOT NULL AND properties::text NOT IN ('{}', 'null')
+UNION ALL
+SELECT 'optimizations', COUNT(*)
+  FROM optimizations WHERE properties IS NOT NULL AND properties::text NOT IN ('{}', 'null');
+```
+
+- **All counts = 0** → safe to proceed with the migration as written.
+- **Any count > 0** → migration is **blocked** pending a backfill decision:
+  - Option (a): write a one-off transform script that lifts each `(table, record_id, properties)` row into `custom_properties` (one row per JSON key), then run the DROP COLUMN.
+  - Option (b): explicitly accept the data loss with the project owner's sign-off, then proceed.
+
+The migration file itself includes a `RAISE EXCEPTION` guard at the top that re-runs this check at apply time and aborts if any count > 0 (defense in depth).
+
+### Rollout steps
+
 ```
 1. Apply DB migration: docs/migrations/2026-05-28-add-custom-properties-table.sql
-   - CREATE TABLE custom_properties + index + trigger + RLS policies
+   - Preflight guard re-runs the rows_with_data check; aborts if non-zero.
+   - CREATE TABLE custom_properties + index + trigger + RLS policy
    - DROP COLUMN properties from topography, geology, analyses, optimizations
    - NOTIFY pgrst, 'reload schema';
 
 2. Ship new plugin (.gha):
    - Add Selvagen.Core models (CustomPropertyInfo, CustomPropertyUpsert)
    - Add SelvagenClient methods (List/Upsert/Delete)
-   - Add three new components + SelvagenActionComponentBase refactor
+   - Add three new components + SelvagenActionComponentBase refactor + ISelvagenActionButton interface
    - Update generate_icons.py + regenerate affected icons
    - Delete SelvagenPropertiesComponent + SelvagenPropertiesAttributes
    - Deploy via existing Libraries\Selvagen path; restart Rhino
@@ -362,7 +409,7 @@ All errors abort the operation (no partial state). The DB constraints are the sa
    "Custom Properties has been redesigned. Existing .gh files using the old
     Custom Properties component will show a missing-component placeholder on
     open. Replace with Upload Custom Property / List Custom Properties /
-    Exclude Custom Property."
+    Delete Custom Property."
 ```
 
 The migration intentionally breaks the old plugin first (column gone) so there's a clean cutover. Brief window of "old plugin against new DB" will produce upload errors — acceptable given the small user base.
@@ -374,9 +421,10 @@ The migration intentionally breaks the old plugin first (column gone) so there's
 | `docs/migrations/2026-05-28-add-custom-properties-table.sql` | NEW — schema + cleanup |
 | `Selvagen.Core/Models/CustomProperty.cs` | NEW — `CustomPropertyInfo`, `CustomPropertyUpsert` |
 | `Selvagen.Core/Api/SelvagenClient.cs` | Add `ListCustomPropertiesAsync`, `UpsertCustomPropertiesAsync`, `DeleteCustomPropertiesAsync` |
-| `Selvagen.GH/Components/SelvagenActionComponentBase.cs` | NEW — shared base for in-canvas button components |
-| `Selvagen.GH/Components/SelvagenUploadComponentBase.cs` | Refactor to subclass `SelvagenActionComponentBase` (label = "Upload", color = green) |
-| `Selvagen.GH/Components/SelvagenUploadAttributes.cs` | Generalize to read label + color from host component |
+| `Selvagen.GH/Components/ISelvagenActionButton.cs` | NEW — painter contract (label, colors, IsRunning, RequestAction) |
+| `Selvagen.GH/Components/SelvagenActionComponentBase.cs` | NEW — shared base for in-canvas button components; implements `ISelvagenActionButton` |
+| `Selvagen.GH/Components/SelvagenUploadComponentBase.cs` | Refactor to subclass `SelvagenActionComponentBase`; returns "Upload"/"Uploading..." + existing grayscale gradient (visual unchanged) |
+| `Selvagen.GH/Components/SelvagenActionAttributes.cs` | RENAMED from `SelvagenUploadAttributes.cs`; constructor takes `ISelvagenActionButton`; reads label/colors via the interface |
 | `Selvagen.GH/Components/Shared/SelvagenUploadCustomPropertyComponent.cs` | NEW |
 | `Selvagen.GH/Components/Shared/SelvagenListCustomPropertiesComponent.cs` | NEW |
 | `Selvagen.GH/Components/Shared/SelvagenDeleteCustomPropertyComponent.cs` | NEW |
@@ -396,22 +444,24 @@ No automated tests in this repo today; this is a manual test plan executed in Rh
 
 1. Login → drop `Upload Custom Property` → wire Project ID + Keys `["soil_ph", "vegetation"]` + Values `["6.4", "dense"]`, Type = `text` → press Upload. Expected: Status = `"Upserted 2 properties"`, IDs populated, Preview shows both rows.
 2. Drop `List Custom Properties` → wire same Project ID → dropdown shows both keys → pick `soil_ph` → Selected Value = `"6.4"`, All Keys = `["soil_ph", "vegetation"]`.
-3. Drop `Exclude Custom Property` → wire Project ID + `soil_ph` → press Delete → refresh List → only `vegetation` remains.
+3. Drop `Delete Custom Property` → wire Project ID + `soil_ph` → press Delete → refresh List → only `vegetation` remains.
 
 **Edge cases:**
 
 - Re-upload `soil_ph = 7.1` → List shows updated value (upsert worked; no duplicate row).
 - Upload with bad key `"Soil pH"` → red Error with suggestion `soil_ph`; no DB write.
 - Upload with Type = `number` and value `"hello"` → red Error; no DB write.
-- Upload mismatched `["a","b","c"]` / `["1","2"]` → yellow Warning, only 2 properties uploaded.
+- Upload mismatched `["a","b","c"]` / `["1","2"]` → red Error, no DB write, Status reflects the mismatch.
 - Delete a key that doesn't exist → Success = true, Status = `"Deleted 0 properties"`.
 - DB-level: hit PostgREST directly with `"BAD KEY"` → 400 from CHECK constraint (proves backstop).
 
-## Out of Scope
+## Out of Scope / Future Work
 
 - Compound/nested values (arrays, objects) — single Custom Property holds one scalar
 - Per-property history / audit log — `updated_at` only
 - Bulk import from CSV / JSON file
 - Property templates or schemas (e.g., "every topography project must have `contour_height_m`")
 - Edge Function wrapping the PostgREST calls — direct PostgREST access matches existing precedents (`color_legends`, module records)
-- Backfilling historical `properties` JSON from the four module tables into the new table — migration drops the column outright. If real platform-side data exists, this becomes a prerequisite step (not in this spec's scope).
+- **`Get Custom Property by Key`** — a pure-dataflow extraction component (inputs: Project ID + Key; outputs: Value, Type). Complements `List Custom Properties` for automation pipelines where interactive dropdown selection isn't appropriate. Not in this spec; trivial to add later on top of the same API surface (`ListCustomPropertiesAsync` + client-side filter).
+
+Backfilling historical `properties` JSON from the four module tables has been **promoted from Out of Scope to a hard Prerequisite** — see Migration & Rollout → Prerequisites above.
