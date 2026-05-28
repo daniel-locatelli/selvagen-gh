@@ -61,8 +61,9 @@ namespace Selvagen.GH.Components
         }
 
         /// <summary>
-        /// Draw a chrome dropdown: dark gradient, the supplied text centered with a
-        /// trailing " ▾" disclosure indicator. Single style for every dropdown.
+        /// Draw a chrome dropdown: dark gradient, white triangle disclosure glyph
+        /// anchored at the left, supplied text centered in the rect.
+        /// Single style for every dropdown.
         /// </summary>
         public static void DrawDropdown(Graphics g, RectangleF rect, string text)
         {
@@ -76,6 +77,16 @@ namespace Selvagen.GH.Components
                 g.DrawPath(pen, path);
             }
 
+            DrawDropdownGlyph(g, rect);
+
+            // Symmetric inset (~glyph width on both sides) so the text stays
+            // visually centered in the dropdown but never collides with the glyph.
+            var textRect = new RectangleF(
+                rect.X + 14,
+                rect.Y,
+                rect.Width - 28,
+                rect.Height);
+
             using (var font  = new Font("Verdana", 6f, FontStyle.Regular))
             using (var brush = new SolidBrush(TextColorOnDark))
             using (var fmt   = new StringFormat
@@ -86,8 +97,24 @@ namespace Selvagen.GH.Components
                 FormatFlags   = StringFormatFlags.NoWrap,
             })
             {
-                g.DrawString((text ?? string.Empty) + "  ▾", font, brush, rect, fmt);
+                g.DrawString(text ?? string.Empty, font, brush, textRect, fmt);
             }
+        }
+
+        /// <summary>
+        /// White triangle disclosure glyph anchored at the left of a dropdown rect.
+        /// </summary>
+        private static void DrawDropdownGlyph(Graphics g, RectangleF rect)
+        {
+            float cx = rect.X + 8f;
+            float cy = rect.Y + rect.Height / 2f;
+            var tri = new PointF[]
+            {
+                new PointF(cx - 3f, cy - 2f),
+                new PointF(cx + 3f, cy - 2f),
+                new PointF(cx,      cy + 2f),
+            };
+            g.FillPolygon(Brushes.White, tri);
         }
 
         /// <summary>
