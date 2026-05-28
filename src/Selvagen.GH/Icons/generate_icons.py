@@ -71,16 +71,18 @@ FAMILY_ICONS = {
 
 UPLOAD_DOWNLOAD_ICONS = {
     # Upload — base + up arrow
-    "UploadMesh":           ("mdi:vector-triangle",  "mdi:arrow-up-bold"),
-    "UploadCurves":         ("mdi:vector-curve",     "mdi:arrow-up-bold"),
-    "UploadLabels":         ("mdi:format-text",      "mdi:arrow-up-bold"),
-    "UploadAnimation":      ("mdi:animation-play",   "mdi:arrow-up-bold"),
+    "UploadMesh":           ("mdi:vector-triangle",     "mdi:arrow-up-bold"),
+    "UploadCurves":         ("mdi:vector-curve",        "mdi:arrow-up-bold"),
+    "UploadLabels":         ("mdi:format-text",         "mdi:arrow-up-bold"),
+    "UploadAnimation":      ("mdi:animation-play",      "mdi:arrow-up-bold"),
+    "UploadColorLegend":    ("mdi:gradient-horizontal", "mdi:arrow-up-bold"),
 
     # Download — base + down arrow
-    "DownloadMesh":         ("mdi:vector-triangle",  "mdi:arrow-down-bold"),
-    "DownloadCurves":       ("mdi:vector-curve",     "mdi:arrow-down-bold"),
-    "DownloadLabels":       ("mdi:format-text",      "mdi:arrow-down-bold"),
-    "DownloadAnimation":    ("mdi:animation-play",   "mdi:arrow-down-bold"),
+    "DownloadMesh":         ("mdi:vector-triangle",     "mdi:arrow-down-bold"),
+    "DownloadCurves":       ("mdi:vector-curve",        "mdi:arrow-down-bold"),
+    "DownloadLabels":       ("mdi:format-text",         "mdi:arrow-down-bold"),
+    "DownloadAnimation":    ("mdi:animation-play",      "mdi:arrow-down-bold"),
+    "DownloadColorLegend":  ("mdi:gradient-horizontal", "mdi:arrow-down-bold"),
 }
 
 # ── Standalone icons (no family compositing) ──────────────────────────
