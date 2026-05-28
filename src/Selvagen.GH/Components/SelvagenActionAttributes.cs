@@ -132,7 +132,7 @@ namespace Selvagen.GH.Components
                         sender.Refresh();
                     }));
             }
-            SelvagenChrome.ShowStyledMenu(sender, _dropdownRect, items);
+            SelvagenChrome.ShowStyledMenu(sender, new PointF(_dropdownRect.Left, _dropdownRect.Bottom), items);
         }
     }
 }

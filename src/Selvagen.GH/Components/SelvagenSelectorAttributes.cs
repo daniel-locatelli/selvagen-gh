@@ -163,7 +163,7 @@ namespace Selvagen.GH.Components
                         canvas.Refresh();
                     }));
             }
-            SelvagenChrome.ShowStyledMenu(canvas, _filterRect, items);
+            SelvagenChrome.ShowStyledMenu(canvas, new PointF(_filterRect.Left, _filterRect.Bottom), items);
         }
 
         private void ShowDropdownMenu(GH_Canvas canvas)
@@ -180,7 +180,7 @@ namespace Selvagen.GH.Components
                         onClick: () => Selector.SetSelectedId(capturedId)));
                 }
             }
-            SelvagenChrome.ShowStyledMenu(canvas, _dropdownRect, items);
+            SelvagenChrome.ShowStyledMenu(canvas, new PointF(_dropdownRect.Left, _dropdownRect.Bottom), items);
         }
     }
 }
