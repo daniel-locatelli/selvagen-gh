@@ -1,14 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+using Grasshopper.GUI.Canvas;
 
 namespace Selvagen.GH.Components
 {
     /// <summary>
-    /// Shared drawing primitives for Selvagen in-canvas chrome
-    /// (action buttons + selection/option dropdowns). One source of truth
-    /// so the look stays consistent across SelvagenSelectorAttributes
-    /// (List/Update components) and SelvagenActionAttributes (Upload/Delete).
+    /// Shared drawing primitives + popup-menu factory for Selvagen in-canvas chrome
+    /// (action buttons + selection/option dropdowns). One source of truth so the
+    /// look stays consistent across SelvagenSelectorAttributes (List/Update components)
+    /// and SelvagenActionAttributes (Upload/Delete).
     /// </summary>
     internal static class SelvagenChrome
     {
@@ -58,13 +61,10 @@ namespace Selvagen.GH.Components
         }
 
         /// <summary>
-        /// Draw a chrome dropdown.
-        /// Default (centered=false): left-side triangle glyph + left-aligned text after it —
-        /// the style used for variable-content selection dropdowns (List, Filter).
-        /// Centered=true: no left glyph, text + " ▾" suffix rendered horizontally centered —
-        /// fits short fixed-option pickers like a type picker.
+        /// Draw a chrome dropdown: dark gradient, the supplied text centered with a
+        /// trailing " ▾" disclosure indicator. Single style for every dropdown.
         /// </summary>
-        public static void DrawDropdown(Graphics g, RectangleF rect, string text, bool centered = false)
+        public static void DrawDropdown(Graphics g, RectangleF rect, string text)
         {
             if (rect.Width <= 0 || rect.Height <= 0) return;
 
@@ -78,56 +78,16 @@ namespace Selvagen.GH.Components
 
             using (var font  = new Font("Verdana", 6f, FontStyle.Regular))
             using (var brush = new SolidBrush(TextColorOnDark))
+            using (var fmt   = new StringFormat
             {
-                if (centered)
-                {
-                    using (var fmt = new StringFormat
-                    {
-                        Alignment     = StringAlignment.Center,
-                        LineAlignment = StringAlignment.Center,
-                        Trimming      = StringTrimming.EllipsisCharacter,
-                        FormatFlags   = StringFormatFlags.NoWrap,
-                    })
-                    {
-                        g.DrawString((text ?? string.Empty) + "  ▾", font, brush, rect, fmt);
-                    }
-                }
-                else
-                {
-                    DrawDropdownGlyph(g, rect);
-                    using (var fmt = new StringFormat
-                    {
-                        Alignment     = StringAlignment.Near,
-                        LineAlignment = StringAlignment.Center,
-                        Trimming      = StringTrimming.EllipsisCharacter,
-                        FormatFlags   = StringFormatFlags.NoWrap,
-                    })
-                    {
-                        var textRect = new RectangleF(
-                            rect.X + 14,
-                            rect.Y,
-                            rect.Width - 18,
-                            rect.Height);
-                        g.DrawString(text ?? string.Empty, font, brush, textRect, fmt);
-                    }
-                }
+                Alignment     = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center,
+                Trimming      = StringTrimming.EllipsisCharacter,
+                FormatFlags   = StringFormatFlags.NoWrap,
+            })
+            {
+                g.DrawString((text ?? string.Empty) + "  ▾", font, brush, rect, fmt);
             }
-        }
-
-        /// <summary>
-        /// White triangle glyph at the left side of a dropdown rect.
-        /// </summary>
-        public static void DrawDropdownGlyph(Graphics g, RectangleF rect)
-        {
-            float cx = rect.X + 8f;
-            float cy = rect.Y + rect.Height / 2f;
-            var tri = new PointF[]
-            {
-                new PointF(cx - 3f, cy - 2f),
-                new PointF(cx + 3f, cy - 2f),
-                new PointF(cx,      cy + 2f),
-            };
-            g.FillPolygon(Brushes.White, tri);
         }
 
         /// <summary>
@@ -143,6 +103,86 @@ namespace Selvagen.GH.Components
             path.AddArc(rect.X,             rect.Bottom - d,    d, d,  90, 90);
             path.CloseFigure();
             return path;
+        }
+
+        // ── Popup menu factory ─────────────────────────────────────────
+
+        /// <summary>
+        /// One item shown in a styled dropdown menu.
+        /// </summary>
+        public readonly struct DropdownItem
+        {
+            public readonly string Label;
+            public readonly bool Selected;
+            public readonly Action OnClick;
+
+            public DropdownItem(string label, bool selected, Action onClick)
+            {
+                Label = label;
+                Selected = selected;
+                OnClick = onClick;
+            }
+        }
+
+        /// <summary>
+        /// Show a dark-themed popup menu anchored beneath the dropdown rect.
+        /// Bold font marks the currently-selected item. An empty item list renders
+        /// a single disabled "(no items)" placeholder.
+        /// </summary>
+        public static void ShowStyledMenu(
+            GH_Canvas canvas,
+            PointF anchorBottomLeftCanvas,
+            IReadOnlyList<DropdownItem> items)
+        {
+            var menu = new ToolStripDropDownMenu
+            {
+                AutoClose = true,
+                Renderer = new SelvagenDropdownRenderer(),
+                ShowImageMargin = false,
+                ShowCheckMargin = false,
+                Padding = new Padding(0, 4, 0, 4),
+            };
+
+            Font boldFont = null;
+
+            if (items == null || items.Count == 0)
+            {
+                menu.Items.Add(new ToolStripMenuItem("(no items)")
+                {
+                    Enabled = false,
+                    Padding = SelvagenDropdownRenderer.ItemPadding,
+                });
+            }
+            else
+            {
+                foreach (var entry in items)
+                {
+                    Font font;
+                    if (entry.Selected)
+                    {
+                        if (boldFont == null) boldFont = new Font(menu.Font, FontStyle.Bold);
+                        font = boldFont;
+                    }
+                    else
+                    {
+                        font = menu.Font;
+                    }
+
+                    var click = entry.OnClick;
+                    var item = new ToolStripMenuItem(entry.Label)
+                    {
+                        Font = font,
+                        Padding = SelvagenDropdownRenderer.ItemPadding,
+                    };
+                    item.Click += (s, ev) => click?.Invoke();
+                    menu.Items.Add(item);
+                }
+            }
+
+            menu.Closed += (s, ev) => boldFont?.Dispose();
+
+            var screenPt = canvas.Viewport.ProjectPoint(anchorBottomLeftCanvas);
+            menu.Show(canvas, new Point((int)screenPt.X, (int)screenPt.Y));
         }
 
         // ── Internals ────────────────────────────────────────────────────

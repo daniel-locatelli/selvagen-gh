@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Grasshopper.GUI;
@@ -148,105 +149,38 @@ namespace Selvagen.GH.Components
         private void ShowFilterMenu(GH_Canvas canvas)
         {
             var filter = (IFilterDropdownComponent)Owner;
-            var menu = new ToolStripDropDownMenu
-            {
-                AutoClose = true,
-                Renderer = new SelvagenDropdownRenderer(),
-                ShowImageMargin = false,
-                ShowCheckMargin = false,
-                Padding = new Padding(0, 4, 0, 4),
-            };
-            Font boldFont = null;
-
+            var items = new List<SelvagenChrome.DropdownItem>(filter.FilterOptions.Length);
             for (int i = 0; i < filter.FilterOptions.Length; i++)
             {
                 string option = filter.FilterOptions[i];
                 string display = filter.FilterDisplayNames[i];
-                bool isSelected = filter.SelectedFilter == option;
-
-                Font itemFont;
-                if (isSelected)
-                {
-                    if (boldFont == null) boldFont = new Font(menu.Font, FontStyle.Bold);
-                    itemFont = boldFont;
-                }
-                else
-                {
-                    itemFont = menu.Font;
-                }
-
-                var item = new ToolStripMenuItem(display)
-                {
-                    Tag = option,
-                    Font = itemFont,
-                    Padding = SelvagenDropdownRenderer.ItemPadding,
-                };
-                item.Click += (s, ev) =>
-                {
-                    filter.SelectedFilter = ((ToolStripMenuItem)s).Tag.ToString();
-                    canvas.Refresh();
-                };
-                menu.Items.Add(item);
+                items.Add(new SelvagenChrome.DropdownItem(
+                    label: display,
+                    selected: filter.SelectedFilter == option,
+                    onClick: () =>
+                    {
+                        filter.SelectedFilter = option;
+                        canvas.Refresh();
+                    }));
             }
-
-            menu.Closed += (s, ev) => boldFont?.Dispose();
-
-            var canvasPt = new PointF(_filterRect.Left, _filterRect.Bottom);
-            var screenPt = canvas.Viewport.ProjectPoint(canvasPt);
-            menu.Show(canvas, new Point((int)screenPt.X, (int)screenPt.Y));
+            SelvagenChrome.ShowStyledMenu(canvas, new PointF(_filterRect.Left, _filterRect.Bottom), items);
         }
 
         private void ShowDropdownMenu(GH_Canvas canvas)
         {
-            var menu = new ToolStripDropDownMenu
-            {
-                AutoClose = true,
-                Renderer = new SelvagenDropdownRenderer(),
-                ShowImageMargin = false,
-                ShowCheckMargin = false,
-                Padding = new Padding(0, 4, 0, 4),
-            };
-            Font boldFont = null;
-
-            if (!Selector.HasItems)
-            {
-                var empty = new ToolStripMenuItem("(no items)")
-                {
-                    Enabled = false,
-                    Padding = SelvagenDropdownRenderer.ItemPadding,
-                };
-                menu.Items.Add(empty);
-            }
-            else
+            var items = new List<SelvagenChrome.DropdownItem>();
+            if (Selector.HasItems)
             {
                 foreach (var (id, name) in Selector.GetMenuItems())
                 {
                     string capturedId = id;
-                    Font itemFont;
-                    if (id == Selector.SelectedId)
-                    {
-                        if (boldFont == null) boldFont = new Font(menu.Font, FontStyle.Bold);
-                        itemFont = boldFont;
-                    }
-                    else
-                    {
-                        itemFont = menu.Font;
-                    }
-                    var item = new ToolStripMenuItem(name)
-                    {
-                        Font = itemFont,
-                        Padding = SelvagenDropdownRenderer.ItemPadding,
-                    };
-                    item.Click += (s, ev) => Selector.SetSelectedId(capturedId);
-                    menu.Items.Add(item);
+                    items.Add(new SelvagenChrome.DropdownItem(
+                        label: name,
+                        selected: id == Selector.SelectedId,
+                        onClick: () => Selector.SetSelectedId(capturedId)));
                 }
             }
-
-            menu.Closed += (s, ev) => boldFont?.Dispose();
-
-            var canvasPt = new PointF(_dropdownRect.Left, _dropdownRect.Bottom);
-            var screenPt = canvas.Viewport.ProjectPoint(canvasPt);
-            menu.Show(canvas, new Point((int)screenPt.X, (int)screenPt.Y));
+            SelvagenChrome.ShowStyledMenu(canvas, new PointF(_dropdownRect.Left, _dropdownRect.Bottom), items);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Grasshopper.GUI;
@@ -71,7 +72,7 @@ namespace Selvagen.GH.Components
         {
             base.Render(canvas, graphics, channel);
             if (channel != GH_CanvasChannel.Objects) return;
-            if (_dropdown != null) SelvagenChrome.DrawDropdown(graphics, _dropdownRect, _dropdown.DropdownSelected, centered: true);
+            if (_dropdown != null) SelvagenChrome.DrawDropdown(graphics, _dropdownRect, _dropdown.DropdownSelected);
             var label = _button.IsRunning ? _button.ActionLabelRunning : _button.ActionLabel;
             SelvagenChrome.DrawButton(
                 graphics,
@@ -118,23 +119,20 @@ namespace Selvagen.GH.Components
 
         private void ShowDropdownMenu(GH_Canvas sender)
         {
-            var menu = new ContextMenuStrip();
+            var items = new List<SelvagenChrome.DropdownItem>(_dropdown.DropdownOptions.Length);
             foreach (var option in _dropdown.DropdownOptions)
             {
                 string captured = option;
-                var item = new ToolStripMenuItem(option)
-                {
-                    Checked = option == _dropdown.DropdownSelected,
-                };
-                item.Click += (s, e) =>
-                {
-                    _dropdown.DropdownSelected = captured;
-                    sender.Refresh();
-                };
-                menu.Items.Add(item);
+                items.Add(new SelvagenChrome.DropdownItem(
+                    label: option,
+                    selected: option == _dropdown.DropdownSelected,
+                    onClick: () =>
+                    {
+                        _dropdown.DropdownSelected = captured;
+                        sender.Refresh();
+                    }));
             }
-            var screenPt = sender.Viewport.ProjectPoint(new PointF(_dropdownRect.Left, _dropdownRect.Bottom));
-            menu.Show(sender, new Point((int)screenPt.X, (int)screenPt.Y));
+            SelvagenChrome.ShowStyledMenu(sender, new PointF(_dropdownRect.Left, _dropdownRect.Bottom), items);
         }
     }
 }
