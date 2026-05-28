@@ -152,15 +152,27 @@ namespace Selvagen.GH.Components
         }
 
         /// <summary>
-        /// Show a dark-themed popup menu anchored beneath the dropdown rect.
-        /// Bold font marks the currently-selected item. An empty item list renders
-        /// a single disabled "(no items)" placeholder.
+        /// Show a dark-themed popup menu beneath the supplied dropdown rect.
+        /// Font matches the on-canvas dropdown text (Verdana 6pt). The menu's
+        /// minimum width tracks the dropdown's on-screen width — items wider
+        /// than that grow the menu, but it never shrinks below the button.
+        /// Bold font marks the currently-selected item. An empty item list
+        /// renders a single disabled "(no items)" placeholder.
         /// </summary>
         public static void ShowStyledMenu(
             GH_Canvas canvas,
-            PointF anchorBottomLeftCanvas,
+            RectangleF anchorRectCanvas,
             IReadOnlyList<DropdownItem> items)
         {
+            // Project the dropdown rect to screen space so the popup's
+            // anchor + min-width match the on-screen dropdown chrome.
+            var bottomLeft  = canvas.Viewport.ProjectPoint(new PointF(anchorRectCanvas.Left,  anchorRectCanvas.Bottom));
+            var bottomRight = canvas.Viewport.ProjectPoint(new PointF(anchorRectCanvas.Right, anchorRectCanvas.Bottom));
+            int minWidthPx = (int)Math.Max(0f, bottomRight.X - bottomLeft.X);
+
+            // Font matches the dropdown button text — Verdana 6pt Regular.
+            var menuFont = new Font("Verdana", 6f, FontStyle.Regular);
+
             var menu = new ToolStripDropDownMenu
             {
                 AutoClose = true,
@@ -168,6 +180,8 @@ namespace Selvagen.GH.Components
                 ShowImageMargin = false,
                 ShowCheckMargin = false,
                 Padding = new Padding(0, 4, 0, 4),
+                Font = menuFont,
+                MinimumSize = new Size(minWidthPx, 0),
             };
 
             Font boldFont = null;
@@ -206,10 +220,13 @@ namespace Selvagen.GH.Components
                 }
             }
 
-            menu.Closed += (s, ev) => boldFont?.Dispose();
+            menu.Closed += (s, ev) =>
+            {
+                boldFont?.Dispose();
+                menuFont.Dispose();
+            };
 
-            var screenPt = canvas.Viewport.ProjectPoint(anchorBottomLeftCanvas);
-            menu.Show(canvas, new Point((int)screenPt.X, (int)screenPt.Y));
+            menu.Show(canvas, new Point((int)bottomLeft.X, (int)bottomLeft.Y));
         }
 
         // ── Internals ────────────────────────────────────────────────────
