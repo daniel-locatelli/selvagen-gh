@@ -63,15 +63,15 @@ def main():
     img = Image.new("RGBA", (HI, HI), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
-    # ── Gradient bar (the legend glyph) ──
-    # Span most of the 20x20 interior, sit slightly low to leave room for arrow
-    # Stops mimic a typical analysis gradient: green → yellow → red
+    # ── Gradient bar (the legend glyph) — upper-left ──
+    # Follows the Selvagen icon convention: main glyph upper-left, secondary
+    # marker (upload/download arrow) lower-right.
     stops = [
         (45, 125, 70),    # green
         (245, 230, 66),   # yellow
         (214, 48, 49),    # red
     ]
-    bar_x0, bar_y0, bar_x1, bar_y1 = 3, 13, 21, 19
+    bar_x0, bar_y0, bar_x1, bar_y1 = 2, 4, 16, 12
     draw_gradient_bar(img, bar_x0, bar_y0, bar_x1, bar_y1, stops)
 
     # Subtle dark outline around the bar (silhouette only, dark shade not black)
@@ -82,21 +82,20 @@ def main():
         width=s(0.5),
     )
 
-    # ── Upload arrow (top portion) ──
-    # An upward arrow positioned above-center of the bar. Dark gray, not black.
+    # ── Upload arrow (lower-right corner) ──
+    # Small ↑ in the bottom-right to match UploadMesh / UploadCurves / etc.
     ARROW = (50, 50, 50, 255)
-    # Shaft (vertical line)
-    shaft_x = 12
+    shaft_x = 18
     d.line(
-        [(s(shaft_x), s(2.5)), (s(shaft_x), s(10))],
+        [(s(shaft_x), s(14)), (s(shaft_x), s(21.5))],
         fill=ARROW,
         width=s(1.5),
     )
     # Arrowhead (triangle pointing up)
     head = [
-        (s(shaft_x), s(2)),         # tip
-        (s(shaft_x - 3), s(6)),     # left base
-        (s(shaft_x + 3), s(6)),     # right base
+        (s(shaft_x), s(13)),         # tip
+        (s(shaft_x - 2.5), s(16.5)), # left base
+        (s(shaft_x + 2.5), s(16.5)), # right base
     ]
     d.polygon(head, fill=ARROW)
 

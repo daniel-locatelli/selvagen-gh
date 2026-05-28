@@ -51,8 +51,9 @@ def main():
     img = Image.new("RGBA", (HI, HI), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
+    # Main glyph: gradient bar upper-left (matches UploadColorLegend layout).
     stops = [(45, 125, 70), (245, 230, 66), (214, 48, 49)]
-    bar_x0, bar_y0, bar_x1, bar_y1 = 3, 13, 21, 19
+    bar_x0, bar_y0, bar_x1, bar_y1 = 2, 4, 16, 12
     draw_gradient_bar(img, bar_x0, bar_y0, bar_x1, bar_y1, stops)
 
     OUTLINE = (40, 40, 40, 255)
@@ -62,18 +63,18 @@ def main():
         width=s(0.5),
     )
 
-    # Downward arrow above the bar — tip near the top of the bar
+    # Download arrow lower-right — small ↓ matching DownloadMesh / DownloadCurves.
     ARROW = (50, 50, 50, 255)
-    shaft_x = 12
+    shaft_x = 18
     d.line(
-        [(s(shaft_x), s(2)), (s(shaft_x), s(8.5))],
+        [(s(shaft_x), s(13)), (s(shaft_x), s(19.5))],
         fill=ARROW,
         width=s(1.5),
     )
     head = [
-        (s(shaft_x), s(11)),         # tip (bottom)
-        (s(shaft_x - 3), s(7)),      # left base
-        (s(shaft_x + 3), s(7)),      # right base
+        (s(shaft_x), s(22)),           # tip (bottom)
+        (s(shaft_x - 2.5), s(18.5)),   # left base
+        (s(shaft_x + 2.5), s(18.5)),   # right base
     ]
     d.polygon(head, fill=ARROW)
 
