@@ -58,10 +58,13 @@ namespace Selvagen.GH.Components
         }
 
         /// <summary>
-        /// Draw a chrome dropdown: dark vertical gradient, triangle glyph on the left,
-        /// left-aligned white text starting after the glyph. Single style for all dropdowns.
+        /// Draw a chrome dropdown.
+        /// Default (centered=false): left-side triangle glyph + left-aligned text after it —
+        /// the style used for variable-content selection dropdowns (List, Filter).
+        /// Centered=true: no left glyph, text + " ▾" suffix rendered horizontally centered —
+        /// fits short fixed-option pickers like a type picker.
         /// </summary>
-        public static void DrawDropdown(Graphics g, RectangleF rect, string text)
+        public static void DrawDropdown(Graphics g, RectangleF rect, string text, bool centered = false)
         {
             if (rect.Width <= 0 || rect.Height <= 0) return;
 
@@ -73,24 +76,41 @@ namespace Selvagen.GH.Components
                 g.DrawPath(pen, path);
             }
 
-            DrawDropdownGlyph(g, rect);
-
             using (var font  = new Font("Verdana", 6f, FontStyle.Regular))
             using (var brush = new SolidBrush(TextColorOnDark))
-            using (var fmt   = new StringFormat
             {
-                Alignment      = StringAlignment.Near,
-                LineAlignment  = StringAlignment.Center,
-                Trimming       = StringTrimming.EllipsisCharacter,
-                FormatFlags    = StringFormatFlags.NoWrap,
-            })
-            {
-                var textRect = new RectangleF(
-                    rect.X + 14,
-                    rect.Y,
-                    rect.Width - 18,
-                    rect.Height);
-                g.DrawString(text ?? string.Empty, font, brush, textRect, fmt);
+                if (centered)
+                {
+                    using (var fmt = new StringFormat
+                    {
+                        Alignment     = StringAlignment.Center,
+                        LineAlignment = StringAlignment.Center,
+                        Trimming      = StringTrimming.EllipsisCharacter,
+                        FormatFlags   = StringFormatFlags.NoWrap,
+                    })
+                    {
+                        g.DrawString((text ?? string.Empty) + "  ▾", font, brush, rect, fmt);
+                    }
+                }
+                else
+                {
+                    DrawDropdownGlyph(g, rect);
+                    using (var fmt = new StringFormat
+                    {
+                        Alignment     = StringAlignment.Near,
+                        LineAlignment = StringAlignment.Center,
+                        Trimming      = StringTrimming.EllipsisCharacter,
+                        FormatFlags   = StringFormatFlags.NoWrap,
+                    })
+                    {
+                        var textRect = new RectangleF(
+                            rect.X + 14,
+                            rect.Y,
+                            rect.Width - 18,
+                            rect.Height);
+                        g.DrawString(text ?? string.Empty, font, brush, textRect, fmt);
+                    }
+                }
             }
         }
 

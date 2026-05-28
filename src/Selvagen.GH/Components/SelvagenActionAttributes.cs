@@ -71,7 +71,7 @@ namespace Selvagen.GH.Components
         {
             base.Render(canvas, graphics, channel);
             if (channel != GH_CanvasChannel.Objects) return;
-            if (_dropdown != null) SelvagenChrome.DrawDropdown(graphics, _dropdownRect, _dropdown.DropdownSelected);
+            if (_dropdown != null) SelvagenChrome.DrawDropdown(graphics, _dropdownRect, _dropdown.DropdownSelected, centered: true);
             var label = _button.IsRunning ? _button.ActionLabelRunning : _button.ActionLabel;
             SelvagenChrome.DrawButton(
                 graphics,
