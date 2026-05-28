@@ -373,6 +373,39 @@ namespace Selvagen.Core.Api
         }
 
         /// <summary>
+        /// Batch-upsert custom properties. Conflicts on (project_id, key) resolve via
+        /// PostgREST native merge-duplicates. Returns the resulting rows (created or updated).
+        /// </summary>
+        public async Task<CustomPropertyInfo[]> UpsertCustomPropertiesAsync(
+            string projectId, CustomPropertyUpsert[] properties)
+        {
+            if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
+            if (properties == null) throw new ArgumentNullException(nameof(properties));
+            if (properties.Length == 0) return new CustomPropertyInfo[0];
+
+            // Defensive: stamp project_id on every row so callers can't forget.
+            foreach (var p in properties) p.ProjectId = projectId;
+
+            var url = $"{_supabaseUrl}/rest/v1/custom_properties?on_conflict=project_id,key";
+            var body = JsonSerializer.Serialize(properties);
+            var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+            await EnsureValidTokenAsync().ConfigureAwait(false);
+            var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+            request.Headers.Add("apikey", _anonKey);
+            request.Headers.Add("Prefer", "resolution=merge-duplicates,return=representation");
+
+            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"Upsert custom properties failed: {json}", (int)response.StatusCode);
+
+            return JsonSerializer.Deserialize<CustomPropertyInfo[]>(json) ?? new CustomPropertyInfo[0];
+        }
+
+        /// <summary>
         /// Delete an asset by table name and ID.
         /// </summary>
         public async Task DeleteAssetAsync(string tableName, string assetId)
