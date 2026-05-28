@@ -353,6 +353,25 @@ namespace Selvagen.Core.Api
             }
         }
 
+        // ── Custom Properties ────────────────────────────────────────────────
+
+        /// <summary>
+        /// List all custom properties for a project, sorted by key ascending.
+        /// </summary>
+        public async Task<CustomPropertyInfo[]> ListCustomPropertiesAsync(string projectId)
+        {
+            if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
+
+            var path = $"/rest/v1/custom_properties?project_id=eq.{projectId}&select=id,project_id,key,value,value_type,created_at,updated_at&order=key";
+            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"List custom properties failed: {json}", (int)response.StatusCode);
+
+            return JsonSerializer.Deserialize<CustomPropertyInfo[]>(json) ?? new CustomPropertyInfo[0];
+        }
+
         /// <summary>
         /// Delete an asset by table name and ID.
         /// </summary>
