@@ -23,7 +23,6 @@ namespace Selvagen.GH.Components
             pManager[2].Optional = true;
             pManager.AddNumberParameter("Concentration Rate", "CR", "Concentration rate [Taxa de Concentração]", GH_ParamAccess.item);
             pManager[3].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

@@ -25,7 +25,6 @@ namespace Selvagen.GH.Components
             pManager[3].Optional = true;
             pManager.AddNumberParameter("True Dimension Rate", "TDR", "True dimension rate [Taxa de Dimensão Real]", GH_ParamAccess.item);
             pManager[4].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)

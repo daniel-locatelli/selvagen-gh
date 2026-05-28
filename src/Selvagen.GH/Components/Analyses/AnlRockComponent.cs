@@ -31,7 +31,6 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("Legend ID", "LgdID",
                 "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
             pManager[7].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)
@@ -43,7 +42,7 @@ namespace Selvagen.GH.Components
             if (TryGetNumber(DA, 4, out var rockHMin)) values["rock_height_min"] = rockHMin;
             if (TryGetNumber(DA, 5, out var rockHMax)) values["rock_height_max"] = rockHMax;
             if (TryGetNumber(DA, 6, out var rockTotalVol)) values["rock_total_vol_cut"] = rockTotalVol;
-            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["rock_legend_id"] = legendId;
+            if (TryGetText(DA, Params.Input.Count - 1, out var legendId)) values["rock_legend_id"] = legendId;
             return values;
         }
 

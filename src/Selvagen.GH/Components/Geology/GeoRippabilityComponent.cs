@@ -21,14 +21,13 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("Legend ID", "LgdID",
                 "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
             pManager[2].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)
         {
             var values = new Dictionary<string, object>();
             if (TryGetText(DA, 1, out var ripMeshId)) values["rippability_mesh_id"] = ripMeshId;
-            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["rippability_legend_id"] = legendId;
+            if (TryGetText(DA, Params.Input.Count - 1, out var legendId)) values["rippability_legend_id"] = legendId;
             return values;
         }
 

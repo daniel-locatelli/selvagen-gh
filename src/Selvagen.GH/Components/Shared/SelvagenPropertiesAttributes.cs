@@ -5,16 +5,14 @@ using System.Windows.Forms;
 using Grasshopper.GUI;
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Attributes;
 
 namespace Selvagen.GH.Components
 {
-    public class SelvagenPropertiesAttributes : GH_ComponentAttributes
+    public class SelvagenPropertiesAttributes : SelvagenUploadAttributes
     {
         private const int DropdownHeight = 22;
-        private const int Padding = 2;
+        private const int DropdownPadding = 2;
         private RectangleF _dropdownBounds;
-        private float? _naturalHeight;
 
         public SelvagenPropertiesAttributes(SelvagenPropertiesComponent owner) : base(owner) { }
 
@@ -22,27 +20,16 @@ namespace Selvagen.GH.Components
 
         protected override void Layout()
         {
-            if (_naturalHeight.HasValue)
-            {
-                var resetBounds = Bounds;
-                resetBounds.Height = _naturalHeight.Value;
-                Bounds = resetBounds;
-            }
-
             base.Layout();
 
-            if (!_naturalHeight.HasValue)
-                _naturalHeight = Bounds.Height;
-
-            int extra = Padding + DropdownHeight + Padding;
             var bounds = Bounds;
-            bounds.Height = _naturalHeight.Value + extra;
+            bounds.Height += DropdownPadding + DropdownHeight + DropdownPadding;
             Bounds = bounds;
 
             _dropdownBounds = new RectangleF(
-                Bounds.Left + Padding,
-                Bounds.Top + _naturalHeight.Value + Padding,
-                Bounds.Width - 2 * Padding,
+                Bounds.Left + DropdownPadding,
+                Bounds.Bottom - DropdownHeight - DropdownPadding,
+                Bounds.Width - 2 * DropdownPadding,
                 DropdownHeight);
         }
 
@@ -50,7 +37,11 @@ namespace Selvagen.GH.Components
         {
             base.Render(canvas, graphics, channel);
             if (channel != GH_CanvasChannel.Objects) return;
+            RenderDropdown(graphics);
+        }
 
+        private void RenderDropdown(Graphics graphics)
+        {
             var selectedIndex = Array.IndexOf(
                 SelvagenPropertiesComponent.ModuleOptions,
                 PropertiesOwner.SelectedModule);

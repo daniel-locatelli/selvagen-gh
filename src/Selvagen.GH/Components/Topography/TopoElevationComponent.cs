@@ -28,7 +28,6 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("Legend ID", "LgdID",
                 "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
             pManager[5].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)
@@ -42,7 +41,7 @@ namespace Selvagen.GH.Components
                 values["elevation_min"] = elevMin;
             if (TryGetNumber(DA, 4, out var elevMax))
                 values["elevation_max"] = elevMax;
-            if (TryGetText(DA, Params.Input.Count - 2, out var legendId))
+            if (TryGetText(DA, Params.Input.Count - 1, out var legendId))
                 values["elevation_legend_id"] = legendId;
             return values;
         }

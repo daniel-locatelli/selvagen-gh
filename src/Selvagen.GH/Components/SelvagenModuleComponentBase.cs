@@ -10,13 +10,14 @@ namespace Selvagen.GH.Components
     /// <summary>
     /// Base class for per-module components (Topography, Geology, Analyses, Optimizations).
     /// Handles create-or-update logic: finds or creates the module record, then PATCHes all provided values.
+    /// Inherits the in-canvas Upload button from SelvagenUploadComponentBase.
     /// </summary>
-    public abstract class SelvagenModuleComponentBase : GH_Component
+    public abstract class SelvagenModuleComponentBase : SelvagenUploadComponentBase
     {
         protected abstract string ModuleTable { get; }
 
         protected SelvagenModuleComponentBase(string name, string nickname, string description, string subcategory = "Modules")
-            : base(name, nickname, description, "Selvagen", subcategory) { }
+            : base(name, nickname, description, subcategory) { }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
@@ -33,39 +34,37 @@ namespace Selvagen.GH.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             string projectId = "";
-            bool upload = false;
-
             DA.GetData(0, ref projectId);
-            // Upload is the last input parameter; find it by name for safety
-            int uploadIndex = Params.Input.Count - 1;
-            for (int i = Params.Input.Count - 1; i >= 0; i--)
-            {
-                if (Params.Input[i].Name == "Upload") { uploadIndex = i; break; }
-            }
-            DA.GetData(uploadIndex, ref upload);
 
             var client = SessionManager.Current;
 
-            if (!upload || client == null)
+            if (!UploadRequested)
             {
-                if (client == null && upload)
+                if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
-                DA.SetData(0, null);
-                DA.SetData(1, "Waiting...");
+                SetReady(DA, 1);
+                return;
+            }
+
+            if (client == null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
+                DA.SetData(1, "Not logged in.");
                 return;
             }
 
             if (string.IsNullOrEmpty(projectId))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Project ID is required.");
-                DA.SetData(0, null);
                 DA.SetData(1, "Missing Project ID");
                 return;
             }
 
             try
             {
-                // Find or create the module record
+                IsUploading = true;
+                ForceCanvasRefresh();
+
                 var existing = Task.Run(() =>
                     client.ListModuleRecordsAsync(ModuleTable, projectId))
                     .GetAwaiter().GetResult();
@@ -86,7 +85,6 @@ namespace Selvagen.GH.Components
                     created = true;
                 }
 
-                // Collect provided values and PATCH
                 var values = CollectValues(DA);
                 if (values.Count > 0)
                 {
@@ -103,9 +101,11 @@ namespace Selvagen.GH.Components
             {
                 var msg = ex.InnerException?.Message ?? ex.Message;
                 PluginLogger.Log($"{GetType().Name} Error: {msg}");
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
-                DA.SetData(0, null);
-                DA.SetData(1, $"Error: {msg}");
+                SetUploadError(DA, 1, ex);
+            }
+            finally
+            {
+                IsUploading = false;
             }
         }
 
@@ -149,8 +149,5 @@ namespace Selvagen.GH.Components
             }
             return false;
         }
-
-        public override GH_Exposure Exposure => GH_Exposure.primary;
-        protected override System.Drawing.Bitmap Icon => null;
     }
 }

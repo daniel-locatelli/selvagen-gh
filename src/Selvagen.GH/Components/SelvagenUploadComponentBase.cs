@@ -7,8 +7,8 @@ namespace Selvagen.GH.Components
     {
         private bool _uploadRequested;
 
-        protected SelvagenUploadComponentBase(string name, string nickname, string description)
-            : base(name, nickname, description, "Selvagen", "08 Assets") { }
+        protected SelvagenUploadComponentBase(string name, string nickname, string description, string subcategory = "08 Assets")
+            : base(name, nickname, description, "Selvagen", subcategory) { }
 
         public bool IsUploading { get; protected set; }
 

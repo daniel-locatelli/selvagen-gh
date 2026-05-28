@@ -35,7 +35,6 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("Legend ID", "LgdID",
                 "Color legend asset ID [ID da Legenda]", GH_ParamAccess.item);
             pManager[9].Optional = true;
-            pManager.AddBooleanParameter("Upload", "Go", "Set to true to upload [Enviar]", GH_ParamAccess.item, false);
         }
 
         protected override Dictionary<string, object> CollectValues(IGH_DataAccess DA)
@@ -49,7 +48,7 @@ namespace Selvagen.GH.Components
             if (TryGetNumber(DA, 6, out var eve)) values["earth_vol_export"] = eve;
             if (TryGetNumber(DA, 7, out var eci)) values["earth_cost_import"] = eci;
             if (TryGetNumber(DA, 8, out var ece)) values["earth_cost_export"] = ece;
-            if (TryGetText(DA, Params.Input.Count - 2, out var legendId)) values["earthworks_legend_id"] = legendId;
+            if (TryGetText(DA, Params.Input.Count - 1, out var legendId)) values["earthworks_legend_id"] = legendId;
             return values;
         }
 
