@@ -144,8 +144,7 @@ namespace Selvagen.Core.Api
             var response = await SendAuthorizedAsync(HttpMethod.Get, "/functions/v1/plugin-projects").ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            // Log the raw response so we can diagnose issues
-            Log($"ListProjectsAsync: HTTP {(int)response.StatusCode}, body = {json}");
+            Log($"ListProjectsAsync: HTTP {(int)response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -817,9 +816,7 @@ namespace Selvagen.Core.Api
             // Explicitly add apikey to the request (some .NET runtimes don't forward DefaultRequestHeaders via SendAsync)
             request.Headers.Add("apikey", _anonKey);
 
-            Log($"SendAuthorizedAsync: {method} {_supabaseUrl}{path}");
-            Log($"  Authorization: Bearer {_accessToken?.Substring(0, Math.Min(20, _accessToken?.Length ?? 0))}...");
-            Log($"  apikey: {_anonKey?.Substring(0, Math.Min(20, _anonKey?.Length ?? 0))}...");
+            Log($"{method} {path}");
 
             if (content != null)
                 request.Content = content;
