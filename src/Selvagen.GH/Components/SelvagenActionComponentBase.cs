@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Drawing;
 using Grasshopper.Kernel;
 using Selvagen.Core.Api;
@@ -13,6 +14,15 @@ namespace Selvagen.GH.Components
     public abstract class SelvagenActionComponentBase : GH_Component, ISelvagenActionButton
     {
         private bool _actionRequested;
+
+        private volatile bool _isRunningAsync;
+        private Exception _asyncError;
+        private bool _resultPending;
+        private object _asyncResultBox;
+        private readonly object _asyncLock = new object();
+
+        /// <summary>True while a click-triggered network action is in flight.</summary>
+        public bool IsRunningAsync => _isRunningAsync;
 
         protected SelvagenActionComponentBase(string name, string nickname, string description, string subcategory)
             : base(name, nickname, description, "Selvagen", subcategory) { }
@@ -68,6 +78,62 @@ namespace Selvagen.GH.Components
         {
             try { Grasshopper.Instances.ActiveCanvas?.Refresh(); }
             catch { /* canvas may not be visible during headless solves */ }
+        }
+
+        /// <summary>
+        /// Run a click-triggered network action off the solver thread, then re-solve
+        /// to emit its result. Capture all inputs (and any Rhino geometry conversion)
+        /// BEFORE calling this — the worker lambda must not touch the solver thread or
+        /// Rhino geometry.
+        /// </summary>
+        protected void StartAsync<TResult>(Func<Task<TResult>> work)
+        {
+            if (_isRunningAsync) return;
+            _isRunningAsync = true;
+            IsRunning = true;
+            lock (_asyncLock) { _asyncError = null; }
+            ForceCanvasRefresh();
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var r = await work().ConfigureAwait(false);
+                    lock (_asyncLock) { _asyncResultBox = r; _resultPending = true; }
+                }
+                catch (Exception ex)
+                {
+                    lock (_asyncLock) { _asyncError = ex; }
+                }
+                finally
+                {
+                    _isRunningAsync = false;
+                    IsRunning = false;
+                    Rhino.RhinoApp.InvokeOnUiThread(new Action(() =>
+                    {
+                        if (OnPingDocument() != null) ExpireSolution(true);
+                    }));
+                }
+            });
+        }
+
+        /// <summary>
+        /// Call at the TOP of SolveInstance. If a finished async result or error is
+        /// waiting, emits it via the callback / runtime message and returns true
+        /// (the caller should then return immediately).
+        /// </summary>
+        protected bool TryFinishAsync<TResult>(IGH_DataAccess DA, int statusIndex, Action<IGH_DataAccess, TResult> emitSuccess)
+        {
+            Exception err; bool pending; object box;
+            lock (_asyncLock)
+            {
+                err = _asyncError; pending = _resultPending; box = _asyncResultBox;
+                _asyncError = null;
+                if (pending) _resultPending = false;
+            }
+            if (err != null) { SetActionError(DA, statusIndex, err); return true; }
+            if (pending) { emitSuccess(DA, (TResult)box); return true; }
+            return false;
         }
 
         public override void CreateAttributes()
