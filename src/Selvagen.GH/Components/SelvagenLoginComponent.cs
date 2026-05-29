@@ -69,7 +69,7 @@ namespace Selvagen.GH.Components
             }
             catch (Exception ex)
             {
-                _statusMessage = $"Error: {ex.InnerException?.Message ?? ex.Message}";
+                _statusMessage = $"Error: {ex.Unwrap().Message}";
                 PluginLogger.Log($"Login failed: {_statusMessage}");
                 _client = null;
                 SessionManager.Current = null;

@@ -99,7 +99,7 @@ namespace Selvagen.GH.Components
             }
             catch (Exception ex)
             {
-                var msg = ex.InnerException?.Message ?? ex.Message;
+                var msg = ex.Unwrap().Message;
                 PluginLogger.Log($"{GetType().Name} Error: {msg}");
                 SetUploadError(DA, 1, ex);
             }

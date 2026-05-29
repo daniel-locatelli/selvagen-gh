@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using Grasshopper.Kernel;
+using Selvagen.Core.Api;
 
 namespace Selvagen.GH.Components
 {
@@ -58,7 +59,7 @@ namespace Selvagen.GH.Components
 
         protected void SetActionError(IGH_DataAccess DA, int statusIndex, Exception ex)
         {
-            var msg = ex.InnerException?.Message ?? ex.Message;
+            var msg = ex.Unwrap().Message;
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
             DA.SetData(statusIndex, $"Error: {msg}");
         }
