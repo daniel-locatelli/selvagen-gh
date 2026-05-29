@@ -20,6 +20,12 @@ namespace Selvagen.GH.Components
         private List<int> _cachedJustifications;
         private string _cachedName;
 
+        private volatile bool _isFetching;
+        private LabelSetAssetFull _pendingAsset;
+        private string _pendingId;
+        private string _fetchError;
+        private readonly object _lock = new object();
+
         public SelvagenDownloadLabelsComponent()
             : base("Download Labels", "SvDnLbl",
                 "Download a label set from the platform as Rhino planes and text. [Download de Rótulos 3D]")
@@ -50,12 +56,7 @@ namespace Selvagen.GH.Components
 
             var client = SessionManager.Current;
 
-            if (string.IsNullOrEmpty(assetId))
-            {
-                DA.SetData(6, "Provide an Asset ID.");
-                return;
-            }
-
+            if (string.IsNullOrEmpty(assetId)) { DA.SetData(6, "Provide an Asset ID."); return; }
             if (client == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
@@ -63,6 +64,46 @@ namespace Selvagen.GH.Components
                 return;
             }
 
+            // 1. A finished fetch waiting? Build geometry on the solver thread, cache, emit.
+            LabelSetAssetFull pending; string pendingId; string err;
+            lock (_lock) { pending = _pendingAsset; pendingId = _pendingId; _pendingAsset = null; err = _fetchError; _fetchError = null; }
+            if (err != null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, err);
+                DA.SetData(6, $"Error: {err}");
+                return;
+            }
+            if (pending != null && pendingId == assetId)
+            {
+                if (pending.TextData == null)
+                {
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Label set has no inline text data.");
+                    DA.SetData(6, "No text data.");
+                    return;
+                }
+
+                LabelConverter.FromLabelSet(pending.TextData,
+                    out var planes, out var texts, out var colors, out var fontSizes, out var justifications);
+
+                _cachedId = assetId;
+                _cachedPlanes = planes;
+                _cachedTexts = texts;
+                _cachedColors = colors;
+                _cachedFontSizes = fontSizes;
+                _cachedJustifications = justifications;
+                _cachedName = pending.Name;
+
+                DA.SetDataList(0, planes);
+                DA.SetDataList(1, texts);
+                DA.SetDataList(2, colors);
+                DA.SetDataList(3, fontSizes);
+                DA.SetDataList(4, justifications);
+                DA.SetData(5, pending.Name);
+                DA.SetData(6, $"Downloaded: {pending.Name} ({planes.Count} labels)");
+                return;
+            }
+
+            // 2. Cached for this id?
             if (assetId == _cachedId && _cachedPlanes != null)
             {
                 DA.SetDataList(0, _cachedPlanes);
@@ -75,42 +116,33 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            try
-            {
-                var asset = Task.Run(() => client.GetLabelSetAsync(assetId)).GetAwaiter().GetResult();
+            // 3. In-flight already?
+            if (_isFetching) { DA.SetData(6, "Downloading..."); return; }
 
-                if (asset.TextData == null)
+            // 4. Start the fetch (network only; geometry is built on the re-solve above).
+            _isFetching = true;
+            var capturedId = assetId;
+            Task.Run(async () =>
+            {
+                try
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Label set has no inline text data.");
-                    DA.SetData(6, "No text data.");
-                    return;
+                    var a = await client.GetLabelSetAsync(capturedId).ConfigureAwait(false);
+                    lock (_lock) { _pendingAsset = a; _pendingId = capturedId; }
                 }
-
-                LabelConverter.FromLabelSet(asset.TextData,
-                    out var planes, out var texts, out var colors, out var fontSizes, out var justifications);
-
-                _cachedId = assetId;
-                _cachedPlanes = planes;
-                _cachedTexts = texts;
-                _cachedColors = colors;
-                _cachedFontSizes = fontSizes;
-                _cachedJustifications = justifications;
-                _cachedName = asset.Name;
-
-                DA.SetDataList(0, planes);
-                DA.SetDataList(1, texts);
-                DA.SetDataList(2, colors);
-                DA.SetDataList(3, fontSizes);
-                DA.SetDataList(4, justifications);
-                DA.SetData(5, asset.Name);
-                DA.SetData(6, $"Downloaded: {asset.Name} ({planes.Count} labels)");
-            }
-            catch (Exception ex)
-            {
-                var msg = ex.InnerException?.Message ?? ex.Message;
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
-                DA.SetData(6, $"Error: {msg}");
-            }
+                catch (Exception ex)
+                {
+                    lock (_lock) { _fetchError = ex.Unwrap().Message; }
+                }
+                finally
+                {
+                    _isFetching = false;
+                    Rhino.RhinoApp.InvokeOnUiThread(new Action(() =>
+                    {
+                        if (OnPingDocument() != null) ExpireSolution(true);
+                    }));
+                }
+            });
+            DA.SetData(6, "Downloading...");
         }
 
         protected override System.Drawing.Bitmap Icon => IconLoader.Load("DownloadLabels");

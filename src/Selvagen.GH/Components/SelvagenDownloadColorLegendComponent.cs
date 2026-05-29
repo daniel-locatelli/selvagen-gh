@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
 using Grasshopper.Kernel;
+using Selvagen.Core.Api;
 using Selvagen.Core.Models;
 
 namespace Selvagen.GH.Components
@@ -17,6 +18,12 @@ namespace Selvagen.GH.Components
         private double? _cachedDomainMin;
         private double? _cachedDomainMax;
         private string _cachedUnit;
+
+        private volatile bool _isFetching;
+        private ColorLegendInfo _pendingLegend;
+        private string _pendingId;
+        private string _fetchError;
+        private readonly object _lock = new object();
 
         public SelvagenDownloadColorLegendComponent()
             : base("Download Color Legend", "SvDnLegend",
@@ -49,12 +56,7 @@ namespace Selvagen.GH.Components
 
             var client = SessionManager.Current;
 
-            if (string.IsNullOrEmpty(legendId))
-            {
-                DA.SetData(7, "Provide a Legend ID.");
-                return;
-            }
-
+            if (string.IsNullOrEmpty(legendId)) { DA.SetData(7, "Provide a Legend ID."); return; }
             if (client == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
@@ -62,34 +64,65 @@ namespace Selvagen.GH.Components
                 return;
             }
 
+            // 1. A finished fetch waiting? Cache + emit on the solver thread. (No Rhino geometry to build.)
+            ColorLegendInfo pending; string pendingId; string err;
+            lock (_lock) { pending = _pendingLegend; pendingId = _pendingId; _pendingLegend = null; err = _fetchError; _fetchError = null; }
+            if (err != null)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, err);
+                DA.SetData(7, $"Error: {err}");
+                return;
+            }
+            if (pending != null && pendingId == legendId)
+            {
+                _cachedId = legendId;
+                _cachedName = pending.Name;
+                _cachedVariant = pending.Variant;
+                _cachedColors = HexListToColors(pending.Colors);
+                _cachedLabels = pending.Labels != null ? new List<string>(pending.Labels) : new List<string>();
+                _cachedDomainMin = pending.DomainMin;
+                _cachedDomainMax = pending.DomainMax;
+                _cachedUnit = pending.Unit;
+
+                EmitCached(DA);
+                DA.SetData(7, $"Downloaded: {pending.Name} ({pending.Variant}, {_cachedColors.Count} colors)");
+                return;
+            }
+
+            // 2. Cached for this id?
             if (legendId == _cachedId && _cachedColors != null)
             {
                 EmitCached(DA);
                 return;
             }
 
-            try
-            {
-                var legend = Task.Run(() => client.GetColorLegendAsync(legendId)).GetAwaiter().GetResult();
+            // 3. In-flight already?
+            if (_isFetching) { DA.SetData(7, "Downloading..."); return; }
 
-                _cachedId = legendId;
-                _cachedName = legend.Name;
-                _cachedVariant = legend.Variant;
-                _cachedColors = HexListToColors(legend.Colors);
-                _cachedLabels = legend.Labels != null ? new List<string>(legend.Labels) : new List<string>();
-                _cachedDomainMin = legend.DomainMin;
-                _cachedDomainMax = legend.DomainMax;
-                _cachedUnit = legend.Unit;
-
-                EmitCached(DA);
-                DA.SetData(7, $"Downloaded: {legend.Name} ({legend.Variant}, {_cachedColors.Count} colors)");
-            }
-            catch (Exception ex)
+            // 4. Start the fetch (network only).
+            _isFetching = true;
+            var capturedId = legendId;
+            Task.Run(async () =>
             {
-                var msg = ex.InnerException?.Message ?? ex.Message;
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
-                DA.SetData(7, $"Error: {msg}");
-            }
+                try
+                {
+                    var l = await client.GetColorLegendAsync(capturedId).ConfigureAwait(false);
+                    lock (_lock) { _pendingLegend = l; _pendingId = capturedId; }
+                }
+                catch (Exception ex)
+                {
+                    lock (_lock) { _fetchError = ex.Unwrap().Message; }
+                }
+                finally
+                {
+                    _isFetching = false;
+                    Rhino.RhinoApp.InvokeOnUiThread(new Action(() =>
+                    {
+                        if (OnPingDocument() != null) ExpireSolution(true);
+                    }));
+                }
+            });
+            DA.SetData(7, "Downloading...");
         }
 
         private void EmitCached(IGH_DataAccess DA)

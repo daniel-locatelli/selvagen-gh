@@ -18,6 +18,12 @@ namespace Selvagen.GH.Components
         private bool _cachedLoop;
         private string _cachedName;
 
+        private volatile bool _isFetching;
+        private (AnimationSequenceFull Info, MeshAssetFull BaseAsset, AnimationFrameFull[] Frames)? _pendingAnim;
+        private string _pendingId;
+        private string _fetchError;
+        private readonly object _lock = new object();
+
         public SelvagenDownloadAnimationComponent()
             : base("Download Animation", "SvDnAnim",
                 "Download an animation sequence from the platform as a list of meshes. [Download de Animação]")
@@ -47,12 +53,7 @@ namespace Selvagen.GH.Components
 
             var client = SessionManager.Current;
 
-            if (string.IsNullOrEmpty(seqId))
-            {
-                DA.SetData(5, "Provide a Sequence ID.");
-                return;
-            }
-
+            if (string.IsNullOrEmpty(seqId)) { DA.SetData(5, "Provide a Sequence ID."); return; }
             if (client == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
@@ -60,31 +61,25 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            if (seqId == _cachedId && _cachedMeshes != null)
+            // 1. A finished fetch waiting? Build geometry on the solver thread, cache, emit.
+            (AnimationSequenceFull Info, MeshAssetFull BaseAsset, AnimationFrameFull[] Frames)? pending;
+            string pendingId; string err;
+            lock (_lock) { pending = _pendingAnim; pendingId = _pendingId; _pendingAnim = null; err = _fetchError; _fetchError = null; }
+            if (err != null)
             {
-                DA.SetDataList(0, _cachedMeshes);
-                DA.SetDataList(1, _cachedLabels);
-                DA.SetData(2, _cachedFps);
-                DA.SetData(3, _cachedLoop);
-                DA.SetData(4, _cachedName);
-                DA.SetData(5, $"Cached: {_cachedName} ({_cachedMeshes.Count} frames)");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, err);
+                DA.SetData(5, $"Error: {err}");
                 return;
             }
-
-            try
+            if (pending != null && pendingId == seqId)
             {
-                var sequence = Task.Run(() => client.GetAnimationSequenceInfoAsync(seqId))
-                    .GetAwaiter().GetResult();
-
-                var baseMeshAsset = Task.Run(() => client.GetMeshAsync(sequence.BaseAssetId))
-                    .GetAwaiter().GetResult();
+                var sequence = pending.Value.Info;
+                var baseMeshAsset = pending.Value.BaseAsset;
+                var frames = pending.Value.Frames;
 
                 Mesh baseMesh = null;
                 if (baseMeshAsset.GeometryData != null)
                     baseMesh = MeshConverter.FromBufferGeometry(baseMeshAsset.GeometryData);
-
-                var frames = Task.Run(() => client.GetAnimationFramesAsync(seqId))
-                    .GetAwaiter().GetResult();
 
                 var meshes = new List<Mesh>();
                 var labels = new List<string>();
@@ -137,13 +132,50 @@ namespace Selvagen.GH.Components
                 DA.SetData(3, _cachedLoop);
                 DA.SetData(4, sequence.Name);
                 DA.SetData(5, $"Downloaded: {sequence.Name} ({meshes.Count} frames)");
+                return;
             }
-            catch (Exception ex)
+
+            // 2. Cached for this id?
+            if (seqId == _cachedId && _cachedMeshes != null)
             {
-                var msg = ex.InnerException?.Message ?? ex.Message;
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
-                DA.SetData(5, $"Error: {msg}");
+                DA.SetDataList(0, _cachedMeshes);
+                DA.SetDataList(1, _cachedLabels);
+                DA.SetData(2, _cachedFps);
+                DA.SetData(3, _cachedLoop);
+                DA.SetData(4, _cachedName);
+                DA.SetData(5, $"Cached: {_cachedName} ({_cachedMeshes.Count} frames)");
+                return;
             }
+
+            // 3. In-flight already?
+            if (_isFetching) { DA.SetData(5, "Downloading..."); return; }
+
+            // 4. Start the fetch (network only; geometry is built on the re-solve above).
+            _isFetching = true;
+            var capturedId = seqId;
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var info = await client.GetAnimationSequenceInfoAsync(capturedId).ConfigureAwait(false);
+                    var baseAsset = await client.GetMeshAsync(info.BaseAssetId).ConfigureAwait(false);
+                    var frames = await client.GetAnimationFramesAsync(capturedId).ConfigureAwait(false);
+                    lock (_lock) { _pendingAnim = (info, baseAsset, frames); _pendingId = capturedId; }
+                }
+                catch (Exception ex)
+                {
+                    lock (_lock) { _fetchError = ex.Unwrap().Message; }
+                }
+                finally
+                {
+                    _isFetching = false;
+                    Rhino.RhinoApp.InvokeOnUiThread(new Action(() =>
+                    {
+                        if (OnPingDocument() != null) ExpireSolution(true);
+                    }));
+                }
+            });
+            DA.SetData(5, "Downloading...");
         }
 
         protected override System.Drawing.Bitmap Icon => IconLoader.Load("DownloadAnimation");
