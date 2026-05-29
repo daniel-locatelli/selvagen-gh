@@ -62,6 +62,12 @@ namespace Selvagen.GH.Components
                 PluginLogger.Log($"Logging in to {url}");
 
                 _client = new SelvagenClient(url, key);
+                // Login is intentionally synchronous. It is a fast, user-initiated auth
+                // handshake, and the resulting session must be visible to the rest of the
+                // graph (via SessionManager.Current) by the time this solution finishes —
+                // making it async would leave downstream components showing "Not logged in"
+                // until a manual refresh. Unlike uploads/downloads, this does not transfer
+                // bulk geometry, so the brief block is acceptable. (See Phase 4 notes.)
                 var result = Task.Run(() => _client.LoginAsync(email, password)).GetAwaiter().GetResult();
                 SessionManager.Current = _client;
                 _statusMessage = $"Logged in as {result.User?.Email ?? email}";
