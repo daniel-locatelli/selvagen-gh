@@ -37,6 +37,14 @@ namespace Selvagen.GH.Components
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            // Emit a finished async result, if one is waiting.
+            if (TryFinishAsync<(Selvagen.Core.Models.UploadResult Result, int Count)>(DA, 1, (da, t) =>
+                {
+                    da.SetData(0, t.Result.Id);
+                    da.SetData(1, $"Uploaded: {t.Result.Name} ({t.Count} curves)");
+                }))
+                return;
+
             string projectId = "", name = "";
             var curves = new List<Curve>();
             var colors = new List<Color>();
@@ -52,6 +60,7 @@ namespace Selvagen.GH.Components
 
             if (!UploadRequested)
             {
+                if (IsRunningAsync) { DA.SetData(1, "Uploading..."); return; }
                 if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 SetReady(DA, 1);
@@ -65,28 +74,18 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            try
+            // Convert Rhino geometry on the solver thread; only the HTTP call goes async.
+            int count = curves.Count;
+            var curveSet = CurveConverter.ToCurveSet(
+                curves,
+                colors: colors.Count > 0 ? colors : null,
+                linewidths: thicknesses.Count > 0 ? thicknesses : null);
+            StartAsync(async () =>
             {
-                IsUploading = true;
-                ForceCanvasRefresh();
-
-                var curveSet = CurveConverter.ToCurveSet(
-                    curves,
-                    colors: colors.Count > 0 ? colors : null,
-                    linewidths: thicknesses.Count > 0 ? thicknesses : null);
-                var result = Task.Run(() => client.UploadCurvesAsync(projectId, name, curveSet)).GetAwaiter().GetResult();
-
-                DA.SetData(0, result.Id);
-                DA.SetData(1, $"Uploaded: {result.Name} ({curves.Count} curves)");
-            }
-            catch (Exception ex)
-            {
-                SetUploadError(DA, 1, ex);
-            }
-            finally
-            {
-                IsUploading = false;
-            }
+                var r = await client.UploadCurvesAsync(projectId, name, curveSet).ConfigureAwait(false);
+                return (r, count);
+            });
+            DA.SetData(1, "Uploading...");
         }
 
         protected override System.Drawing.Bitmap Icon => IconLoader.Load("UploadCurves");

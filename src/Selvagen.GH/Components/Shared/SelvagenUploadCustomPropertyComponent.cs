@@ -70,18 +70,29 @@ namespace Selvagen.GH.Components
             DA.GetDataList(1, keys);
             DA.GetDataList(2, values);
 
-            // Preview is always emitted, regardless of click state
+            // Preview is always emitted, regardless of click/async state
             var pairCount = Math.Min(keys.Count, values.Count);
             var preview = new List<string>(pairCount);
             for (int i = 0; i < pairCount; i++)
                 preview.Add($"{keys[i]} = {values[i]}");
             DA.SetDataList(0, preview);
 
+            // Emit a finished async result if one is waiting (after preview).
+            if (TryFinishAsync<Selvagen.Core.Models.CustomPropertyInfo[]>(DA, 1, (da, results) =>
+                {
+                    var ids = new List<string>(results.Length);
+                    foreach (var r in results) ids.Add(r.Id);
+                    da.SetData(1, $"Upserted {results.Length} properties");
+                    da.SetDataList(2, ids);
+                }))
+                return;
+
             var client = SessionManager.Current;
 
             // Idle: emit Ready, return
             if (!ActionRequested)
             {
+                if (IsRunningAsync) { DA.SetData(1, "Uploading..."); return; }
                 if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 DA.SetData(1, "Ready to upload.");
@@ -164,28 +175,8 @@ namespace Selvagen.GH.Components
                 };
             }
 
-            try
-            {
-                IsRunning = true;
-                ForceCanvasRefresh();
-
-                var results = Task.Run(() => client.UpsertCustomPropertiesAsync(projectId, payload))
-                                  .GetAwaiter().GetResult();
-
-                var ids = new List<string>(results.Length);
-                foreach (var r in results) ids.Add(r.Id);
-
-                DA.SetData(1, $"Upserted {results.Length} properties");
-                DA.SetDataList(2, ids);
-            }
-            catch (Exception ex)
-            {
-                SetActionError(DA, 1, ex);
-            }
-            finally
-            {
-                IsRunning = false;
-            }
+            StartAsync(() => client.UpsertCustomPropertiesAsync(projectId, payload));
+            DA.SetData(1, "Uploading...");
         }
 
         private static bool IsValueValidForType(string raw, string type, out string error)

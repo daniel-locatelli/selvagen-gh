@@ -38,6 +38,14 @@ namespace Selvagen.GH.Components
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            // Emit a finished async result, if one is waiting.
+            if (TryFinishAsync<(Selvagen.Core.Models.UploadResult Result, int Count)>(DA, 1, (da, t) =>
+                {
+                    da.SetData(0, t.Result.Id);
+                    da.SetData(1, $"Uploaded: {t.Result.Name} ({t.Count} labels)");
+                }))
+                return;
+
             string projectId = "", name = "";
             var planes = new List<Plane>();
             var texts = new List<string>();
@@ -55,6 +63,7 @@ namespace Selvagen.GH.Components
 
             if (!UploadRequested)
             {
+                if (IsRunningAsync) { DA.SetData(1, "Uploading..."); return; }
                 if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 SetReady(DA, 1);
@@ -68,29 +77,19 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            try
+            // Convert Rhino geometry on the solver thread; only the HTTP call goes async.
+            int count = planes.Count;
+            var labelSet = LabelConverter.ToLabelSet(
+                planes,
+                texts,
+                colors: colors.Count > 0 ? colors : null,
+                justifications: justifications.Count > 0 ? justifications : null);
+            StartAsync(async () =>
             {
-                IsUploading = true;
-                ForceCanvasRefresh();
-
-                var labelSet = LabelConverter.ToLabelSet(
-                    planes,
-                    texts,
-                    colors: colors.Count > 0 ? colors : null,
-                    justifications: justifications.Count > 0 ? justifications : null);
-                var result = Task.Run(() => client.UploadLabelSetAsync(projectId, name, labelSet)).GetAwaiter().GetResult();
-
-                DA.SetData(0, result.Id);
-                DA.SetData(1, $"Uploaded: {result.Name} ({planes.Count} labels)");
-            }
-            catch (Exception ex)
-            {
-                SetUploadError(DA, 1, ex);
-            }
-            finally
-            {
-                IsUploading = false;
-            }
+                var r = await client.UploadLabelSetAsync(projectId, name, labelSet).ConfigureAwait(false);
+                return (r, count);
+            });
+            DA.SetData(1, "Uploading...");
         }
 
         protected override System.Drawing.Bitmap Icon => IconLoader.Load("UploadLabels");

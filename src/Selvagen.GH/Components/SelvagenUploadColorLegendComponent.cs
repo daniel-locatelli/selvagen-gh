@@ -45,6 +45,14 @@ namespace Selvagen.GH.Components
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            // Emit a finished async result, if one is waiting.
+            if (TryFinishAsync<Selvagen.Core.Models.ColorLegendInfo>(DA, 1, (da, result) =>
+                {
+                    da.SetData(0, result.Id);
+                    da.SetData(1, $"Uploaded: {result.Name}");
+                }))
+                return;
+
             string projectId = "", name = "", unit = "";
             int variant = 0;
             // Domain Min/Max have parameter-level defaults (0 and 1), so DA.GetData
@@ -67,6 +75,7 @@ namespace Selvagen.GH.Components
 
             if (!UploadRequested)
             {
+                if (IsRunningAsync) { DA.SetData(1, "Uploading..."); return; }
                 if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 SetReady(DA, 1);
@@ -80,41 +89,26 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            try
+            // Build the payload on the solver thread; only the HTTP call goes async.
+            var hexColors = new string[colors.Count];
+            for (int i = 0; i < colors.Count; i++)
             {
-                IsUploading = true;
-                ForceCanvasRefresh();
-
-                var hexColors = new string[colors.Count];
-                for (int i = 0; i < colors.Count; i++)
-                {
-                    var c = colors[i];
-                    hexColors[i] = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
-                }
-
-                var payload = new ColorLegendPayload
-                {
-                    Variant = variant == 1 ? "discrete" : "gradient",
-                    Colors = hexColors,
-                    Labels = labels.Count > 0 ? labels.ToArray() : null,
-                    DomainMin = (float)domainMin,
-                    DomainMax = (float)domainMax,
-                    Unit = !string.IsNullOrEmpty(unit) ? unit : null,
-                };
-
-                var result = Task.Run(() => client.UpsertColorLegendAsync(projectId, name, payload)).GetAwaiter().GetResult();
-
-                DA.SetData(0, result.Id);
-                DA.SetData(1, $"Uploaded: {result.Name}");
+                var c = colors[i];
+                hexColors[i] = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
             }
-            catch (Exception ex)
+
+            var payload = new ColorLegendPayload
             {
-                SetUploadError(DA, 1, ex);
-            }
-            finally
-            {
-                IsUploading = false;
-            }
+                Variant = variant == 1 ? "discrete" : "gradient",
+                Colors = hexColors,
+                Labels = labels.Count > 0 ? labels.ToArray() : null,
+                DomainMin = (float)domainMin,
+                DomainMax = (float)domainMax,
+                Unit = !string.IsNullOrEmpty(unit) ? unit : null,
+            };
+
+            StartAsync(() => client.UpsertColorLegendAsync(projectId, name, payload));
+            DA.SetData(1, "Uploading...");
         }
 
         protected override Bitmap Icon => IconLoader.Load("UploadColorLegend");

@@ -33,6 +33,14 @@ namespace Selvagen.GH.Components
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            // Emit a finished async result, if one is waiting.
+            if (TryFinishAsync<(string SeqId, string Name, int FrameCount, bool TopologyConsistent)>(DA, 1, (da, r) =>
+                {
+                    da.SetData(0, r.SeqId);
+                    da.SetData(1, $"Uploaded: {r.Name} ({r.FrameCount} frames, {(r.TopologyConsistent ? "position-only" : "mixed")})");
+                }))
+                return;
+
             string projectId = "", name = "";
             var meshes = new List<Mesh>();
             double fps = 1.0;
@@ -48,6 +56,7 @@ namespace Selvagen.GH.Components
 
             if (!UploadRequested)
             {
+                if (IsRunningAsync) { DA.SetData(1, "Uploading..."); return; }
                 if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 SetReady(DA, 1);
@@ -68,56 +77,33 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            try
+            // Convert Rhino geometry on the solver thread; only the HTTP calls go async.
+            PluginLogger.Log($"SelvagenUploadAnimationComponent: Converting {meshes.Count} frames...");
+
+            var conv = AnimationConverter.Convert(meshes);
+            if (!conv.TopologyConsistent)
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                    "Topology varies across frames. Some frames use full geometry (larger upload).");
+
+            StartAsync(async () =>
             {
-                IsUploading = true;
-                ForceCanvasRefresh();
-
-                PluginLogger.Log($"SelvagenUploadAnimationComponent: Converting {meshes.Count} frames...");
-
-                var result = AnimationConverter.Convert(meshes);
-                if (!result.TopologyConsistent)
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
-                        "Topology varies across frames. Some frames use full geometry (larger upload).");
-
                 PluginLogger.Log($"SelvagenUploadAnimationComponent: Uploading base mesh...");
-
-                var baseMeshResult = Task.Run(() =>
-                    client.UploadMeshAsync(projectId, $"{name} [base]", result.BaseMesh, "animation_base"))
-                    .GetAwaiter().GetResult();
-
+                var baseMeshResult = await client.UploadMeshAsync(projectId, $"{name} [base]", conv.BaseMesh, "animation_base").ConfigureAwait(false);
                 PluginLogger.Log($"SelvagenUploadAnimationComponent: Base mesh ID = {baseMeshResult.Id}");
 
-                var sequence = Task.Run(() =>
-                    client.CreateAnimationSequenceAsync(
-                        projectId, name, baseMeshResult.Id,
-                        result.Frames.Length, fps, loop))
-                    .GetAwaiter().GetResult();
-
+                var sequence = await client.CreateAnimationSequenceAsync(projectId, name, baseMeshResult.Id, conv.Frames.Length, fps, loop).ConfigureAwait(false);
                 PluginLogger.Log($"SelvagenUploadAnimationComponent: Sequence ID = {sequence.Id}");
 
-                for (int i = 0; i < result.Frames.Length; i++)
+                for (int i = 0; i < conv.Frames.Length; i++)
                 {
-                    PluginLogger.Log($"SelvagenUploadAnimationComponent: Uploading frame {i + 1}/{result.Frames.Length}...");
-
-                    Task.Run(() =>
-                        client.UploadAnimationFrameAsync(sequence.Id, i, result.Frames[i]))
-                        .GetAwaiter().GetResult();
+                    PluginLogger.Log($"SelvagenUploadAnimationComponent: Uploading frame {i + 1}/{conv.Frames.Length}...");
+                    await client.UploadAnimationFrameAsync(sequence.Id, i, conv.Frames[i]).ConfigureAwait(false);
                 }
 
                 PluginLogger.Log($"SelvagenUploadAnimationComponent: Upload complete.");
-
-                DA.SetData(0, sequence.Id);
-                DA.SetData(1, $"Uploaded: {name} ({result.Frames.Length} frames, {(result.TopologyConsistent ? "position-only" : "mixed")})");
-            }
-            catch (Exception ex)
-            {
-                SetUploadError(DA, 1, ex);
-            }
-            finally
-            {
-                IsUploading = false;
-            }
+                return (sequence.Id, name, conv.Frames.Length, conv.TopologyConsistent);
+            });
+            DA.SetData(1, "Uploading...");
         }
 
         protected override System.Drawing.Bitmap Icon => IconLoader.Load("UploadAnimation");
