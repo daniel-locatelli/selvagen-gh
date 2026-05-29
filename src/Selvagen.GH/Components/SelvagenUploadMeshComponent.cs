@@ -30,9 +30,16 @@ namespace Selvagen.GH.Components
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            // Emit a finished async result, if one is waiting.
+            if (TryFinishAsync<Selvagen.Core.Models.UploadResult>(DA, 1, (da, result) =>
+                {
+                    da.SetData(0, result.Id);
+                    da.SetData(1, $"Uploaded: {result.Name}");
+                }))
+                return;
+
             string projectId = "", name = "";
             Mesh mesh = null;
-
             DA.GetData(0, ref projectId);
             DA.GetData(1, ref mesh);
             DA.GetData(2, ref name);
@@ -41,6 +48,7 @@ namespace Selvagen.GH.Components
 
             if (!UploadRequested)
             {
+                if (IsRunningAsync) { DA.SetData(1, "Uploading..."); return; }
                 if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 SetReady(DA, 1);
@@ -54,25 +62,10 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            try
-            {
-                IsUploading = true;
-                ForceCanvasRefresh();
-
-                var geometry = MeshConverter.ToBufferGeometry(mesh);
-                var result = Task.Run(() => client.UploadMeshAsync(projectId, name, geometry)).GetAwaiter().GetResult();
-
-                DA.SetData(0, result.Id);
-                DA.SetData(1, $"Uploaded: {result.Name}");
-            }
-            catch (Exception ex)
-            {
-                SetUploadError(DA, 1, ex);
-            }
-            finally
-            {
-                IsUploading = false;
-            }
+            // Convert Rhino geometry on the solver thread; only the HTTP call goes async.
+            var geometry = MeshConverter.ToBufferGeometry(mesh);
+            StartAsync(() => client.UploadMeshAsync(projectId, name, geometry));
+            DA.SetData(1, "Uploading...");
         }
 
         protected override System.Drawing.Bitmap Icon => IconLoader.Load("UploadMesh");
