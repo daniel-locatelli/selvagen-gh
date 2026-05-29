@@ -116,8 +116,7 @@ namespace Selvagen.Core.Converters
         /// </summary>
         public static Mesh FromBufferGeometry(BufferGeometry bg)
         {
-            if (bg == null)
-                throw new ArgumentNullException(nameof(bg));
+            BufferGeometryValidator.ValidateForDecode(bg);
 
             var mesh = new Mesh();
             var posArr = bg.Data.Attributes.Position.Array;
