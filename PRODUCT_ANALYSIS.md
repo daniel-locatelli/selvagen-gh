@@ -202,11 +202,9 @@ Full animation pipeline implemented:
 
 `SelvagenConfig.cs` now loads from `%APPDATA%\Selvagen\selvagen.config.json` with compiled-in defaults as fallback. Supports multi-environment deployment without recompilation.
 
-### 5.2 HIGH: Sync-over-Async Blocks the Grasshopper Canvas
+### 5.2 ~~HIGH: Sync-over-Async Blocks the Grasshopper Canvas~~ RESOLVED
 
-All network calls use `Task.Run(() => ...).GetAwaiter().GetResult()`, which blocks the Grasshopper evaluation thread. During uploads of large meshes, the canvas freezes with no feedback.
-
-**Recommendation**: Use `GH_Document.ScheduleSolution()` for deferred, non-blocking evaluation. This is the standard pattern used by other async Grasshopper plugins (e.g., Speckle).
+All data-transfer components (uploads, downloads, module saves, deletes) now run their network calls off the solver thread and re-solve on completion via `RhinoApp.InvokeOnUiThread` + `ExpireSolution`. Action-button components use the shared `StartAsync`/`TryFinishAsync` runner in `SelvagenActionComponentBase`; input-driven components (selectors, downloads) use the matching manual-async pattern, building Rhino geometry on the re-solve (solver thread). The only remaining synchronous call is `SelvagenLoginComponent` — intentionally so: it is a fast auth handshake whose session must propagate to the whole graph synchronously.
 
 ### 5.3 ~~HIGH: No JWT Token Refresh~~ RESOLVED
 
@@ -254,7 +252,7 @@ Prioritized by impact on the engineering workflow, aligned with the platform tim
 |---|------|--------|
 | 4 | **Module components** | ✅ Topography, Geology, Analyses, Optimizations — auto-create + batch-patch |
 | 5 | **List Assets component** | ✅ `SelvagenListAssets` — meshes, curve_sets, text_3d_sets |
-| 6 | **Async non-blocking uploads** | ⏳ Still uses sync-over-async (`Task.Run().GetAwaiter().GetResult()`) |
+| 6 | **Async non-blocking uploads** | ✅ All data-transfer components run off-thread + re-solve on completion; only Login stays sync (fast auth, synchronous session propagation) |
 
 ### P2 -- Medium ✅ COMPLETE (except Storage URL)
 
