@@ -58,9 +58,12 @@ namespace Selvagen.Core.Api
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Fall through to defaults
+                // A malformed config file would otherwise silently route the user to the
+                // baked-in PRODUCTION environment. Surface it so "why am I hitting prod?"
+                // is debuggable.
+                System.Diagnostics.Debug.WriteLine($"[Selvagen] Failed to load {ConfigFilePath}: {ex.Message}. Using compiled defaults.");
             }
 
             return new ConfigFile
