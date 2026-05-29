@@ -36,3 +36,11 @@ Thumbs.db
 .env
 *.env
 __pycache__/
+
+## Runtime logs (may contain emails, project names, tokens)
+debug.log
+*.log
+
+## Build/runtime artifacts that slipped in
+*.gh.inflated
+**/Properties/launchSettings.json
