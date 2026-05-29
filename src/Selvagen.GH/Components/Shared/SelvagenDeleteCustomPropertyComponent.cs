@@ -43,9 +43,18 @@ namespace Selvagen.GH.Components
             DA.GetDataList(1, keys);
 
             var client = SessionManager.Current;
+            DA.SetData(0, false);
+
+            if (TryFinishAsync<int>(DA, 1, (da, n) =>
+                {
+                    da.SetData(0, true);
+                    da.SetData(1, $"Deleted {n} properties");
+                }))
+                return;
 
             if (!ActionRequested)
             {
+                if (IsRunningAsync) { DA.SetData(1, "Deleting..."); return; }
                 if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 DA.SetData(0, false);
@@ -90,26 +99,8 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            try
-            {
-                IsRunning = true;
-                ForceCanvasRefresh();
-
-                int n = Task.Run(() => client.DeleteCustomPropertiesAsync(projectId, cleaned.ToArray()))
-                            .GetAwaiter().GetResult();
-
-                DA.SetData(0, true);
-                DA.SetData(1, $"Deleted {n} properties");
-            }
-            catch (Exception ex)
-            {
-                DA.SetData(0, false);
-                SetActionError(DA, 1, ex);
-            }
-            finally
-            {
-                IsRunning = false;
-            }
+            StartAsync(() => client.DeleteCustomPropertiesAsync(projectId, cleaned.ToArray()));
+            DA.SetData(1, "Deleting...");
         }
     }
 }

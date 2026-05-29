@@ -33,6 +33,13 @@ namespace Selvagen.GH.Components
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            if (TryFinishAsync<(string RecordId, bool Created, int FieldCount)>(DA, 1, (da, r) =>
+                {
+                    da.SetData(0, r.RecordId);
+                    da.SetData(1, $"{(r.Created ? "Created" : "Updated")}: {ModuleTable} ({r.FieldCount} fields)");
+                }))
+                return;
+
             string projectId = "";
             DA.GetData(0, ref projectId);
 
@@ -40,6 +47,7 @@ namespace Selvagen.GH.Components
 
             if (!UploadRequested)
             {
+                if (IsRunningAsync) { DA.SetData(1, "Saving..."); return; }
                 if (client == null)
                     AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Not logged in. Place a Login component first.");
                 SetReady(DA, 1);
@@ -60,53 +68,21 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            try
+            var values = CollectValues(DA); // solver thread — reads inputs
+            StartAsync(async () =>
             {
-                IsUploading = true;
-                ForceCanvasRefresh();
-
-                var existing = Task.Run(() =>
-                    client.ListModuleRecordsAsync(ModuleTable, projectId))
-                    .GetAwaiter().GetResult();
-
-                string recordId;
-                bool created = false;
-
-                if (existing != null && existing.Length > 0)
-                {
-                    recordId = existing[0].Id;
-                }
-                else
-                {
-                    var record = Task.Run(() =>
-                        client.CreateModuleRecordAsync(ModuleTable, projectId))
-                        .GetAwaiter().GetResult();
-                    recordId = record.Id;
-                    created = true;
-                }
-
-                var values = CollectValues(DA);
+                var existing = await client.ListModuleRecordsAsync(ModuleTable, projectId).ConfigureAwait(false);
+                string recordId; bool created = false;
+                if (existing != null && existing.Length > 0) recordId = existing[0].Id;
+                else { var rec = await client.CreateModuleRecordAsync(ModuleTable, projectId).ConfigureAwait(false); recordId = rec.Id; created = true; }
                 if (values.Count > 0)
                 {
                     PluginLogger.Log($"{GetType().Name}: PATCHing {values.Count} fields on {ModuleTable}/{recordId}...");
-                    Task.Run(() =>
-                        client.UpdateModuleAsync(ModuleTable, recordId, values))
-                        .GetAwaiter().GetResult();
+                    await client.UpdateModuleAsync(ModuleTable, recordId, values).ConfigureAwait(false);
                 }
-
-                DA.SetData(0, recordId);
-                DA.SetData(1, $"{(created ? "Created" : "Updated")}: {ModuleTable} ({values.Count} fields)");
-            }
-            catch (Exception ex)
-            {
-                var msg = ex.Unwrap().Message;
-                PluginLogger.Log($"{GetType().Name} Error: {msg}");
-                SetUploadError(DA, 1, ex);
-            }
-            finally
-            {
-                IsUploading = false;
-            }
+                return (recordId, created, values.Count);
+            });
+            DA.SetData(1, "Saving...");
         }
 
         // ── Helpers for reading optional inputs ────────────────────────────

@@ -9,6 +9,12 @@ namespace Selvagen.GH.Components
     {
         private static readonly string[] ValidTables = { "meshes", "curve_sets", "label_sets", "animation_sequences" };
 
+        private volatile bool _isDeleting;
+        private bool _lastDelete;
+        private bool? _pendingSuccess;
+        private string _pendingMsg;
+        private readonly object _lock = new object();
+
         public SelvagenDeleteAssetComponent()
             : base("Delete Asset", "SvDelete",
                 "Delete a mesh, curve set, or label set by ID. [Excluir Asset]",
@@ -35,12 +41,26 @@ namespace Selvagen.GH.Components
             string tableName = "";
             string assetId = "";
             bool doDelete = false;
-
             DA.GetData(0, ref tableName);
             DA.GetData(1, ref assetId);
             DA.GetData(2, ref doDelete);
 
             var client = SessionManager.Current;
+
+            // 1. Finished delete waiting?
+            bool? success; string msg;
+            lock (_lock) { success = _pendingSuccess; _pendingSuccess = null; msg = _pendingMsg; _pendingMsg = null; }
+            if (success.HasValue)
+            {
+                if (!success.Value) AddRuntimeMessage(GH_RuntimeMessageLevel.Error, msg);
+                DA.SetData(0, success.Value);
+                DA.SetData(1, msg);
+                _lastDelete = doDelete; // consume this true-state so it won't re-fire
+                return;
+            }
+
+            bool rising = doDelete && !_lastDelete;
+            _lastDelete = doDelete;
 
             if (!doDelete || client == null)
             {
@@ -69,23 +89,40 @@ namespace Selvagen.GH.Components
                 return;
             }
 
-            try
+            if (_isDeleting) { DA.SetData(0, false); DA.SetData(1, "Deleting..."); return; }
+            if (!rising)
             {
-                PluginLogger.Log($"SelvagenDeleteAssetComponent: Deleting {tableNorm}/{assetId}...");
-                Task.Run(() => client.DeleteAssetAsync(tableNorm, assetId)).GetAwaiter().GetResult();
-
-                PluginLogger.Log($"SelvagenDeleteAssetComponent: Deleted successfully.");
-                DA.SetData(0, true);
-                DA.SetData(1, $"Deleted: {assetId}");
-            }
-            catch (Exception ex)
-            {
-                string errorMsg = ex.InnerException?.Message ?? ex.Message;
-                PluginLogger.Log($"SelvagenDeleteAssetComponent Error: {errorMsg}");
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, errorMsg);
                 DA.SetData(0, false);
-                DA.SetData(1, $"Error: {errorMsg}");
+                DA.SetData(1, "Toggle Delete off then on to delete again.");
+                return;
             }
+
+            _isDeleting = true;
+            var t = tableNorm; var id = assetId;
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    PluginLogger.Log($"SelvagenDeleteAssetComponent: Deleting {t}/{id}...");
+                    await client.DeleteAssetAsync(t, id).ConfigureAwait(false);
+                    lock (_lock) { _pendingSuccess = true; _pendingMsg = $"Deleted: {id}"; }
+                }
+                catch (Exception ex)
+                {
+                    var m = ex.Unwrap().Message;
+                    lock (_lock) { _pendingSuccess = false; _pendingMsg = $"Error: {m}"; }
+                }
+                finally
+                {
+                    _isDeleting = false;
+                    Rhino.RhinoApp.InvokeOnUiThread(new Action(() =>
+                    {
+                        if (OnPingDocument() != null) ExpireSolution(true);
+                    }));
+                }
+            });
+            DA.SetData(0, false);
+            DA.SetData(1, "Deleting...");
         }
 
         public override GH_Exposure Exposure => GH_Exposure.primary;
