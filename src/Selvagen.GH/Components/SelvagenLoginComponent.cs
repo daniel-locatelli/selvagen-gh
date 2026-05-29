@@ -59,13 +59,13 @@ namespace Selvagen.GH.Components
                 string url = SelvagenConfig.SupabaseUrl;
                 string key = SelvagenConfig.SupabaseAnonKey;
 
-                PluginLogger.Log($"Logging in to {url} with email {email}");
+                PluginLogger.Log($"Logging in to {url}");
 
                 _client = new SelvagenClient(url, key);
                 var result = Task.Run(() => _client.LoginAsync(email, password)).GetAwaiter().GetResult();
                 SessionManager.Current = _client;
                 _statusMessage = $"Logged in as {result.User?.Email ?? email}";
-                PluginLogger.Log($"Login successful: {_statusMessage}");
+                PluginLogger.Log("Login successful.");
             }
             catch (Exception ex)
             {
