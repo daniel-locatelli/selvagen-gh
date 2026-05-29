@@ -98,7 +98,7 @@ namespace Selvagen.GH.Components
                     }
                     catch (Exception ex)
                     {
-                        _lastFetchError = ex.InnerException?.Message ?? ex.Message;
+                        _lastFetchError = ex.Unwrap().Message;
                         PluginLogger.Log($"{GetType().Name} fetch error: {_lastFetchError}");
                     }
                     finally

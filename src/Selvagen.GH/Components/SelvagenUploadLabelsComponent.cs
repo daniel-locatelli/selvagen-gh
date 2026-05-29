@@ -39,10 +39,10 @@ namespace Selvagen.GH.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             // Emit a finished async result, if one is waiting.
-            if (TryFinishAsync<(Selvagen.Core.Models.UploadResult Result, int Count)>(DA, 1, (da, t) =>
+            if (TryFinishAsync<(Selvagen.Core.Models.UploadResult Upload, int Count)>(DA, 1, (da, t) =>
                 {
-                    da.SetData(0, t.Result.Id);
-                    da.SetData(1, $"Uploaded: {t.Result.Name} ({t.Count} labels)");
+                    da.SetData(0, t.Upload.Id);
+                    da.SetData(1, $"Uploaded: {t.Upload.Name} ({t.Count} labels)");
                 }))
                 return;
 
