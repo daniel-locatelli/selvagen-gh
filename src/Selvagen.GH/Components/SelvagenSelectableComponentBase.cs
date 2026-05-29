@@ -31,6 +31,7 @@ namespace Selvagen.GH.Components
         private bool _forceRefresh;
         private volatile bool _isFetching;
         private volatile string _lastFetchError;
+        private readonly object _stateLock = new object();
 
         // ── Hooks subclasses implement ───────────────────────────────────────
 
@@ -105,11 +106,18 @@ namespace Selvagen.GH.Components
                         var items = await FetchAsync(client, inputs).ConfigureAwait(false);
                         if (items != null)
                         {
-                            _cachedItems = items;
-                            _cachedKey = capturedKey;
-
-                            string reconciled = Reconcile.SelectId(_cachedItems, _selectedId, GetId);
-                            _selectedId = reconciled;
+                            string currentSelected;
+                            lock (_stateLock)
+                            {
+                                _cachedItems = items;
+                                _cachedKey = capturedKey;
+                                currentSelected = _selectedId;
+                            }
+                            string reconciled = Reconcile.SelectId(items, currentSelected, GetId);
+                            lock (_stateLock)
+                            {
+                                _selectedId = reconciled;
+                            }
                         }
                         else
                         {
@@ -143,20 +151,24 @@ namespace Selvagen.GH.Components
 
         private void EmitOutputs(IGH_DataAccess DA)
         {
-            string selectedId = _selectedId ?? "";
-            string selectedName = "";
-            if (_selectedId != null && _cachedItems != null)
+            TItem[] items;
+            string selId;
+            lock (_stateLock)
             {
-                var match = _cachedItems.FirstOrDefault(i => GetId(i) == _selectedId);
+                items = _cachedItems;
+                selId = _selectedId;
+            }
+
+            string selectedId = selId ?? "";
+            string selectedName = "";
+            if (selId != null && items != null)
+            {
+                var match = items.FirstOrDefault(i => GetId(i) == selId);
                 if (match != null) selectedName = GetDisplayName(match);
             }
 
-            var ids = _cachedItems == null
-                ? new List<string>()
-                : _cachedItems.Select(GetId).ToList();
-            var names = _cachedItems == null
-                ? new List<string>()
-                : _cachedItems.Select(GetDisplayName).ToList();
+            var ids = items == null ? new List<string>() : items.Select(GetId).ToList();
+            var names = items == null ? new List<string>() : items.Select(GetDisplayName).ToList();
 
             DA.SetData(0, selectedId);
             DA.SetData(1, selectedName);
@@ -171,12 +183,13 @@ namespace Selvagen.GH.Components
             get
             {
                 if (SessionManager.Current == null) return "Not logged in";
-                if (_cachedItems == null) return "Loading…";
-                if (_selectedId != null)
+                TItem[] items; string selId;
+                lock (_stateLock) { items = _cachedItems; selId = _selectedId; }
+                if (items == null) return "Loading…";
+                if (selId != null)
                 {
-                    var match = _cachedItems.FirstOrDefault(i => GetId(i) == _selectedId);
-                    if (match != null) return GetDisplayName(match);
-                    return "<missing item>";
+                    var match = items.FirstOrDefault(i => GetId(i) == selId);
+                    return match != null ? GetDisplayName(match) : "<missing item>";
                 }
                 return "— Select —";
             }
@@ -186,8 +199,10 @@ namespace Selvagen.GH.Components
 
         public IEnumerable<(string Id, string Name)> GetMenuItems()
         {
-            if (_cachedItems == null) yield break;
-            foreach (var item in _cachedItems)
+            TItem[] items;
+            lock (_stateLock) { items = _cachedItems; }
+            if (items == null) yield break;
+            foreach (var item in items)
                 yield return (GetId(item), GetDisplayName(item));
         }
 
