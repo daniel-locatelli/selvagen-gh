@@ -44,3 +44,6 @@ debug.log
 ## Build/runtime artifacts that slipped in
 *.gh.inflated
 **/Properties/launchSettings.json
+
+## Claude worktrees (never commit a worktree into its parent repo)
+.claude/worktrees/
