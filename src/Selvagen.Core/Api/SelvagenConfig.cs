@@ -11,6 +11,12 @@ namespace Selvagen.Core.Api
     /// </summary>
     public static class SelvagenConfig
     {
+        // SECURITY MODEL: the Supabase "anon" key below is a PUBLISHABLE key and is
+        // intentionally shipped in the binary. It grants no privileges on its own —
+        // every table is protected by Postgres Row Level Security (RLS). The plugin's
+        // data security therefore depends ENTIRELY on server-side RLS policies being
+        // correct. Do NOT add a service-role key here. If RLS guarantees are ever in
+        // doubt, rotate this key and tighten policies rather than relying on secrecy.
         private const string DefaultSupabaseUrl = "https://aqzfsrebvjkegvfexcut.supabase.co";
         private const string DefaultSupabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxemZzcmVidmprZWd2ZmV4Y3V0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5ODY2MjcsImV4cCI6MjA4NjU2MjYyN30.UO63GIMmVBtR9Nv7-a7-XNuYGeO3-p8q5M24nr2AWbk";
         private const string ConfigFileName = "selvagen.config.json";
