@@ -221,7 +221,7 @@ namespace Selvagen.Core.Api
         public async Task<AssetInfo[]> ListMeshesAsync(string projectId)
         {
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
-            var path = $"/rest/v1/meshes?project_id=eq.{projectId}&select=id,name,type,created_at&order=created_at.desc";
+            var path = $"/rest/v1/meshes?{Postgrest.Eq("project_id", projectId)}&select=id,name,type,created_at&order=created_at.desc";
             return await QueryAssetsAsync(path, "meshes").ConfigureAwait(false);
         }
 
@@ -231,14 +231,14 @@ namespace Selvagen.Core.Api
         public async Task<AssetInfo[]> ListCurveSetsAsync(string projectId)
         {
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
-            var path = $"/rest/v1/curve_sets?project_id=eq.{projectId}&select=id,name,created_at&order=created_at.desc";
+            var path = $"/rest/v1/curve_sets?{Postgrest.Eq("project_id", projectId)}&select=id,name,created_at&order=created_at.desc";
             return await QueryAssetsAsync(path, "curve_sets").ConfigureAwait(false);
         }
 
         public async Task<AssetInfo[]> ListLabelSetsAsync(string projectId)
         {
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
-            var path = $"/rest/v1/label_sets?project_id=eq.{projectId}&select=id,name,created_at&order=created_at.desc";
+            var path = $"/rest/v1/label_sets?{Postgrest.Eq("project_id", projectId)}&select=id,name,created_at&order=created_at.desc";
             return await QueryAssetsAsync(path, "label_sets").ConfigureAwait(false);
         }
 
@@ -248,7 +248,7 @@ namespace Selvagen.Core.Api
         public async Task<AssetInfo[]> ListAnimationSequencesAsync(string projectId)
         {
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
-            var path = $"/rest/v1/animation_sequences?project_id=eq.{projectId}&select=id,name,created_at&order=created_at.desc";
+            var path = $"/rest/v1/animation_sequences?{Postgrest.Eq("project_id", projectId)}&select=id,name,created_at&order=created_at.desc";
             return await QueryAssetsAsync(path, "animation_sequences").ConfigureAwait(false);
         }
 
@@ -261,7 +261,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
 
-            var path = $"/rest/v1/color_legends?project_id=eq.{projectId}&select=id,name,variant,colors,labels,domain_min,domain_max,unit&order=name";
+            var path = $"/rest/v1/color_legends?{Postgrest.Eq("project_id", projectId)}&select=id,name,variant,colors,labels,domain_min,domain_max,unit&order=name";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -278,7 +278,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(legendId)) throw new ArgumentNullException(nameof(legendId));
 
-            var path = $"/rest/v1/color_legends?id=eq.{legendId}&select=id,project_id,name,variant,colors,labels,domain_min,domain_max,unit,created_at,updated_at";
+            var path = $"/rest/v1/color_legends?{Postgrest.Eq("id", legendId)}&select=id,project_id,name,variant,colors,labels,domain_min,domain_max,unit,created_at,updated_at";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -338,7 +338,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(legendId)) throw new ArgumentNullException(nameof(legendId));
 
-            var path = $"/rest/v1/color_legends?id=eq.{legendId}";
+            var path = $"/rest/v1/color_legends?{Postgrest.Eq("id", legendId)}";
             var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}{path}");
             await EnsureValidTokenAsync().ConfigureAwait(false);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
@@ -361,7 +361,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
 
-            var path = $"/rest/v1/custom_properties?project_id=eq.{projectId}&select=id,project_id,key,value,value_type,created_at,updated_at&order=key";
+            var path = $"/rest/v1/custom_properties?{Postgrest.Eq("project_id", projectId)}&select=id,project_id,key,value,value_type,created_at,updated_at&order=key";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -415,11 +415,7 @@ namespace Selvagen.Core.Api
             if (keys == null) throw new ArgumentNullException(nameof(keys));
             if (keys.Length == 0) return 0;
 
-            // PostgREST `in.(...)` requires comma-separated literals. Keys are already
-            // validated snake_case so URL-escaping is a no-op, but we use Uri.EscapeDataString
-            // anyway as a safety belt — the DB CHECK will catch anything that slipped through.
-            var encoded = string.Join(",", Array.ConvertAll(keys, Uri.EscapeDataString));
-            var path = $"/rest/v1/custom_properties?project_id=eq.{projectId}&key=in.({encoded})";
+            var path = $"/rest/v1/custom_properties?{Postgrest.Eq("project_id", projectId)}&{Postgrest.InList("key", keys)}";
 
             await EnsureValidTokenAsync().ConfigureAwait(false);
             var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}{path}");
@@ -454,7 +450,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException(nameof(tableName));
             if (string.IsNullOrEmpty(assetId)) throw new ArgumentNullException(nameof(assetId));
 
-            var path = $"/rest/v1/{tableName}?id=eq.{assetId}";
+            var path = $"/rest/v1/{tableName}?{Postgrest.Eq("id", assetId)}";
             var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}{path}");
             await EnsureValidTokenAsync().ConfigureAwait(false);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
@@ -488,7 +484,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
-            var path = $"/rest/v1/meshes?id=eq.{id}&select=id,name,type,geometry_data,geometry_url";
+            var path = $"/rest/v1/meshes?{Postgrest.Eq("id", id)}&select=id,name,type,geometry_data,geometry_url";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -509,7 +505,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
-            var path = $"/rest/v1/curve_sets?id=eq.{id}&select=id,name,geometry_data,geometry_url";
+            var path = $"/rest/v1/curve_sets?{Postgrest.Eq("id", id)}&select=id,name,geometry_data,geometry_url";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -527,7 +523,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
-            var path = $"/rest/v1/label_sets?id=eq.{id}&select=id,name,text_data,geometry_url";
+            var path = $"/rest/v1/label_sets?{Postgrest.Eq("id", id)}&select=id,name,text_data,geometry_url";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -548,7 +544,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
-            var path = $"/rest/v1/animation_sequences?id=eq.{id}&select=id,name,fps,loop,base_asset_id,frame_count";
+            var path = $"/rest/v1/animation_sequences?{Postgrest.Eq("id", id)}&select=id,name,fps,loop,base_asset_id,frame_count";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -569,7 +565,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(sequenceId)) throw new ArgumentNullException(nameof(sequenceId));
 
-            var path = $"/rest/v1/animation_frames?sequence_id=eq.{sequenceId}&select=frame_index,geometry_data,label&order=frame_index";
+            var path = $"/rest/v1/animation_frames?{Postgrest.Eq("sequence_id", sequenceId)}&select=frame_index,geometry_data,label&order=frame_index";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -721,7 +717,7 @@ namespace Selvagen.Core.Api
         {
             if (string.IsNullOrEmpty(clientId)) return await ListProjectsAsync();
 
-            var path = $"/rest/v1/projects?client_id=eq.{clientId}&select=id,name,created_at";
+            var path = $"/rest/v1/projects?{Postgrest.Eq("client_id", clientId)}&select=id,name,created_at";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -739,7 +735,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException(nameof(tableName));
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
 
-            var path = $"/rest/v1/{tableName}?project_id=eq.{projectId}&select=id,project_id,created_at";
+            var path = $"/rest/v1/{tableName}?{Postgrest.Eq("project_id", projectId)}&select=id,project_id,created_at";
             var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -767,7 +763,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
             if (values == null || values.Count == 0) return;
 
-            var path = $"/rest/v1/{tableName}?id=eq.{recordId}";
+            var path = $"/rest/v1/{tableName}?{Postgrest.Eq("id", recordId)}";
             var body = JsonSerializer.Serialize(values);
             var content = new StringContent(body, Encoding.UTF8, "application/json");
 
