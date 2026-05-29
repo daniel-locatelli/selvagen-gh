@@ -262,13 +262,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
 
             var path = $"/rest/v1/color_legends?{Postgrest.Eq("project_id", projectId)}&select=id,name,variant,colors,labels,domain_min,domain_max,unit&order=name";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"List color legends failed: {json}", (int)response.StatusCode);
-
-            return JsonSerializer.Deserialize<ColorLegendInfo[]>(json);
+            return await GetJsonAsync<ColorLegendInfo[]>(path, "List color legends").ConfigureAwait(false);
         }
 
         /// <summary>
@@ -279,13 +273,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(legendId)) throw new ArgumentNullException(nameof(legendId));
 
             var path = $"/rest/v1/color_legends?{Postgrest.Eq("id", legendId)}&select=id,project_id,name,variant,colors,labels,domain_min,domain_max,unit,created_at,updated_at";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"Get color legend failed: {json}", (int)response.StatusCode);
-
-            var results = JsonSerializer.Deserialize<ColorLegendInfo[]>(json);
+            var results = await GetJsonAsync<ColorLegendInfo[]>(path, "Get color legend").ConfigureAwait(false);
             if (results == null || results.Length == 0)
                 throw new SelvagenApiException($"Color legend {legendId} not found", 404);
 
@@ -305,20 +293,8 @@ namespace Selvagen.Core.Api
             payload.ProjectId = projectId;
             payload.Name = name;
 
-            var url = $"{_supabaseUrl}/rest/v1/color_legends?on_conflict=project_id,name";
-            var body = JsonSerializer.Serialize(payload);
-            var content = new StringContent(body, Encoding.UTF8, "application/json");
-
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            var request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = content
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
-            request.Headers.Add("Prefer", "resolution=merge-duplicates,return=representation");
-
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var path = "/rest/v1/color_legends?on_conflict=project_id,name";
+            var response = await SendJsonAsync(HttpMethod.Post, path, payload, "resolution=merge-duplicates,return=representation").ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
@@ -339,12 +315,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(legendId)) throw new ArgumentNullException(nameof(legendId));
 
             var path = $"/rest/v1/color_legends?{Postgrest.Eq("id", legendId)}";
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}{path}");
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
-
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var response = await SendJsonAsync(HttpMethod.Delete, path).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -362,13 +333,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
 
             var path = $"/rest/v1/custom_properties?{Postgrest.Eq("project_id", projectId)}&select=id,project_id,key,value,value_type,created_at,updated_at&order=key";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"List custom properties failed: {json}", (int)response.StatusCode);
-
-            return JsonSerializer.Deserialize<CustomPropertyInfo[]>(json) ?? new CustomPropertyInfo[0];
+            return await GetJsonAsync<CustomPropertyInfo[]>(path, "List custom properties").ConfigureAwait(false) ?? new CustomPropertyInfo[0];
         }
 
         /// <summary>
@@ -385,17 +350,8 @@ namespace Selvagen.Core.Api
             // Defensive: stamp project_id on every row so callers can't forget.
             foreach (var p in properties) p.ProjectId = projectId;
 
-            var url = $"{_supabaseUrl}/rest/v1/custom_properties?on_conflict=project_id,key";
-            var body = JsonSerializer.Serialize(properties);
-            var content = new StringContent(body, Encoding.UTF8, "application/json");
-
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
-            request.Headers.Add("Prefer", "resolution=merge-duplicates,return=representation");
-
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var path = "/rest/v1/custom_properties?on_conflict=project_id,key";
+            var response = await SendJsonAsync(HttpMethod.Post, path, properties, "resolution=merge-duplicates,return=representation").ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
@@ -417,13 +373,7 @@ namespace Selvagen.Core.Api
 
             var path = $"/rest/v1/custom_properties?{Postgrest.Eq("project_id", projectId)}&{Postgrest.InList("key", keys)}";
 
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}{path}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
-            request.Headers.Add("Prefer", "count=exact,return=minimal");
-
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var response = await SendJsonAsync(HttpMethod.Delete, path, null, "count=exact,return=minimal").ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -451,12 +401,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(assetId)) throw new ArgumentNullException(nameof(assetId));
 
             var path = $"/rest/v1/{tableName}?{Postgrest.Eq("id", assetId)}";
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}{path}");
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
-
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var response = await SendJsonAsync(HttpMethod.Delete, path).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -466,13 +411,7 @@ namespace Selvagen.Core.Api
 
         private async Task<AssetInfo[]> QueryAssetsAsync(string path, string label)
         {
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"List {label} failed: {json}", (int)response.StatusCode);
-
-            return JsonSerializer.Deserialize<AssetInfo[]>(json);
+            return await GetJsonAsync<AssetInfo[]>(path, $"List {label}").ConfigureAwait(false);
         }
 
         // ── Asset Downloads (full data) ─────────────────────────────────
@@ -485,13 +424,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
             var path = $"/rest/v1/meshes?{Postgrest.Eq("id", id)}&select=id,name,type,geometry_data,geometry_url";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"Get mesh failed: {json}", (int)response.StatusCode);
-
-            var results = JsonSerializer.Deserialize<MeshAssetFull[]>(json);
+            var results = await GetJsonAsync<MeshAssetFull[]>(path, "Get mesh").ConfigureAwait(false);
             if (results == null || results.Length == 0)
                 throw new SelvagenApiException($"Mesh not found: {id}", 404);
 
@@ -506,13 +439,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
             var path = $"/rest/v1/curve_sets?{Postgrest.Eq("id", id)}&select=id,name,geometry_data,geometry_url";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"Get curve set failed: {json}", (int)response.StatusCode);
-
-            var results = JsonSerializer.Deserialize<CurveSetAssetFull[]>(json);
+            var results = await GetJsonAsync<CurveSetAssetFull[]>(path, "Get curve set").ConfigureAwait(false);
             if (results == null || results.Length == 0)
                 throw new SelvagenApiException($"Curve set not found: {id}", 404);
 
@@ -524,13 +451,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
             var path = $"/rest/v1/label_sets?{Postgrest.Eq("id", id)}&select=id,name,text_data,geometry_url";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"Get label set failed: {json}", (int)response.StatusCode);
-
-            var results = JsonSerializer.Deserialize<LabelSetAssetFull[]>(json);
+            var results = await GetJsonAsync<LabelSetAssetFull[]>(path, "Get label set").ConfigureAwait(false);
             if (results == null || results.Length == 0)
                 throw new SelvagenApiException($"Label set not found: {id}", 404);
 
@@ -545,13 +466,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
 
             var path = $"/rest/v1/animation_sequences?{Postgrest.Eq("id", id)}&select=id,name,fps,loop,base_asset_id,frame_count";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"Get animation sequence failed: {json}", (int)response.StatusCode);
-
-            var results = JsonSerializer.Deserialize<AnimationSequenceFull[]>(json);
+            var results = await GetJsonAsync<AnimationSequenceFull[]>(path, "Get animation sequence").ConfigureAwait(false);
             if (results == null || results.Length == 0)
                 throw new SelvagenApiException($"Animation sequence not found: {id}", 404);
 
@@ -566,13 +481,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(sequenceId)) throw new ArgumentNullException(nameof(sequenceId));
 
             var path = $"/rest/v1/animation_frames?{Postgrest.Eq("sequence_id", sequenceId)}&select=frame_index,geometry_data,label&order=frame_index";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"Get animation frames failed: {json}", (int)response.StatusCode);
-
-            return JsonSerializer.Deserialize<AnimationFrameFull[]>(json) ?? new AnimationFrameFull[0];
+            return await GetJsonAsync<AnimationFrameFull[]>(path, "Get animation frames").ConfigureAwait(false) ?? new AnimationFrameFull[0];
         }
 
         // ── Module Records ───────────────────────────────────────────────
@@ -588,17 +497,7 @@ namespace Selvagen.Core.Api
 
             var path = $"/rest/v1/{tableName}";
             var payload = new Dictionary<string, object> { { "project_id", projectId } };
-            var body = JsonSerializer.Serialize(payload);
-            var content = new StringContent(body, Encoding.UTF8, "application/json");
-
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}{path}");
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
-            request.Headers.Add("Prefer", "return=representation");
-            request.Content = content;
-
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var response = await SendJsonAsync(HttpMethod.Post, path, payload, "return=representation").ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
@@ -634,17 +533,7 @@ namespace Selvagen.Core.Api
                 { "fps", fps },
                 { "loop", loop },
             };
-            var body = JsonSerializer.Serialize(payload);
-            var content = new StringContent(body, Encoding.UTF8, "application/json");
-
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}/rest/v1/animation_sequences");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
-            request.Headers.Add("Prefer", "return=representation");
-            request.Content = content;
-
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var response = await SendJsonAsync(HttpMethod.Post, "/rest/v1/animation_sequences", payload, "return=representation").ConfigureAwait(false);
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
@@ -675,16 +564,7 @@ namespace Selvagen.Core.Api
             if (label != null)
                 payload["label"] = label;
 
-            var body = JsonSerializer.Serialize(payload);
-            var content = new StringContent(body, Encoding.UTF8, "application/json");
-
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_supabaseUrl}/rest/v1/animation_frames");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
-            request.Content = content;
-
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var response = await SendJsonAsync(HttpMethod.Post, "/rest/v1/animation_frames", payload).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -701,13 +581,7 @@ namespace Selvagen.Core.Api
         {
             // Query firms table for type = 'client'
             var path = "/rest/v1/firms?type=eq.client&select=id,legal_name,type";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"List clients failed: {json}", (int)response.StatusCode);
-
-            return JsonSerializer.Deserialize<FirmInfo[]>(json);
+            return await GetJsonAsync<FirmInfo[]>(path, "List clients").ConfigureAwait(false);
         }
 
         /// <summary>
@@ -718,13 +592,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(clientId)) return await ListProjectsAsync();
 
             var path = $"/rest/v1/projects?{Postgrest.Eq("client_id", clientId)}&select=id,name,created_at";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"List projects by client failed: {json}", (int)response.StatusCode);
-
-            return JsonSerializer.Deserialize<ProjectInfo[]>(json);
+            return await GetJsonAsync<ProjectInfo[]>(path, "List projects by client").ConfigureAwait(false);
         }
 
         /// <summary>
@@ -736,13 +604,7 @@ namespace Selvagen.Core.Api
             if (string.IsNullOrEmpty(projectId)) throw new ArgumentNullException(nameof(projectId));
 
             var path = $"/rest/v1/{tableName}?{Postgrest.Eq("project_id", projectId)}&select=id,project_id,created_at";
-            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                throw new SelvagenApiException($"List module records ({tableName}) failed: {json}", (int)response.StatusCode);
-
-            return JsonSerializer.Deserialize<ModuleRecord[]>(json);
+            return await GetJsonAsync<ModuleRecord[]>(path, $"List module records ({tableName})").ConfigureAwait(false);
         }
 
         /// <summary>
@@ -764,17 +626,7 @@ namespace Selvagen.Core.Api
             if (values == null || values.Count == 0) return;
 
             var path = $"/rest/v1/{tableName}?{Postgrest.Eq("id", recordId)}";
-            var body = JsonSerializer.Serialize(values);
-            var content = new StringContent(body, Encoding.UTF8, "application/json");
-
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            var request = new HttpRequestMessage(new HttpMethod("PATCH"), $"{_supabaseUrl}{path}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
-            request.Headers.Add("Prefer", "return=representation");
-            request.Content = content;
-
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
+            var response = await SendJsonAsync(new HttpMethod("PATCH"), path, values, "return=representation").ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -783,6 +635,36 @@ namespace Selvagen.Core.Api
         }
 
         // ── Helpers ─────────────────────────────────────────────────────────
+
+        /// <summary>GET an authorized PostgREST/Edge path and deserialize the JSON array/object.</summary>
+        private async Task<T> GetJsonAsync<T>(string path, string label)
+        {
+            var response = await SendAuthorizedAsync(HttpMethod.Get, path).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+                throw new SelvagenApiException($"{label} failed: {json}", (int)response.StatusCode);
+            return JsonSerializer.Deserialize<T>(json);
+        }
+
+        /// <summary>
+        /// Send an authorized request with an optional JSON body (POST/PATCH/DELETE) and
+        /// optional Prefer header, returning the raw response for the caller to interpret.
+        /// </summary>
+        private async Task<HttpResponseMessage> SendJsonAsync(
+            HttpMethod method, string path, object payload = null, string prefer = null)
+        {
+            await EnsureValidTokenAsync().ConfigureAwait(false);
+            var request = new HttpRequestMessage(method, $"{_supabaseUrl}{path}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+            request.Headers.Add("apikey", _anonKey);
+            if (prefer != null) request.Headers.Add("Prefer", prefer);
+            if (payload != null)
+            {
+                var body = JsonSerializer.Serialize(payload);
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+            }
+            return await _http.SendAsync(request).ConfigureAwait(false);
+        }
 
         private async Task<UploadResult> PostUploadAsync(string path, object payload)
         {
