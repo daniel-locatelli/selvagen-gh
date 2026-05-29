@@ -50,6 +50,7 @@ namespace Selvagen.Core.Api
             _supabaseUrl = supabaseUrl?.TrimEnd('/') ?? throw new ArgumentNullException(nameof(supabaseUrl));
             _anonKey = anonKey ?? throw new ArgumentNullException(nameof(anonKey));
             _http = new HttpClient();
+            _http.Timeout = TimeSpan.FromSeconds(100); // explicit; a hung server now fails instead of hanging
             _http.DefaultRequestHeaders.Add("apikey", _anonKey);
         }
 
