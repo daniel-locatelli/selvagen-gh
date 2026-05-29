@@ -4,12 +4,12 @@ using Xunit;
 
 namespace Selvagen.Core.Tests
 {
-    public class Text3DSetModelTests
+    public class LabelSetModelTests
     {
         [Fact]
-        public void Text3DSet_Serializes_To_Expected_Format()
+        public void LabelSet_Serializes_To_Expected_Format()
         {
-            var textSet = new Text3DSet
+            var textSet = new LabelSet
             {
                 Labels = new[]
                 {
