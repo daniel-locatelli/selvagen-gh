@@ -2,13 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
+using GH_IO.Serialization;
 using Grasshopper.Kernel;
 using Selvagen.Core.Models;
 
 namespace Selvagen.GH.Components
 {
-    public class SelvagenUploadColorLegendComponent : SelvagenUploadComponentBase
+    public class SelvagenUploadColorLegendComponent : SelvagenUploadComponentBase, IInlineTypeDropdown
     {
+        // Title-cased for display; lowercased only when sent to the backend.
+        private static readonly string[] VariantOptions = { "Gradient", "Discrete", "Stepped" };
+        private string _selectedVariant = "Gradient";
+
         public SelvagenUploadColorLegendComponent()
             : base("Upload Color Legend", "SvUpLegend",
                 "Upload a color legend to the platform. [Upload de Legenda de Cores]")
@@ -16,25 +21,35 @@ namespace Selvagen.GH.Components
 
         public override Guid ComponentGuid => new Guid("f3a12ee1-3b46-4389-94a6-7564edf5b07c");
 
+        // ── Inline type dropdown (gradient / discrete) ─────────────────────
+        public string[] DropdownOptions => VariantOptions;
+        public string DropdownSelected
+        {
+            get => _selectedVariant;
+            set
+            {
+                if (_selectedVariant == value || Array.IndexOf(VariantOptions, value) < 0) return;
+                _selectedVariant = value;
+                ExpireSolution(true);
+            }
+        }
+
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
+            // Legend type (gradient / discrete) is chosen via the inline dropdown above
+            // the Upload button — see DropdownSelected — not as a wired input.
             pManager.AddTextParameter("Project ID", "PrjID", "Target project ID [ID do Projeto]", GH_ParamAccess.item);
             pManager.AddTextParameter("Name", "N", "Legend display name [Nome]", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Variant", "V", "0 = gradient, 1 = discrete [Variante]", GH_ParamAccess.item, 0);
             pManager.AddColourParameter("Colors", "C", "List of colors [Cores]", GH_ParamAccess.list);
-            pManager.AddTextParameter("Labels", "Lb", "Per-color labels (discrete) [Rótulos]", GH_ParamAccess.list);
+            pManager.AddTextParameter("Labels", "Lb", "Per-color labels (discrete/stepped) [Rótulos]", GH_ParamAccess.list);
             pManager.AddNumberParameter("Domain Min", "DMin", "Start of value range. Defaults to 0 when not connected. [Domínio Mín]", GH_ParamAccess.item, 0.0);
             pManager.AddNumberParameter("Domain Max", "DMax", "End of value range. Defaults to 1 when not connected. [Domínio Máx]", GH_ParamAccess.item, 1.0);
             pManager.AddTextParameter("Unit", "U", "Display unit, e.g. %, °, m [Unidade]", GH_ParamAccess.item);
 
-            pManager[4].Optional = true;
-            pManager[5].Optional = true;
-            pManager[6].Optional = true;
-            pManager[7].Optional = true;
-
-            var variantParam = Params.Input[2] as Grasshopper.Kernel.Parameters.Param_Integer;
-            variantParam?.AddNamedValue("Gradient", 0);
-            variantParam?.AddNamedValue("Discrete", 1);
+            pManager[3].Optional = true; // Labels
+            pManager[4].Optional = true; // Domain Min
+            pManager[5].Optional = true; // Domain Max
+            pManager[6].Optional = true; // Unit
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -46,7 +61,6 @@ namespace Selvagen.GH.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             string projectId = "", name = "", unit = "";
-            int variant = 0;
             // Domain Min/Max have parameter-level defaults (0 and 1), so DA.GetData
             // is guaranteed to populate them whether or not a wire is connected.
             double domainMin = 0, domainMax = 1;
@@ -56,12 +70,11 @@ namespace Selvagen.GH.Components
 
             DA.GetData(0, ref projectId);
             DA.GetData(1, ref name);
-            DA.GetData(2, ref variant);
-            DA.GetDataList(3, colors);
-            DA.GetDataList(4, labels);
-            DA.GetData(5, ref domainMin);
-            DA.GetData(6, ref domainMax);
-            DA.GetData(7, ref unit);
+            DA.GetDataList(2, colors);
+            DA.GetDataList(3, labels);
+            DA.GetData(4, ref domainMin);
+            DA.GetData(5, ref domainMax);
+            DA.GetData(6, ref unit);
 
             var client = SessionManager.Current;
 
@@ -80,6 +93,23 @@ namespace Selvagen.GH.Components
                 return;
             }
 
+            // Stepped legends render one number centered under each color band; the web
+            // renderer keys its layout to `colors` and cannot repair a mismatch (missing
+            // label → empty cell, extra labels → dropped). The plugin is the authoritative
+            // enforcement point. Require exactly one label per color and abort otherwise —
+            // never send a mismatched payload. NOTE: feed Colors/Labels as equal-length
+            // flat lists; GH's longest-list padding can silently duplicate the last item
+            // of the shorter list, which this check is meant to catch rather than mask.
+            if (string.Equals(_selectedVariant, "Stepped", StringComparison.OrdinalIgnoreCase)
+                && labels.Count != colors.Count)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    $"Stepped legend requires one label per color: got {colors.Count} colors and {labels.Count} labels. " +
+                    "Feed Colors and Labels as equal-length flat lists. Upload aborted.");
+                SetReady(DA, 1);
+                return;
+            }
+
             try
             {
                 IsUploading = true;
@@ -94,7 +124,7 @@ namespace Selvagen.GH.Components
 
                 var payload = new ColorLegendPayload
                 {
-                    Variant = variant == 1 ? "discrete" : "gradient",
+                    Variant = _selectedVariant.ToLowerInvariant(),
                     Colors = hexColors,
                     Labels = labels.Count > 0 ? labels.ToArray() : null,
                     DomainMin = (float)domainMin,
@@ -115,6 +145,32 @@ namespace Selvagen.GH.Components
             {
                 IsUploading = false;
             }
+        }
+
+        // ── Persistence ────────────────────────────────────────────────────
+        public override bool Write(GH_IWriter writer)
+        {
+            writer.SetString("SelectedVariant", _selectedVariant);
+            return base.Write(writer);
+        }
+
+        public override bool Read(GH_IReader reader)
+        {
+            if (reader.ItemExists("SelectedVariant"))
+            {
+                // Normalize to the canonical Title-cased option so definitions saved
+                // when options were stored lowercase still display and match correctly.
+                var stored = reader.GetString("SelectedVariant");
+                foreach (var option in VariantOptions)
+                {
+                    if (string.Equals(option, stored, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _selectedVariant = option;
+                        break;
+                    }
+                }
+            }
+            return base.Read(reader);
         }
 
         protected override Bitmap Icon => IconLoader.Load("UploadColorLegend");
