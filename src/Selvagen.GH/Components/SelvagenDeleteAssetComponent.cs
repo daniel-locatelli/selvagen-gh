@@ -82,10 +82,10 @@ namespace Selvagen.GH.Components
                         DA.SetData(1, $"Deleted {assetId} from {result.Table}");
                         break;
                     case "forbidden":
-                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                            "You don't have permission to delete this asset (editor role required).");
+                        const string forbiddenMsg = "You don't have permission to delete this asset (editor role required).";
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, forbiddenMsg);
                         DA.SetData(0, false);
-                        DA.SetData(1, "You don't have permission to delete this asset (editor role required).");
+                        DA.SetData(1, forbiddenMsg);
                         break;
                     case "not_found":
                     default:
