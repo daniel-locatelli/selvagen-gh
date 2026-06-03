@@ -97,6 +97,19 @@ namespace Selvagen.Core.Models
     }
 
     /// <summary>
+    /// Result of the delete_asset_by_id RPC. Status is one of:
+    /// "deleted" (Table is populated), "forbidden", or "not_found".
+    /// </summary>
+    public class DeleteAssetResult
+    {
+        [JsonPropertyName("status")]
+        public string Status { get; set; } = "";
+
+        [JsonPropertyName("table")]
+        public string Table { get; set; } = "";
+    }
+
+    /// <summary>
     /// Response when creating an animation sequence.
     /// </summary>
     public class AnimationSequenceInfo
