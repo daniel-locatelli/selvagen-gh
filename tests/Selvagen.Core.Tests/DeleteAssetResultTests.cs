@@ -30,6 +30,7 @@ namespace Selvagen.Core.Tests
             var json = "{\"status\":\"forbidden\"}";
             var result = JsonSerializer.Deserialize<DeleteAssetResult>(json);
             Assert.Equal("forbidden", result.Status);
+            Assert.Equal("", result.Table);
         }
     }
 }

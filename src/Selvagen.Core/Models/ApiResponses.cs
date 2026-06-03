@@ -98,7 +98,7 @@ namespace Selvagen.Core.Models
 
     /// <summary>
     /// Result of the delete_asset_by_id RPC. Status is one of:
-    /// "deleted" (Table is populated), "forbidden", or "not_found".
+    /// "deleted" (Table is populated only in this case), "forbidden", or "not_found".
     /// </summary>
     public class DeleteAssetResult
     {
