@@ -26,7 +26,6 @@ namespace Selvagen.GH.Components
         private RectangleF _dropdownRect;
         private RectangleF _buttonRect;
         private bool _buttonPressed;
-        private float? _naturalHeight;
 
         public SelvagenActionAttributes(IGH_Component owner) : base(owner)
         {
@@ -39,17 +38,20 @@ namespace Selvagen.GH.Components
         {
             base.Layout();
 
-            if (!_naturalHeight.HasValue)
-                _naturalHeight = Bounds.Height;
+            // Read the body height fresh on every Layout. base.Layout() recomputes
+            // Bounds from scratch for the current display mode (icon vs. full-name),
+            // so caching this value would freeze the icon-mode height and leave the
+            // buttons painted over the taller name-mode body.
+            float naturalHeight = Bounds.Height;
 
             int extra = Padding + ButtonHeight + Padding;
             if (_dropdown != null) extra += DropdownHeight + Padding;
 
             var bounds = Bounds;
-            bounds.Height = _naturalHeight.Value + extra;
+            bounds.Height = naturalHeight + extra;
             Bounds = bounds;
 
-            float y = Bounds.Top + _naturalHeight.Value + Padding;
+            float y = Bounds.Top + naturalHeight + Padding;
 
             if (_dropdown != null)
             {
