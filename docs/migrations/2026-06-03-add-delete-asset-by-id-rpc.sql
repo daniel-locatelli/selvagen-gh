@@ -32,8 +32,17 @@ begin
   end if;
 
   v_table := v_found[1];
-  execute format('delete from public.%I where id = $1', v_table) using p_asset_id;
-  get diagnostics v_count = row_count;   -- EXECUTE does not set FOUND
+  begin
+    execute format('delete from public.%I where id = $1', v_table) using p_asset_id;
+    get diagnostics v_count = row_count;   -- EXECUTE does not set FOUND
+  exception
+    -- The asset is still referenced by a domain row. This surfaces either as a
+    -- foreign_key_violation (ON DELETE RESTRICT) or as raise_exception/P0001 from
+    -- a check-assets trigger that re-validates a referencing row during the FK
+    -- ON DELETE SET NULL cascade. Either way: report 'in_use' rather than erroring.
+    when foreign_key_violation or raise_exception then
+      return jsonb_build_object('status', 'in_use');
+  end;
 
   if v_count > 0 then
     return jsonb_build_object('status', 'deleted', 'table', v_table);

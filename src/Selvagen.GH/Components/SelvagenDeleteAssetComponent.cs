@@ -87,6 +87,12 @@ namespace Selvagen.GH.Components
                         DA.SetData(0, false);
                         DA.SetData(1, forbiddenMsg);
                         break;
+                    case "in_use":
+                        const string inUseMsg = "Cannot delete: this asset is still referenced by other project records (analysis, geology, topography, or optimization). Remove those references first.";
+                        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, inUseMsg);
+                        DA.SetData(0, false);
+                        DA.SetData(1, inUseMsg);
+                        break;
                     case "not_found":
                     default:
                         DA.SetData(0, false);

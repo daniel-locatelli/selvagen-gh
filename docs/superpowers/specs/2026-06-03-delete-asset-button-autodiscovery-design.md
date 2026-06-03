@@ -71,10 +71,15 @@ caller's SELECT visibility). Then:
   existence of other firms' assets).
 - **>1 table matched** → `raise exception` (data-integrity guard; refuses to
   delete a UUID that exists in multiple tables, before destroying anything).
-- **exactly 1 table** → delete from it. Row count read via `GET DIAGNOSTICS`
-  (note: `EXECUTE` does **not** set `FOUND`). Deleted ≥1 row →
-  `{ "status": "deleted", "table": "<name>" }`; deleted 0 rows →
+- **exactly 1 table** → delete from it, inside a `begin … exception` block. Row
+  count read via `GET DIAGNOSTICS` (note: `EXECUTE` does **not** set `FOUND`).
+  Deleted ≥1 row → `{ "status": "deleted", "table": "<name>" }`; deleted 0 rows →
   `{ "status": "forbidden" }` (caller could see the row but is not an editor).
+- **referential block** → if the delete raises `foreign_key_violation` or
+  `raise_exception`/`P0001` (a check-assets trigger rejecting the
+  `ON DELETE SET NULL` cascade because the asset is still referenced by a domain
+  row), the exception handler returns `{ "status": "in_use" }` instead of
+  erroring.
 
 ```sql
 create or replace function public.delete_asset_by_id(p_asset_id uuid)
@@ -168,6 +173,8 @@ old `DeleteAssetAsync(string tableName, string assetId)` method.
     - `deleted` → `Success = true`, status `"Deleted <id> from <table>"`.
     - `forbidden` → `Success = false`, warning + status
       `"You don't have permission to delete this asset (editor role required)."`
+    - `in_use` → `Success = false`, warning + status
+      `"Cannot delete: this asset is still referenced by other project records …"`
     - `not_found` → `Success = false`, status
       `"Asset not found (check the ID, or it may already be deleted)."`
     - exception → `SetActionError` (surfaces the integrity-violation message).
