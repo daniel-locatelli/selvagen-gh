@@ -53,5 +53,20 @@ namespace Selvagen.Core.Tests
                 // Expected failure if not logged in or other issues
             }
         }
+
+        [Fact]
+        public async Task TestDeleteAssetById_AuthGuard()
+        {
+            var client = new SelvagenClient(_url, _key);
+            // Not logged in: the call must fail the auth guard, not silently succeed.
+            try
+            {
+                await client.DeleteAssetByIdAsync("00000000-0000-0000-0000-000000000000");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Assert.Contains("Not authenticated", ex.Message);
+            }
+        }
     }
 }

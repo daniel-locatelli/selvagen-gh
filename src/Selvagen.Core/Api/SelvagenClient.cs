@@ -448,25 +448,24 @@ namespace Selvagen.Core.Api
         }
 
         /// <summary>
-        /// Delete an asset by table name and ID.
+        /// Delete an asset by its ID alone. Calls the delete_asset_by_id RPC,
+        /// which finds the owning table under the caller's RLS and deletes it.
+        /// Returns a result whose Status is "deleted" (with Table), "forbidden",
+        /// or "not_found".
         /// </summary>
-        public async Task DeleteAssetAsync(string tableName, string assetId)
+        public async Task<DeleteAssetResult> DeleteAssetByIdAsync(string assetId)
         {
-            if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException(nameof(tableName));
             if (string.IsNullOrEmpty(assetId)) throw new ArgumentNullException(nameof(assetId));
 
-            var path = $"/rest/v1/{tableName}?id=eq.{assetId}";
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_supabaseUrl}{path}");
-            await EnsureValidTokenAsync().ConfigureAwait(false);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-            request.Headers.Add("apikey", _anonKey);
+            var body = JsonSerializer.Serialize(new { p_asset_id = assetId });
+            var content = new StringContent(body, Encoding.UTF8, "application/json");
+            var response = await SendAuthorizedAsync(HttpMethod.Post, "/rest/v1/rpc/delete_asset_by_id", content).ConfigureAwait(false);
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            var response = await _http.SendAsync(request).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
-            {
-                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 throw new SelvagenApiException($"Delete asset failed: {json}", (int)response.StatusCode);
-            }
+
+            return JsonSerializer.Deserialize<DeleteAssetResult>(json);
         }
 
         private async Task<AssetInfo[]> QueryAssetsAsync(string path, string label)
