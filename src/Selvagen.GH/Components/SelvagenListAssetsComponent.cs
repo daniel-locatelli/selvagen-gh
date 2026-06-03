@@ -10,16 +10,16 @@ namespace Selvagen.GH.Components
     public class SelvagenListAssetsComponent : SelvagenSelectableComponentBase<AssetInfo>, IFilterDropdownComponent
     {
         private static readonly string[] _filterOptions =
-            { "meshes", "curve_sets", "label_sets", "animation_sequences" };
+            { "meshes", "curve_sets", "label_sets", "animation_sequences", "color_legends" };
 
         private static readonly string[] _filterDisplayNames =
-            { "Meshes", "Curve Sets", "Label Sets", "Animation Sequences" };
+            { "Meshes", "Curve Sets", "Label Sets", "Animation Sequences", "Color Legends" };
 
         private string _assetType = "meshes";
 
         public SelvagenListAssetsComponent()
             : base("List Assets", "SvAssets",
-                "List meshes, curve sets, label sets, or animation sequences for a project. Pick one from the inline dropdown. [Listar Assets]",
+                "List meshes, curve sets, label sets, animation sequences, or color legends for a project. Pick one from the inline dropdown. [Listar Assets]",
                 "08 Assets")
         { }
 
@@ -85,8 +85,14 @@ namespace Selvagen.GH.Components
                 case "animation_sequences":
                 case "animations":
                     return await client.ListAnimationSequencesAsync(projectId).ConfigureAwait(false);
+                case "color_legends":
+                case "color_legend":
+                case "legends":
+                    var legends = await client.ListColorLegendsAsync(projectId).ConfigureAwait(false);
+                    return Array.ConvertAll(legends ?? new ColorLegendInfo[0],
+                        l => new AssetInfo { Id = l.Id, Name = l.Name, Type = "color_legend" });
                 default:
-                    throw new ArgumentException($"Unknown asset type: {assetType}. Use meshes, curve_sets, label_sets, or animation_sequences.");
+                    throw new ArgumentException($"Unknown asset type: {assetType}. Use meshes, curve_sets, label_sets, animation_sequences, or color_legends.");
             }
         }
 
