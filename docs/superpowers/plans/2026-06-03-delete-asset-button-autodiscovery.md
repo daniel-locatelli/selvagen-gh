@@ -50,11 +50,14 @@ declare
   v_table text;
   v_count integer;
 begin
-  if exists (select 1 from public.meshes              where id = p_asset_id) then v_found := v_found || 'meshes';              end if;
-  if exists (select 1 from public.curve_sets          where id = p_asset_id) then v_found := v_found || 'curve_sets';          end if;
-  if exists (select 1 from public.label_sets          where id = p_asset_id) then v_found := v_found || 'label_sets';          end if;
-  if exists (select 1 from public.animation_sequences where id = p_asset_id) then v_found := v_found || 'animation_sequences'; end if;
-  if exists (select 1 from public.color_legends       where id = p_asset_id) then v_found := v_found || 'color_legends';       end if;
+  -- array_append, NOT `||`: appending an untyped literal via || makes Postgres
+  -- resolve it as anyarray||anyarray and parse e.g. 'meshes' as an array literal
+  -- (22P02 malformed array literal). array_append binds the literal to anyelement.
+  if exists (select 1 from public.meshes              where id = p_asset_id) then v_found := array_append(v_found, 'meshes');              end if;
+  if exists (select 1 from public.curve_sets          where id = p_asset_id) then v_found := array_append(v_found, 'curve_sets');          end if;
+  if exists (select 1 from public.label_sets          where id = p_asset_id) then v_found := array_append(v_found, 'label_sets');          end if;
+  if exists (select 1 from public.animation_sequences where id = p_asset_id) then v_found := array_append(v_found, 'animation_sequences'); end if;
+  if exists (select 1 from public.color_legends       where id = p_asset_id) then v_found := array_append(v_found, 'color_legends');       end if;
 
   if array_length(v_found, 1) is null then
     return jsonb_build_object('status', 'not_found');
