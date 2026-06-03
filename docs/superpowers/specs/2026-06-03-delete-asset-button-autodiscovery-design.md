@@ -25,7 +25,13 @@ The component discovers which table the asset lives in and deletes it from there
   The table name is only needed to *route* the delete, not to identify the row.
 - All five asset tables (`meshes`, `curve_sets`, `label_sets`,
   `animation_sequences`, `color_legends`) enforce DELETE through an **RLS
-  policy** of the form `user_can_at_least(project.firm_id, 'editor')`.
+  policy** of the form `user_can_at_least(project.firm_id, 'editor')`, while
+  SELECT is granted more broadly to *any active firm member*. This asymmetry
+  (SELECT ⊃ DELETE) is what lets a `SECURITY INVOKER` function tell "you can see
+  it but can't delete it" (forbidden) apart from "you can't see it" (not found).
+- `id` is the PRIMARY KEY on every asset table, so an `id = …` probe is an index
+  lookup, not a sequential scan — five probes cost microseconds and do not
+  degrade as the tables grow.
 - The button + one-shot-flag infrastructure already exists in
   `SelvagenActionComponentBase` + `SelvagenActionAttributes` (built for Upload).
 
@@ -37,40 +43,76 @@ The component discovers which table the asset lives in and deletes it from there
 - **Color legends:** included — Delete can target `color_legends`, matching what
   List Assets shows.
 - **Compatibility:** clean break. The `Asset Table` and boolean `Delete` inputs
-  are removed; the component keeps its existing `ComponentGuid` so saved
-  definitions still resolve to it (they drop the wires to removed inputs rather
-  than showing a missing-component placeholder).
+  are removed. The project is **greenfield** — no saved definitions use the old
+  component — so no upgrade-detection warning is needed. The existing
+  `ComponentGuid` is kept anyway (harmless, and avoids gratuitous churn).
 - **Old client method:** `DeleteAssetAsync(table, id)` is removed — its only
   caller is the component being rewritten.
+- **Integrity guard:** the RPC scans all five tables (not early-return) so a UUID
+  that somehow exists in more than one table is caught and refused *before* any
+  delete, rather than silently orphaning a twin row.
+- **Error granularity:** the RPC returns three distinct outcomes — `deleted`,
+  `forbidden` (visible but caller is not an editor), `not_found` — so the
+  component can show precise, actionable status messages.
 
 ## Design
 
-### 1. Server — RPC `public.delete_asset_by_id(p_asset_id uuid) → text`
+### 1. Server — RPC `public.delete_asset_by_id(p_asset_id uuid) → jsonb`
 
-`SECURITY INVOKER` (the default), so the deletes inside run as the calling user
-and the existing RLS `editor` policies enforce authorization unchanged — no
-privilege escalation, no service-role key. The body tries each table in order
-and early-returns the table name on the first row deleted; returns `null` if
-nothing was deleted.
+`SECURITY INVOKER` (the default), so every statement inside runs as the calling
+user and the existing RLS policies enforce authorization unchanged — no
+privilege escalation, no service-role key.
 
-Because RLS filters rows the caller can't touch, a delete the user isn't
-permitted to perform affects 0 rows rather than erroring — so "not found" and
-"not authorized" collapse into the same `null` result, by design.
+Flow: an **existence scan** probes all five tables (PK index lookups under the
+caller's SELECT visibility). Then:
+
+- **0 tables matched** → `{ "status": "not_found" }` (not present, or in a firm
+  the caller can't see — deliberately not distinguished, to avoid leaking the
+  existence of other firms' assets).
+- **>1 table matched** → `raise exception` (data-integrity guard; refuses to
+  delete a UUID that exists in multiple tables, before destroying anything).
+- **exactly 1 table** → delete from it. Row count read via `GET DIAGNOSTICS`
+  (note: `EXECUTE` does **not** set `FOUND`). Deleted ≥1 row →
+  `{ "status": "deleted", "table": "<name>" }`; deleted 0 rows →
+  `{ "status": "forbidden" }` (caller could see the row but is not an editor).
 
 ```sql
 create or replace function public.delete_asset_by_id(p_asset_id uuid)
-returns text
+returns jsonb
 language plpgsql
 security invoker
 set search_path = public
 as $$
+declare
+  v_found text[] := array[]::text[];
+  v_table text;
+  v_count integer;
 begin
-  delete from public.meshes               where id = p_asset_id; if found then return 'meshes';               end if;
-  delete from public.curve_sets           where id = p_asset_id; if found then return 'curve_sets';           end if;
-  delete from public.label_sets           where id = p_asset_id; if found then return 'label_sets';           end if;
-  delete from public.animation_sequences  where id = p_asset_id; if found then return 'animation_sequences';  end if;
-  delete from public.color_legends        where id = p_asset_id; if found then return 'color_legends';        end if;
-  return null;
+  -- Existence scan under the caller's RLS. SELECT is granted to any active firm
+  -- member; DELETE needs editor — so a visible-but-undeletable row is detectable.
+  -- Scanning all five also catches a UUID present in >1 table before we delete.
+  if exists (select 1 from public.meshes              where id = p_asset_id) then v_found := v_found || 'meshes';              end if;
+  if exists (select 1 from public.curve_sets          where id = p_asset_id) then v_found := v_found || 'curve_sets';          end if;
+  if exists (select 1 from public.label_sets          where id = p_asset_id) then v_found := v_found || 'label_sets';          end if;
+  if exists (select 1 from public.animation_sequences where id = p_asset_id) then v_found := v_found || 'animation_sequences'; end if;
+  if exists (select 1 from public.color_legends       where id = p_asset_id) then v_found := v_found || 'color_legends';       end if;
+
+  if array_length(v_found, 1) is null then
+    return jsonb_build_object('status', 'not_found');
+  end if;
+  if array_length(v_found, 1) > 1 then
+    raise exception 'Data integrity violation: asset id % found in multiple tables (%).', p_asset_id, v_found;
+  end if;
+
+  v_table := v_found[1];
+  execute format('delete from public.%I where id = $1', v_table) using p_asset_id;
+  get diagnostics v_count = row_count;   -- EXECUTE does not set FOUND
+
+  if v_count > 0 then
+    return jsonb_build_object('status', 'deleted', 'table', v_table);
+  else
+    return jsonb_build_object('status', 'forbidden');
+  end if;
 end;
 $$;
 
@@ -80,16 +122,31 @@ grant execute on function public.delete_asset_by_id(uuid) to authenticated;
 Tracked as a file under `docs/migrations/` (matching the existing convention)
 and applied to project `aqzfsrebvjkegvfexcut` (GEN.BOARD) via `apply_migration`.
 
+**Known edge (accepted):** a concurrent delete landing between the existence
+scan and our delete would yield `forbidden` instead of `not_found` — a wrong
+*message*, never wrong data.
+
 ### 2. Client — `SelvagenClient.DeleteAssetByIdAsync`
 
 ```
-Task<string> DeleteAssetByIdAsync(string assetId)
+Task<DeleteAssetResult> DeleteAssetByIdAsync(string assetId)
 ```
 
 POSTs `{ "p_asset_id": assetId }` to `/rest/v1/rpc/delete_asset_by_id` via the
-existing `SendAuthorizedAsync` helper; deserializes the scalar response to the
-table name string, or `null` when nothing was deleted. Removes the old
-`DeleteAssetAsync(string tableName, string assetId)` method.
+existing `SendAuthorizedAsync` helper and deserializes the `jsonb` response into
+a small DTO:
+
+```csharp
+public class DeleteAssetResult
+{
+    [JsonPropertyName("status")] public string Status { get; set; } = ""; // deleted | forbidden | not_found
+    [JsonPropertyName("table")]  public string Table  { get; set; } = "";
+}
+```
+
+A non-2xx response (e.g. the integrity-violation `raise`) throws
+`SelvagenApiException`, consistent with the other client methods. Removes the
+old `DeleteAssetAsync(string tableName, string assetId)` method.
 
 ### 3. Component — `SelvagenDeleteAssetComponent` rewrite
 
@@ -103,11 +160,14 @@ table name string, or `null` when nothing was deleted. Removes the old
 - `SolveInstance` mirrors the upload pattern:
   - `!ActionRequested` → status "Ready."; warn if not logged in.
   - empty Asset ID → warning, status "Missing Asset ID".
-  - else set `IsRunning`, `ForceCanvasRefresh`, call `DeleteAssetByIdAsync`:
-    - non-null table → `Success = true`, status `"Deleted <id> from <table>"`.
-    - null → `Success = false`, status
-      `"Asset not found or you lack permission to delete it."`
-    - exception → `SetActionError`.
+  - else set `IsRunning`, `ForceCanvasRefresh`, call `DeleteAssetByIdAsync`, then
+    map `result.Status`:
+    - `deleted` → `Success = true`, status `"Deleted <id> from <table>"`.
+    - `forbidden` → `Success = false`, warning + status
+      `"You don't have permission to delete this asset (editor role required)."`
+    - `not_found` → `Success = false`, status
+      `"Asset not found (check the ID, or it may already be deleted)."`
+    - exception → `SetActionError` (surfaces the integrity-violation message).
 
 ## Verification
 
@@ -119,3 +179,6 @@ table name string, or `null` when nothing was deleted. Removes the old
    "Deleted …".
 5. Wire a bogus/already-deleted ID, click → status reads the not-found message,
    `Success = false`.
+6. (If a non-editor test session is available) delete a visible asset → status
+   reads the permission message. Otherwise verify the `forbidden` branch with a
+   direct `select public.delete_asset_by_id(...)` under a viewer role in SQL.
