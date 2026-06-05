@@ -25,9 +25,11 @@ namespace Selvagen.GH.Components
             pManager.AddTextParameter("Name", "N", "Display name for the label set [Nome de Exibição]", GH_ParamAccess.item);
             pManager.AddColourParameter("Color", "C", "Per-label text colour (one per label, or a single colour for all) [Cor do Texto]", GH_ParamAccess.list);
             pManager.AddIntegerParameter("Justification", "J", "Per-label justification (0=BotLeft, 1=BotCenter, 2=BotRight, 3=MidLeft, 4=MidCenter, 5=MidRight, 6=TopLeft, 7=TopCenter, 8=TopRight) [Justificação do Texto]", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Size", "S", "Text size in model units (one per label or one for all). [Tamanho do Texto]", GH_ParamAccess.list);
 
             Params.Input[4].Optional = true;
             Params.Input[5].Optional = true;
+            Params.Input[6].Optional = true;
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -43,6 +45,7 @@ namespace Selvagen.GH.Components
             var texts = new List<string>();
             var colors = new List<Color>();
             var justifications = new List<int>();
+            var sizes = new List<double>();
 
             DA.GetData(0, ref projectId);
             DA.GetDataList(1, planes);
@@ -50,6 +53,7 @@ namespace Selvagen.GH.Components
             DA.GetData(3, ref name);
             DA.GetDataList(4, colors);
             DA.GetDataList(5, justifications);
+            DA.GetDataList(6, sizes);
 
             var client = SessionManager.Current;
 
@@ -77,7 +81,8 @@ namespace Selvagen.GH.Components
                     planes,
                     texts,
                     colors: colors.Count > 0 ? colors : null,
-                    justifications: justifications.Count > 0 ? justifications : null);
+                    justifications: justifications.Count > 0 ? justifications : null,
+                    fontSizes: sizes.Count > 0 ? sizes : null);
                 var result = Task.Run(() => client.UploadLabelSetAsync(projectId, name, labelSet)).GetAwaiter().GetResult();
 
                 DA.SetData(0, result.Id);

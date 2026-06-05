@@ -82,7 +82,8 @@ namespace Selvagen.Core.Converters
             IList<Plane> planes,
             IList<string> texts,
             IList<Color> colors = null,
-            IList<int> justifications = null)
+            IList<int> justifications = null,
+            IList<double> fontSizes = null)
         {
             if (planes == null) throw new ArgumentNullException(nameof(planes));
             if (texts == null) throw new ArgumentNullException(nameof(texts));
@@ -112,6 +113,13 @@ namespace Selvagen.Core.Converters
                     var (ax, ay) = JustificationToAnchors(j);
                     label.AnchorX = ax;
                     label.AnchorY = ay;
+                }
+
+                if (fontSizes != null && fontSizes.Count > 0)
+                {
+                    double size = fontSizes[Math.Min(i, fontSizes.Count - 1)];
+                    if (size > 0)
+                        label.FontSize = size;
                 }
 
                 labels[i] = label;
