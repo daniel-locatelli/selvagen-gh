@@ -1,11 +1,10 @@
----
 name: selvagen
-version: 1.0.0 # x-release-please-version
+version: 1.1.0
 authors:
   - Selvagen Authors
 description: >
-  Selvagen provides Grasshopper components for pushing geometry, labels,
-  meshes, curves and analyses from Rhino to the Selvagen platform.
+  Selvagen provides Grasshopper components for pushing geometry, labels, meshes,
+  curves and analyses from Rhino to the Selvagen platform.
 url: https://github.com/daniel-locatelli/selvagen-gh
 icon: icon.png
 keywords:
