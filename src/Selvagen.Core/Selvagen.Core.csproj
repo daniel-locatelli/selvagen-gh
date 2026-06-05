@@ -7,7 +7,7 @@
     <AssemblyName>Selvagen.Core</AssemblyName>
     <Description>Core library for Selvagen Grasshopper plugin — geometry converters, API client, and data models.</Description>
     <NoWarn>NU1701;NETSDK1086</NoWarn>
-    <Version>1.0</Version>
+    <Version>1.0.0</Version> <!-- x-release-please-version -->
     <Title>Selvagen.Core</Title>
     <Company>Selvagen Authors</Company>
   </PropertyGroup>

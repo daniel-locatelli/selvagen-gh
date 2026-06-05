@@ -111,6 +111,49 @@ $env:SELVAGEN_TEST_PASSWORD = "your-test-password"
 pwsh tests/integration/run.ps1
 ```
 
+## Releases & Versioning
+
+Versioning is automated with [release-please](https://github.com/googleapis/release-please)
+driven by [Conventional Commits](https://www.conventionalcommits.org/). The version
+number is computed from commit messages — you never bump it by hand.
+
+| Commit prefix | Example | Version effect |
+|---|---|---|
+| `feat:` | `feat(gh): add Geology component` | **minor** bump (1.2.0 → 1.3.0) |
+| `fix:` / `perf:` / `refactor:` | `fix(core): correct Y-up flip` | **patch** bump (1.2.0 → 1.2.1) |
+| `feat!:` or `BREAKING CHANGE:` footer | `feat(gh)!: drop Rhino 7 support` | **major** bump (1.2.0 → 2.0.0) |
+| `docs:` / `chore:` / `ci:` | `docs: update README` | no release on its own |
+
+### How a release happens
+
+1. You merge normal `feat:`/`fix:` commits to `main`.
+2. The **Release** workflow keeps a standing **"Release PR"** open, showing the next
+   version and an auto-generated `CHANGELOG.md`.
+3. When you're ready to ship, **merge the Release PR**. release-please then:
+   - bumps `<Version>` in both `.csproj` files and `manifest.yml` (kept in sync via the
+     `x-release-please-version` markers),
+   - tags the commit (`vX.Y.Z`) and publishes a **[GitHub Release](../../releases)**.
+4. In the **same** workflow run, packaging builds the Rhino 8 / Windows target, zips it as
+   `Selvagen-vX.Y.Z-rh8-win.zip`, attaches it to the Release, and (if configured) pushes a
+   `.yak` package to Rhino's Package Manager.
+
+The **CI** workflow builds all target frameworks and runs the test suite on every push and
+pull request — a release is only ever cut from green `main`.
+
+### One-time GitHub setup
+
+These must be done once in the repository settings before the first release:
+
+1. **Settings → Actions → General → Workflow permissions:** select *Read and write
+   permissions* and tick *Allow GitHub Actions to create and approve pull requests*
+   (release-please needs this to open the Release PR).
+2. **Yak publishing (optional).** To auto-publish to Rhino's Package Manager:
+   - Run `yak login --ci` locally (requires Rhino installed) to mint a non-expiring token.
+   - Add it as a repo secret named **`YAK_TOKEN`** (Settings → Secrets and variables →
+     Actions). Without this secret the Yak step is skipped; the GitHub Release zip is still
+     produced.
+   - The package name `selvagen` is reserved on first push by the account that owns the token.
+
 ## Target Framework Guidance
 
 Rhino 8 moved from .NET Framework to .NET Core. The .NET runtime used depends on the Rhino version:
