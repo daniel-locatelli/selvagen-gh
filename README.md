@@ -30,7 +30,7 @@ Selvagen.sln
 | **Selvagen Delete Asset** | Data | SvDelete | Delete a geometry asset by ID |
 | **Selvagen Upload Mesh** | Upload | SvUpMesh | Convert and upload a Rhino mesh |
 | **Selvagen Upload Curves** | Upload | SvUpCrv | Tessellate and upload curves |
-| **Selvagen Upload Labels** | Upload | SvUpLbl | Upload 3D text labels |
+| **Selvagen Upload Labels** | Upload | SvUpLbl | Upload 3D text labels, with optional per-label color, justification, and size |
 | **Selvagen Upload Animation** | Upload | SvUpAnim | Upload a mesh sequence as animation |
 | **Selvagen Topography** | Modules | SvTopo | Populate topography data (28 fields) |
 | **Selvagen Geology** | Modules | SvGeo | Populate geology data (14 fields) |
@@ -77,7 +77,32 @@ See [`docs/GEOMETRY_FORMAT.md`](docs/GEOMETRY_FORMAT.md) for the full JSON schem
 - .NET Framework 4.8 (Rhino 7) or .NET 8.0+ (Rhino 8)
 - A Selvagen account with a Supabase project URL and anon key
 
+## Installation
+
+Most users don't need to build from source — install a released build directly.
+
+### Option A — Rhino Package Manager (recommended)
+
+1. In Rhino 8, run the `PackageManager` command.
+2. Search for **`selvagen`**.
+3. Click **Install**, then restart Rhino.
+
+New versions show up in the Package Manager automatically whenever a release is published.
+
+### Option B — Download from GitHub Releases
+
+1. Open the [Releases page](../../releases) and download the latest
+   `Selvagen-vX.Y.Z-rh8-win.zip`.
+2. Extract its contents into a `Selvagen` subfolder of your Grasshopper Libraries folder:
+   - **Windows:** `%APPDATA%\Grasshopper\Libraries\Selvagen\`
+3. Restart Rhino.
+
+> The released package targets **Rhino 8 on Windows** (`net8.0-windows`). For Rhino 7 or
+> macOS, build from source (below).
+
 ## Building
+
+Build from source to develop the plugin or to target Rhino 7 (`net48`) / macOS:
 
 ```bash
 dotnet build Selvagen.sln
