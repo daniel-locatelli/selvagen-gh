@@ -39,3 +39,6 @@ __pycache__/
 
 ## Local-only skill junction (points to C:epos\creating-grasshopper-plugin)
 .claude/skills/creating-grasshopper-plugin/
+
+## Local git worktrees
+.claude/worktrees/
