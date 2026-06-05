@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/daniel-locatelli/selvagen-gh/compare/v1.1.0...v1.1.1) (2026-06-05)
+
+
+### Bug Fixes
+
+* replace placeholder package icon with Selvagen brand logo
+
 ## [1.1.0](https://github.com/daniel-locatelli/selvagen-gh/compare/v1.0.0...v1.1.0) (2026-06-05)
 
 

@@ -9,7 +9,7 @@
     <LangVersion>latest</LangVersion>
     <RootNamespace>Selvagen.GH</RootNamespace>
     <AssemblyName>Selvagen.GH</AssemblyName>
-    <Version>1.1.0</Version> <!-- x-release-please-version -->
+    <Version>1.1.1</Version> <!-- x-release-please-version -->
     <Title>Selvagen</Title>
     <Company>Selvagen Authors</Company>
     <Description>Grasshopper components for pushing geometry from Rhino to the Selvagen platform.</Description>
