@@ -1,0 +1,97 @@
+name: Release
+
+# On every push to main, release-please maintains a "Release PR" that
+# accumulates the next version + CHANGELOG from your Conventional Commits.
+# Merging that PR makes release-please tag the commit and publish a GitHub
+# Release. Because the release is created with the default GITHUB_TOKEN, a
+# separate "on: release" workflow would NOT fire (GitHub blocks recursive
+# token triggers) — so packaging runs in THIS run, gated on release_created.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: Release PR / Tag
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  package:
+    name: Package & Publish
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: windows-latest
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+      VERSION: ${{ needs.release-please.outputs.version }}
+      YAK_TOKEN: ${{ secrets.YAK_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      # Build only the Rhino 8 / Windows target — this is what we distribute.
+      - name: Build (net8.0-windows, Release)
+        run: dotnet build src/Selvagen.GH/Selvagen.GH.csproj -c Release -f net8.0-windows
+
+      - name: Create release zip
+        shell: pwsh
+        run: |
+          $outDir = "src/Selvagen.GH/bin/Release/net8.0-windows"
+          $zip = "Selvagen-$env:TAG-rh8-win.zip"
+          # Ship the runtime files (.gha + dependency DLLs). Exclude pdb/yak artifacts.
+          $files = Get-ChildItem $outDir -File |
+            Where-Object { $_.Extension -in '.gha', '.dll', '.json' }
+          Compress-Archive -Path $files.FullName -DestinationPath $zip -Force
+          echo "ZIP=$zip" >> $env:GITHUB_ENV
+          Get-Item $zip | Format-List Name, Length
+
+      - name: Upload zip to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "$env:TAG" "$env:ZIP" --clobber
+
+      # ── Yak publishing (optional) ────────────────────────────────────
+      # Requires a YAK_TOKEN repo secret (generate locally with `yak login --ci`)
+      # and the package name 'selvagen' reserved on the Yak server by that
+      # account. If the secret is absent, this step no-ops instead of failing.
+      - name: Publish to Yak
+        shell: pwsh
+        run: |
+          if (-not $env:YAK_TOKEN) {
+            Write-Host "YAK_TOKEN not set — skipping Yak publish."
+            exit 0
+          }
+          # Download yak.exe OUTSIDE the package folder, or `yak build` would
+          # bundle the CLI itself into the .yak.
+          $yak = Join-Path $PWD "yak.exe"
+          Invoke-WebRequest -Uri "https://files.mcneel.com/yak/tools/latest/yak.exe" -OutFile $yak
+          $outDir = "src/Selvagen.GH/bin/Release/net8.0-windows"
+          Push-Location $outDir
+          try {
+            & $yak build --platform win
+            $pkg = Get-ChildItem -Filter "*.yak" | Select-Object -First 1
+            if (-not $pkg) { throw "yak build produced no .yak file" }
+            Write-Host "Pushing $($pkg.Name)"
+            & $yak push $pkg.Name
+          } finally {
+            Pop-Location
+          }

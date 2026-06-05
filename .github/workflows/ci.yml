@@ -1,0 +1,34 @@
+name: CI
+
+# Build and test on every push to main and every pull request.
+# This is the gate that must pass before a release is ever cut.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore Selvagen.sln
+
+      # Builds all target frameworks (net8.0-windows, net8.0, net48).
+      # RhinoCommon/Grasshopper are reference-only (ExcludeAssets=runtime),
+      # so no Rhino install is required on the runner.
+      - name: Build
+        run: dotnet build Selvagen.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test Selvagen.sln -c Release --no-build --verbosity normal

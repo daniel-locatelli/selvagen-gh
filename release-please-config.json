@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "simple",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "changelog-sections": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug Fixes" },
+    { "type": "perf", "section": "Performance" },
+    { "type": "refactor", "section": "Refactoring" },
+    { "type": "docs", "section": "Documentation" },
+    { "type": "build", "section": "Build & CI" },
+    { "type": "ci", "section": "Build & CI" },
+    { "type": "chore", "section": "Chores", "hidden": true }
+  ],
+  "packages": {
+    ".": {
+      "package-name": "selvagen",
+      "extra-files": [
+        "src/Selvagen.Core/Selvagen.Core.csproj",
+        "src/Selvagen.GH/Selvagen.GH.csproj",
+        "src/Selvagen.GH/manifest.yml"
+      ]
+    }
+  }
+}
